@@ -1,0 +1,28 @@
+# 服务器配置
+server:
+  port: 8081  # 端口号
+  servlet:
+    context-path: /ems  # 应用上下文路径（访问前缀）
+
+# Spring 配置
+spring:
+  application:
+    name: ems  # 应用名称
+  # 热部署配置（DevTools）
+  devtools:
+    restart:
+      enabled: true  # 开启热部署
+      additional-paths: src/main/java  # 监听Java目录变化
+  # 数据库配置
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver  # MySQL 8.x 驱动类（5.x用com.mysql.jdbc.Driver）
+    url: jdbc:mysql://localhost:3306/ems?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    username: root  # 你的MySQL用户名
+
+
+# 日志配置
+logging:
+  level:
+    cn.gzus.lyf: debug  # 自定义包日志级别
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{50} - %msg%n"  # 控制台日志格式
