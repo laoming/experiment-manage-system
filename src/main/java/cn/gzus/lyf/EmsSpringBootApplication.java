@@ -5,14 +5,13 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
  * Spring Boot 启动类
- * @SpringBootApplication 包含：@Configuration + @EnableAutoConfiguration + @ComponentScan
  */
 @SpringBootApplication
-public class ExperimentManageSystemApplication {
+public class EmsSpringBootApplication {
 
     public static void main(String[] args) {
         // 启动Spring Boot应用
-        SpringApplication.run(ExperimentManageSystemApplication.class, args);
+        SpringApplication.run(EmsSpringBootApplication.class, args);
         System.out.println("===== 实验管理系统 启动成功 =====");
     }
 
