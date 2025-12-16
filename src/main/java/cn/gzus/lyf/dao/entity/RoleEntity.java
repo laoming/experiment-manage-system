@@ -1,11 +1,14 @@
 package cn.gzus.lyf.dao.entity;
 
+import com.baomidou.mybatisplus.annotation.TableName;
+
 import java.util.Date;
 
 /**
  * 系统角色表实体类
  */
-public class Role {
+@TableName("role")
+public class RoleEntity {
     /**
      * 角色ID
      */

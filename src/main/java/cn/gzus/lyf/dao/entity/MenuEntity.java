@@ -1,11 +1,14 @@
 package cn.gzus.lyf.dao.entity;
 
+import com.baomidou.mybatisplus.annotation.TableName;
+
 import java.util.Date;
 
 /**
  * 系统菜单表实体类
  */
-public class Menu {
+@TableName("menu")
+public class MenuEntity {
     /**
      * 菜单ID
      */

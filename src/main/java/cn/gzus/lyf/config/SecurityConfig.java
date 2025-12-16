@@ -5,6 +5,7 @@
 //import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 //import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 //import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+//import org.springframework.security.config.http.SessionCreationPolicy;
 //import org.springframework.security.web.SecurityFilterChain;
 //
 //@Configuration
@@ -36,22 +37,21 @@
 //    @Bean
 //    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 //        http
-//                // 前后端不分离可开启CSRF
-//                .csrf(csrf -> csrf.enable())
-//                // 启用Session（默认就是STATEFUL）
-//                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATEFUL))
-//                // 表单登录（Spring Security原生登录页）
-//                .formLogin(form -> form
-//                        .loginProcessingUrl("/login") // 登录接口
-//                        .permitAll()
-//                )
+//                // 关闭CSRF（前后端分离不需要）
+//                .csrf(csrf -> csrf.disable())
+//                // 关闭Session（JWT无状态）
+//                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 //                // 权限配置
 //                .authorizeHttpRequests(auth -> auth
+//                        // 放行登录接口
 //                        .requestMatchers("/login").permitAll()
+//                        // 其余请求需认证
 //                        .anyRequest().authenticated()
 //                )
+//                // 添加JWT过滤器
+//                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+//                // 认证提供者
 //                .authenticationProvider(authenticationProvider());
-//
 //        return http.build();
 //    }
 //}

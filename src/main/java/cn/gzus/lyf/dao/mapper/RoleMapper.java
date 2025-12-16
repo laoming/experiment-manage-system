@@ -1,7 +1,7 @@
 package cn.gzus.lyf.dao.mapper;
 
-import cn.gzus.lyf.dao.entity.Role;
+import cn.gzus.lyf.dao.entity.RoleEntity;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
-public interface RoleMapper extends BaseMapper<Role> {
+public interface RoleMapper extends BaseMapper<RoleEntity> {
 }

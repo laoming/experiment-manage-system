@@ -1,23 +1,26 @@
 package cn.gzus.lyf.dao.entity;
 
+import com.baomidou.mybatisplus.annotation.TableName;
+
 /**
- * 用户-角色关联表实体类
+ * 角色-菜单关联表实体类
  */
-public class UserRoleRelation {
+@TableName("role_menu_relation")
+public class RoleMenuRelationEntity {
     /**
      * 主键ID
      */
     private String id;
 
     /**
-     * 用户ID
-     */
-    private String userId;
-
-    /**
      * 角色ID
      */
     private String roleId;
+
+    /**
+     * 菜单ID
+     */
+    private String menuId;
 
 
     // getter & setter
@@ -29,20 +32,20 @@ public class UserRoleRelation {
         this.id = id;
     }
 
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
     public String getRoleId() {
         return roleId;
     }
 
     public void setRoleId(String roleId) {
         this.roleId = roleId;
+    }
+
+    public String getMenuId() {
+        return menuId;
+    }
+
+    public void setMenuId(String menuId) {
+        this.menuId = menuId;
     }
 
 }

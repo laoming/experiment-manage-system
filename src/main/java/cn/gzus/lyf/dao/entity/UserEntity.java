@@ -1,11 +1,14 @@
 package cn.gzus.lyf.dao.entity;
 
+import com.baomidou.mybatisplus.annotation.TableName;
+
 import java.util.Date;
 
 /**
  * 系统用户表实体类
  */
-public class User {
+@TableName("user")
+public class UserEntity {
 
     /**
      * 用户ID
@@ -13,7 +16,7 @@ public class User {
     private String id;
 
     /**
-     * 用户名
+     * 用户名（账号）
      */
     private String username;
 
