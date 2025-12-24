@@ -1,6 +1,6 @@
 package cn.gzus.lyf.service;
 
-import cn.gzus.lyf.constant.StatusEnum;
+import cn.gzus.lyf.constant.UserStatusEnum;
 import cn.gzus.lyf.dao.*;
 import cn.gzus.lyf.dao.entity.*;
 import org.apache.commons.lang3.ObjectUtils;
@@ -56,7 +56,7 @@ public class UserService implements UserDetailsService {
         if (userEntity == null) {
             throw new UsernameNotFoundException("用户名不存在");
         }
-        if (ObjectUtils.notEqual(userEntity.getStatus(), StatusEnum.ACTIVE)) {
+        if (ObjectUtils.notEqual(userEntity.getStatus(), UserStatusEnum.ACTIVE)) {
             throw new UsernameNotFoundException("用户已禁用");
         }
 
