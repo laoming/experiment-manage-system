@@ -1,11 +1,10 @@
-package cn.gzus.lyf.config;
+package cn.gzus.lyf.common.config;
 
 import cn.gzus.lyf.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -54,7 +53,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 // 权限配置
                 .authorizeRequests()
-                .antMatchers("/api/login").permitAll()
+                .antMatchers("/user/login").permitAll()
                 // 其余请求需认证
                 .anyRequest().authenticated();
         return http.build();

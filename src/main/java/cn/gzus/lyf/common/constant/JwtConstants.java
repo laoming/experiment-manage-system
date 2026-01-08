@@ -1,4 +1,4 @@
-package cn.gzus.lyf.constant;
+package cn.gzus.lyf.common.constant;
 
 public class JwtConstants {
     /**

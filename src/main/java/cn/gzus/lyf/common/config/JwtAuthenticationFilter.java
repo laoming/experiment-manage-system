@@ -1,10 +1,9 @@
-package cn.gzus.lyf.config;
+package cn.gzus.lyf.common.config;
 
-import cn.gzus.lyf.dao.UserDAO;
 import cn.gzus.lyf.service.UserService;
-import cn.gzus.lyf.util.JwtUtil;
+import cn.gzus.lyf.common.util.JwtUtil;
 
-import cn.gzus.lyf.constant.JwtConstants;
+import cn.gzus.lyf.common.constant.JwtConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -93,6 +93,7 @@
     </dependencies>
 
     <build>
+        <directory>target</directory>
         <plugins>
             <!-- Spring Boot 打包插件 -->
             <plugin>

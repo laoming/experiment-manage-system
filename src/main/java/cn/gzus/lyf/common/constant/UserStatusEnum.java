@@ -1,4 +1,4 @@
-package cn.gzus.lyf.constant;
+package cn.gzus.lyf.common.constant;
 
 public enum UserStatusEnum {
 
@@ -15,6 +15,7 @@ public enum UserStatusEnum {
      */
     LOCK(2, "已锁定"),
     ;
+
     private final int code;
 
     private final String desc;

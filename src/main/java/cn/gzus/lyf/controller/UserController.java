@@ -1,5 +1,6 @@
 package cn.gzus.lyf.controller;
 
+import cn.gzus.lyf.common.dto.Result;
 import cn.gzus.lyf.dao.UserDAO;
 import cn.gzus.lyf.dao.entity.UserEntity;
 import cn.gzus.lyf.service.UserService;
@@ -37,19 +38,19 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public String login(@RequestBody UserEntity userEntity) {
+    public Result<String> login(@RequestBody UserEntity userEntity) {
         // 1. 构建认证Token
         UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
                 userEntity.getUsername(), userEntity.getPassword());
         // 2. 触发认证（会调用CustomUserDetailsService.loadUserByUsername）
         Authentication authentication = authenticationManager.authenticate(token);
         // 3. 认证成功（可生成JWT、存入Session等，此处简化返回）
-        return "登录成功，当前用户：" + authentication.getName();
+        return Result.success("登录成功，当前用户：" + authentication.getName());
     }
 
     @PostMapping("/add")
-    public boolean addUser(@RequestBody UserEntity userEntity) {
-        return userDAO.addUser(userEntity);
+    public Result<Boolean> addUser(@RequestBody UserEntity userEntity) {
+        return Result.success(userDAO.addUser(userEntity));
     }
 
 }

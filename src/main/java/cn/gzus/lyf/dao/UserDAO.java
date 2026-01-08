@@ -1,6 +1,6 @@
 package cn.gzus.lyf.dao;
 
-import cn.gzus.lyf.constant.UserStatusEnum;
+import cn.gzus.lyf.common.constant.UserStatusEnum;
 import cn.gzus.lyf.dao.entity.UserEntity;
 import cn.gzus.lyf.dao.mapper.UserMapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;

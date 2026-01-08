@@ -1,4 +1,4 @@
-package cn.gzus.lyf.util;
+package cn.gzus.lyf.common.util;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

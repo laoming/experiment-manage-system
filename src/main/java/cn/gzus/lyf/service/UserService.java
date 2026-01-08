@@ -1,6 +1,6 @@
 package cn.gzus.lyf.service;
 
-import cn.gzus.lyf.constant.UserStatusEnum;
+import cn.gzus.lyf.common.constant.UserStatusEnum;
 import cn.gzus.lyf.dao.*;
 import cn.gzus.lyf.dao.entity.*;
 import org.apache.commons.lang3.ObjectUtils;
