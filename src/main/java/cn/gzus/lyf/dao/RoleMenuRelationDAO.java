@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
 
+import java.util.LinkedList;
 import java.util.List;
 
 @Service
@@ -17,6 +18,9 @@ public class RoleMenuRelationDAO extends ServiceImpl<RoleMenuRelationMapper, Rol
      * @return
      */
     public List<RoleMenuRelationEntity> getRoleMenuRelationsByRoleIds(List<String> roleIds) {
+        if (roleIds == null || roleIds.isEmpty()) {
+            return new LinkedList<>();
+        }
         return this.list(new LambdaQueryWrapper<RoleMenuRelationEntity>()
                 .in(RoleMenuRelationEntity::getRoleId, roleIds));
     }

@@ -51,28 +51,3 @@ CREATE TABLE role_menu_relation
     menu_id VARCHAR(64) NOT NULL COMMENT '菜单ID',
     UNIQUE KEY (role_id, menu_id)
 ) COMMENT '角色-菜单关联表';
-
-
--- TODO 初始化数据
-INSERT INTO sys_user (username, password, nickname)
-VALUES ('admin', '$2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2', '超级管理员'); -- 密码：123456
-
-INSERT INTO sys_role (role_name, role_key)
-VALUES ('超级管理员', 'ADMIN');
-
-INSERT INTO user_role_relation (user_id, role_id)
-VALUES (1, 1);
-
-INSERT INTO menu (parent_id, menu_name, path, permission, menu_type, visible)
-VALUES (0, '系统管理', '/system', '', 'F', 1),
-       (1, '用户管理', '/system/user', 'sys:user:list', 'M', 1),
-       (1, '菜单管理', '/system/menu', 'sys:menu:list', 'M', 1),
-       (2, '新增用户', '', 'sys:user:add', 'B', 0),
-       (2, '编辑用户', '', 'sys:user:edit', 'B', 0);
-
-INSERT INTO role_menu_relation (role_id, menu_id)
-VALUES (1, 1),
-       (1, 2),
-       (1, 3),
-       (1, 4),
-       (1, 5);

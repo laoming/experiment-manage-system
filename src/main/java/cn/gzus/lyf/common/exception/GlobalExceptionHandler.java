@@ -4,10 +4,8 @@ import cn.gzus.lyf.common.constant.ResultCode;
 import cn.gzus.lyf.common.dto.Result;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.security.core.AuthenticationException;
 
 /**
  * 全局异常处理器

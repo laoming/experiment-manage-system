@@ -29,5 +29,5 @@ logging:
 
 
 jwt:
-  secret: 123456789
+  secret: xK3j9vN2m5q8w1e4r7t0y3u6i9o2p5a8s1d4f7g0h3j6k9l2n5m8q1w4e7r0t3
   expire: 1800000 # 30分钟

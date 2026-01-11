@@ -5,6 +5,7 @@ import cn.gzus.lyf.dao.*;
 import cn.gzus.lyf.dao.entity.*;
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -23,6 +24,7 @@ public class UserService implements UserDetailsService {
     private RoleDAO roleDAO;
     private RoleMenuRelationDAO roleMenuRelationDAO;
     private MenuDAO menuDAO;
+    private PasswordEncoder passwordEncoder;
 
     @Autowired
     public void setUserDAO(UserDAO userDAO) {
@@ -35,18 +37,23 @@ public class UserService implements UserDetailsService {
     }
 
     @Autowired
-    public RoleDAO getRoleDAO() {
-        return roleDAO;
+    public void setRoleDAO(RoleDAO roleDAO) {
+        this.roleDAO = roleDAO;
     }
 
     @Autowired
-    public RoleMenuRelationDAO getRoleMenuRelationDAO() {
-        return roleMenuRelationDAO;
+    public void setRoleMenuRelationDAO(RoleMenuRelationDAO roleMenuRelationDAO) {
+        this.roleMenuRelationDAO = roleMenuRelationDAO;
     }
 
     @Autowired
     public void setMenuDAO(MenuDAO menuDAO) {
         this.menuDAO = menuDAO;
+    }
+
+    @Autowired
+    public void setPasswordEncoder(PasswordEncoder passwordEncoder) {
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -56,7 +63,7 @@ public class UserService implements UserDetailsService {
         if (userEntity == null) {
             throw new UsernameNotFoundException("用户名不存在");
         }
-        if (ObjectUtils.notEqual(userEntity.getStatus(), UserStatusEnum.ACTIVE)) {
+        if (ObjectUtils.notEqual(userEntity.getStatus(), UserStatusEnum.ACTIVE.getCode())) {
             throw new UsernameNotFoundException("用户已禁用");
         }
 
@@ -91,4 +98,17 @@ public class UserService implements UserDetailsService {
                 .collect(Collectors.toList()));
     }
 
+    /**
+     * 新增用户
+     * @param userEntity 用户实体
+     * @return 是否成功
+     */
+    public boolean addUser(UserEntity userEntity) {
+        if (userEntity.getPassword() != null && !userEntity.getPassword().isEmpty()) {
+            // 对密码进行加密
+            String encryptedPassword = passwordEncoder.encode(userEntity.getPassword());
+            userEntity.setPassword(encryptedPassword);
+        }
+        return userDAO.addUser(userEntity);
+    }
 }

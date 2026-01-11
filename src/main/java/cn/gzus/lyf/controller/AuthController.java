@@ -2,7 +2,7 @@ package cn.gzus.lyf.controller;
 
 import cn.gzus.lyf.common.dto.Result;
 import cn.gzus.lyf.dao.entity.UserEntity;
-import cn.gzus.lyf.service.UserService;
+import cn.gzus.lyf.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -10,25 +10,25 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * 用户管理
+ * 登录鉴权
  */
 @RestController
-@RequestMapping("/user")
-public class UserController {
+@RequestMapping("/auth")
+public class AuthController {
 
-    private UserService userService;
+    private AuthService authService;
 
     @Autowired
-    public void setUserService(UserService userService) {
-        this.userService = userService;
+    public void setAuthService(AuthService authService) {
+        this.authService = authService;
     }
 
-
     /**
-     * 新增用户
+     * 用户登录
      */
-    @PostMapping("/add")
-    public Result<Boolean> addUser(@RequestBody UserEntity userEntity) {
-        return Result.success(userService.addUser(userEntity));
+    @PostMapping("/login")
+    public Result<String> login(@RequestBody UserEntity userEntity) {
+        String ret = authService.login(userEntity);
+        return Result.success(ret);
     }
 }

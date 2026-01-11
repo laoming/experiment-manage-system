@@ -2,15 +2,7 @@
 description: 
 alwaysApply: true
 enabled: true
-updatedAt: 2026-01-09T00:57:44.991Z
-provider: 
----
-
----
-description: 
-alwaysApply: true
-enabled: true
-updatedAt: 2026-01-08T15:34:40.035Z
+updatedAt: 2026-01-11T05:19:06.468Z
 provider: 
 ---
 
@@ -18,9 +10,10 @@ provider:
 1. 项目使用 maven 管理依赖。
 2. 项目使用 SpringBoot 2.7.18。
 3. 不要使用 Lombok, 显示的定义get和set方法。
+4. 项目中不要出现 Spring Bean 的循环依赖，不要使用 @Lazy 懒加载。
 
 项目结构：
 1. common 文件夹下为项目配置类、工具类、常量等较通用的内容。
-2. controller 文件夹下为项目暴露给外部的接口服务。
+2. controller 文件夹下为项目暴露给外部的接口服务，该层中不应该存在太复杂的业务逻辑。
 3. dao 文件夹下为项目与数据库交互的持久层，定义数据库表实体（entity文件夹下，实体以Entity结尾）和与实体交互的逻辑（以DAO结尾）。
 4. service 文件夹下为具体业务逻辑。

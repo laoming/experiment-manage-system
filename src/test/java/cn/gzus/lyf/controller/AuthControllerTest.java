@@ -2,20 +2,23 @@ package cn.gzus.lyf.controller;
 
 import cn.gzus.lyf.BaseTest;
 import cn.gzus.lyf.dao.entity.UserEntity;
+import cn.gzus.lyf.service.AuthService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import static org.junit.jupiter.api.Assertions.*;
 
-class UserControllerTest extends BaseTest {
+class AuthControllerTest extends BaseTest {
 
     @Autowired
-    private UserController userController;
+    private AuthService authService;
 
     @Test
-    public void addUser() {
+    public void login() {
         UserEntity userEntity = new UserEntity();
         userEntity.setUsername("SuperAdmin");
         userEntity.setPassword("123456");
-        userController.addUser(userEntity);
+        System.out.println(authService.login(userEntity));
     }
+
 }
