@@ -12,6 +12,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -20,6 +21,7 @@ public class SecurityConfig {
 
     private UserService userService;
     private PasswordEncoder passwordEncoder;
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Autowired
     public void setUserService(UserService userService) {
@@ -31,6 +33,11 @@ public class SecurityConfig {
         this.passwordEncoder = passwordEncoder;
     }
 
+    @Autowired
+    public void setJwtAuthenticationFilter(JwtAuthenticationFilter jwtAuthenticationFilter) {
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+    }
+
 
     @Bean
     public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
@@ -40,7 +47,8 @@ public class SecurityConfig {
     }
 
     /**
-     * 安全过滤链
+     * 验证是否登录过滤链
+     *
      * @param http
      * @return
      * @throws Exception
@@ -54,9 +62,17 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 // 权限配置
                 .authorizeRequests()
+                // 登录接口白名单
                 .antMatchers("/auth/login").permitAll()
+                // 静态资源白名单
+                .antMatchers("/css/**", "/js/**", "/lib/**", "/images/**").permitAll()
+                // 页面白名单（页面允许访问，但内容会检查 Token）
+                .antMatchers("/index.html", "/home.html").permitAll()
                 // 其余请求需认证
-                .anyRequest().authenticated();
+                .anyRequest().
+                authenticated();
+        // 添加 JWT 过滤器到 Spring Security 过滤链
+        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 }

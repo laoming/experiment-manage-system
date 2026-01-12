@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>实验管理系统 - 首页</title>
+    <link rel="stylesheet" href="/ems/css/home.css">
+</head>
+<body>
+    <div id="app">
+        <!-- 顶部导航栏 -->
+        <div class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-icon">EMS</div>
+                    <div>
+                        <div class="logo-text">实验管理系统</div>
+                    </div>
+                </div>
+                <div class="user-info">
+                    <span class="user-name">欢迎, {{ username }}</span>
+                    <button class="logout-btn" @click="handleLogout">退出登录</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 主内容区域 -->
+        <div class="main-content">
+            <div class="container">
+                <!-- 欢迎区域 -->
+                <div class="welcome-section">
+                    <h1 class="welcome-title">欢迎使用实验管理系统</h1>
+                    <p class="welcome-subtitle">Experiment Management System - 高效、便捷的实验管理平台</p>
+                    
+                    <div class="welcome-info">
+                        <div class="info-item">
+                            <span class="info-label">用户名</span>
+                            <span class="info-value">{{ username }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">登录时间</span>
+                            <span class="info-value">{{ loginTime }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">系统状态</span>
+                            <span class="info-value" style="color: #52c41a;">运行中</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 功能卡片 -->
+                <div class="features-grid">
+                    <div class="feature-card" @click="navigateToUserManagement">
+                        <div class="feature-icon">👥</div>
+                        <h3 class="feature-title">用户管理</h3>
+                        <p class="feature-description">管理系统用户，包括用户添加、编辑、删除以及权限分配</p>
+                    </div>
+
+                    <div class="feature-card" @click="navigateToExperimentManagement">
+                        <div class="feature-icon">🔬</div>
+                        <h3 class="feature-title">实验管理</h3>
+                        <p class="feature-description">创建和管理实验项目，跟踪实验进度和结果</p>
+                    </div>
+
+                    <div class="feature-card" @click="navigateToDataAnalysis">
+                        <div class="feature-icon">📊</div>
+                        <h3 class="feature-title">数据分析</h3>
+                        <p class="feature-description">对实验数据进行统计分析，生成可视化报表</p>
+                    </div>
+
+                    <div class="feature-card" @click="navigateToSettings">
+                        <div class="feature-icon">⚙️</div>
+                        <h3 class="feature-title">系统设置</h3>
+                        <p class="feature-description">配置系统参数，管理菜单和权限</p>
+                    </div>
+                </div>
+
+                <!-- 统计卡片 -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number">12</div>
+                        <div class="stat-label">总用户数</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">45</div>
+                        <div class="stat-label">实验项目</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">128</div>
+                        <div class="stat-label">实验数据</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">99.9%</div>
+                        <div class="stat-label">系统可用性</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vue.js CDN -->
+    <script src="https://unpkg.com/vue@3.3.4/dist/vue.global.js"></script>
+    <!-- API 工具 -->
+    <script src="/ems/js/api.js"></script>
+    <!-- 首页逻辑 -->
+    <script src="/ems/js/home.js"></script>
+</body>
+</html>
