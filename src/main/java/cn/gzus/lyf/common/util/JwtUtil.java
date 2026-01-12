@@ -22,11 +22,21 @@ public class JwtUtil {
     @Value("${jwt.expire}")
     private long expire;
 
+
     /**
-     * 生成JWT令牌
+     * 生成JWT令牌（完整方法，可包含额外信息）
+     * @param userDetails 用户详情
+     * @param additionalClaims 额外信息
+     * @return JWT Token
      */
-    public String generateToken(UserDetails userDetails) {
+    public String generateToken(UserDetails userDetails, Map<String, Object> additionalClaims) {
         Map<String, Object> claims = new HashMap<>();
+        
+        // 添加额外信息
+        if (additionalClaims != null && !additionalClaims.isEmpty()) {
+            claims.putAll(additionalClaims);
+        }
+        
         return createToken(claims, userDetails.getUsername());
     }
 

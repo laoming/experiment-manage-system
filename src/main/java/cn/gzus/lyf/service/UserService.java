@@ -1,13 +1,13 @@
 package cn.gzus.lyf.service;
 
 import cn.gzus.lyf.common.constant.UserStatusEnum;
+import cn.gzus.lyf.common.dto.UserDto;
 import cn.gzus.lyf.dao.*;
 import cn.gzus.lyf.dao.entity.*;
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -73,9 +73,12 @@ public class UserService implements UserDetailsService {
                 .map(menu -> new SimpleGrantedAuthority(menu.getMenuCode()))
                 .collect(Collectors.toList());
 
-        // 3. 封装UserDetails
-        return User.withUsername(userEntity.getUsername())
-                .password(userEntity.getPassword())
+        // 3. 使用Builder模式构建UserDto，包含完整的用户信息
+        return new UserDto.Builder(userEntity.getUsername(), userEntity.getPassword())
+                .id(userEntity.getId())
+                .username(userEntity.getUsername())
+                .displayName(userEntity.getDisplayName())
+                .status(userEntity.getStatus())
                 .authorities(authorities)
                 .build();
     }

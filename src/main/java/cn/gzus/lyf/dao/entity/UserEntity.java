@@ -26,6 +26,11 @@ public class UserEntity {
     private String password;
 
     /**
+     * 显示名称
+     */
+    private String displayName;
+
+    /**
      * 状态：0-禁用，1-正常
      */
     private Integer status;
@@ -64,6 +69,14 @@ public class UserEntity {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
     }
 
     public Integer getStatus() {

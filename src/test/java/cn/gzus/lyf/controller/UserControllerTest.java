@@ -16,6 +16,7 @@ class UserControllerTest extends BaseTest {
         UserEntity userEntity = new UserEntity();
         userEntity.setUsername("SuperAdmin");
         userEntity.setPassword("123456");
+        userEntity.setDisplayName("超级管理员");
         userController.addUser(userEntity);
     }
 }

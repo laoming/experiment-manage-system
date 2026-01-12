@@ -48,30 +48,49 @@ createApp({
             this.loading = true;
             this.errorMessage = '';
 
+            console.log('🔐 [LOGIN] 开始登录流程...');
+            console.log('🔐 [LOGIN] 用户名:', this.username);
+
             try {
                 const response = await API.login(this.username, this.password);
 
+                console.log('📦 [LOGIN] 登录响应:', response);
+
                 if (response.code === 200) {
                     // 登录成功
-                    console.log('登录成功，正在跳转...');
+                    console.log('✅ [LOGIN] 登录成功！');
+                    console.log('🎫 [LOGIN] 返回的 Token:', response.data);
+                    
+                    // 验证 token 是否正确保存
+                    const savedToken = API.getToken();
+                    console.log('💾 [LOGIN] 保存的 Token:', savedToken);
+                    
+                    // 解析 token 验证内容
+                    if (savedToken) {
+                        const userInfo = API.getUserInfoFromToken();
+                        console.log('👤 [LOGIN] Token 中的用户信息:', userInfo);
+                    }
                     
                     // 保存用户名（如果选择了记住我）
                     if (this.rememberMe) {
                         localStorage.setItem('saved_username', this.username);
+                        console.log('💾 [LOGIN] 保存用户名到 localStorage');
                     } else {
                         localStorage.removeItem('saved_username');
                     }
 
                     // 延迟跳转
                     setTimeout(() => {
+                        console.log('➡️ [LOGIN] 跳转到首页...');
                         this.redirectToHome();
                     }, 500);
                 } else {
                     // 登录失败
+                    console.error('❌ [LOGIN] 登录失败:', response.message);
                     this.errorMessage = response.message || '登录失败，请检查用户名和密码';
                 }
             } catch (error) {
-                console.error('登录错误:', error);
+                console.error('❌ [LOGIN] 登录错误:', error);
                 this.errorMessage = error.message || '网络错误，请稍后重试';
             } finally {
                 this.loading = false;
