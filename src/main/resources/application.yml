@@ -18,7 +18,7 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver  # MySQL 8.x 驱动类（5.x用com.mysql.jdbc.Driver）
     url: jdbc:mysql://localhost:3306/ems?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
     username: root  # 你的MySQL用户名
-    password: sam12345678  # 你的MySQL密码
+    password: Sam12345678  # 你的MySQL密码
 
 # 日志配置
 logging:
@@ -31,3 +31,4 @@ logging:
 jwt:
   secret: xK3j9vN2m5q8w1e4r7t0y3u6i9o2p5a8s1d4f7g0h3j6k9l2n5m8q1w4e7r0t3
   expire: 1800000 # 30分钟
+  enabled: true # 是否启用Token验证，默认开启，方便测试时可以关闭

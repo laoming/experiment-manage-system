@@ -2,6 +2,7 @@ package cn.gzus.lyf.common.config;
 
 import cn.gzus.lyf.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -23,6 +24,9 @@ public class SecurityConfig {
     private PasswordEncoder passwordEncoder;
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
+    @Value("${jwt.enabled:true}")
+    private boolean jwtEnabled;
+
     @Autowired
     public void setUserService(UserService userService) {
         this.userService = userService;
@@ -37,7 +41,6 @@ public class SecurityConfig {
     public void setJwtAuthenticationFilter(JwtAuthenticationFilter jwtAuthenticationFilter) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
-
 
     @Bean
     public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
@@ -61,18 +64,24 @@ public class SecurityConfig {
                 // 关闭Session（JWT无状态）
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 // 权限配置
-                .authorizeRequests()
-                // 登录接口白名单
-                .antMatchers("/auth/login").permitAll()
-                // 静态资源白名单
-                .antMatchers("/css/**", "/js/**", "/lib/**", "/images/**").permitAll()
-                // 页面白名单（页面允许访问，但内容会检查 Token）
-                .antMatchers("/index.html", "/home.html").permitAll()
-                // 其余请求需认证
-                .anyRequest().
-                authenticated();
-        // 添加 JWT 过滤器到 Spring Security 过滤链
-        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .authorizeRequests();
+        if (jwtEnabled) {
+            // Token验证开启时，配置需要认证的接口
+            http.authorizeRequests()
+                    // 登录接口白名单
+                    .antMatchers("/auth/login").permitAll()
+                    // 静态资源白名单
+                    .antMatchers("/css/**", "/js/**", "/lib/**", "/images/**").permitAll()
+                    // 页面白名单（页面允许访问，但内容会检查 Token）
+                    .antMatchers("/index.html", "/home.html").permitAll()
+                    // 其余请求需认证
+                    .anyRequest().authenticated();
+            // 添加 JWT 过滤器到 Spring Security 过滤链
+            http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+        } else {
+            // Token验证关闭时，允许所有请求
+            http.authorizeRequests().anyRequest().permitAll();
+        }
         return http.build();
     }
 }
