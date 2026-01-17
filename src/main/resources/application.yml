@@ -3,6 +3,9 @@ server:
   port: 8081  # 端口号
   servlet:
     context-path: /ems  # 应用上下文路径（访问前缀）
+  tomcat:
+    session:
+      persistent: false # 禁用 Tomcat 会话持久化（不生成 SESSIONS.ser 文件）
 
 # Spring 配置
 spring:
