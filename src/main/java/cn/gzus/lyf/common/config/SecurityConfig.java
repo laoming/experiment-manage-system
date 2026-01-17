@@ -71,9 +71,7 @@ public class SecurityConfig {
                     // 登录接口白名单
                     .antMatchers("/auth/login").permitAll()
                     // 静态资源白名单
-                    .antMatchers("/css/**", "/js/**", "/lib/**", "/images/**").permitAll()
-                    // 页面白名单（页面允许访问，但内容会检查 Token）
-                    .antMatchers("/index.html", "/home.html").permitAll()
+                    .antMatchers("/css/**", "/js/**", "/lib/**", "/images/**", "/pages/**").permitAll()
                     // 其余请求需认证
                     .anyRequest().authenticated();
             // 添加 JWT 过滤器到 Spring Security 过滤链

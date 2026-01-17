@@ -3,17 +3,13 @@ package cn.gzus.lyf.common.constant;
 public enum UserStatusEnum {
 
     /**
-     * 已删除
-     */
-    DELETED(0, "已删除"),
-    /**
      * 激活
      */
     ACTIVE(1, "激活"),
     /**
      * 已锁定
      */
-    LOCK(2, "已锁定"),
+    LOCK(2, "禁用（已锁定）"),
     ;
 
     private final int code;

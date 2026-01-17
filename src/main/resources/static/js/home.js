@@ -25,7 +25,7 @@ createApp({
             const token = API.getToken();
             if (!token) {
                 // 未登录，跳转到登录页
-                window.location.href = '/ems/index.html';
+                window.location.href = '/ems/pages/index.html';
                 return;
             }
             this.loading = false;
@@ -104,7 +104,7 @@ createApp({
          * 导航到用户管理
          */
         navigateToUserManagement() {
-            alert('用户管理功能开发中...');
+            window.location.href = '/ems/pages/user.html';
         },
 
         /**

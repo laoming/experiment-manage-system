@@ -128,7 +128,7 @@ createApp({
          * 跳转到首页
          */
         redirectToHome() {
-            window.location.href = '/ems/home.html';
+            window.location.href = '/ems/pages/home.html';
         }
     }
 }).mount('#app');

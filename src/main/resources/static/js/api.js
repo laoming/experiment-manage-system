@@ -235,10 +235,45 @@ const API = {
     },
 
     /**
+     * 分页查询用户
+     */
+    async getUserPage(current, size, userQueryDto) {
+        return this.post(`/user/page?current=${current}&size=${size}`, userQueryDto);
+    },
+
+    /**
+     * 新增用户
+     */
+    async addUser(userEntity) {
+        return this.post('/user/add', userEntity);
+    },
+
+    /**
+     * 更新用户信息
+     */
+    async updateUser(userEntity) {
+        return this.post('/user/update', userEntity);
+    },
+
+    /**
+     * 重置用户密码
+     */
+    async resetPassword(userEntity) {
+        return this.post('/user/resetPassword', userEntity);
+    },
+
+    /**
+     * 删除用户
+     */
+    async deleteUser(userEntity) {
+        return this.post('/user/delete', userEntity);
+    },
+
+    /**
      * 退出登录
      */
     logout() {
         this.removeToken();
-        window.location.href = '/ems/index.html';
+        window.location.href = '/ems/pages/index.html';
     }
 };

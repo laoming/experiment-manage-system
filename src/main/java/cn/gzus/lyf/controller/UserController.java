@@ -59,7 +59,7 @@ public class UserController {
     }
 
     /**
-     * 删除用户
+     * 删除用户(硬删除，删除数据库记录数据)
      */
     @PostMapping("/delete")
     public Result<Boolean> deleteUser(@RequestBody UserEntity userEntity) {

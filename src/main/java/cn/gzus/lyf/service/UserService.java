@@ -146,13 +146,17 @@ public class UserService implements UserDetailsService {
     }
 
     /**
-     * 删除用户（修改状态为已删除）
+     * 删除用户（硬删除，同时删除用户角色关联）
      * @param userId 用户ID
      * @return 是否成功
      */
     public boolean deleteUser(String userId) {
         Objects.requireNonNull(userDAO.getById(userId), "用户id不存在");
 
+        // 先删除用户角色关联
+        userRoleRelationDAO.deleteUserRoleRelationsByUserId(userId);
+
+        // 再删除用户
         return userDAO.deleteUser(userId);
     }
 
