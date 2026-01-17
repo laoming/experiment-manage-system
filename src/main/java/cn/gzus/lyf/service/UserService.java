@@ -67,7 +67,7 @@ public class UserService implements UserDetailsService {
             throw new UsernameNotFoundException("用户名不存在");
         }
         if (ObjectUtils.notEqual(userEntity.getStatus(), UserStatusEnum.ACTIVE.getCode())) {
-            throw new UsernameNotFoundException("用户已禁用");
+            throw new UsernameNotFoundException("用户未激活，无法登录");
         }
 
         // 2. 查询用户权限（菜单权限标识）
