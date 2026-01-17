@@ -1,3 +1,9 @@
+
+-- 创建数据库
+CREATE DATABASE ems;
+-- 使用数据库
+USE ems;
+
 -- 1. 用户表
 CREATE TABLE user
 (
@@ -40,8 +46,8 @@ CREATE TABLE menu
     path        VARCHAR(200) COMMENT '菜单路径/URL',
     menu_type   CHAR(1) COMMENT '类型：M-菜单，D-目录',
     sort        INT         DEFAULT 0 COMMENT '排序',
-    create_time DATETIME    DEFAULT CURRENT_TIMESTAMP NOT NULL COMMENT '创建时间',
-    update_time DATETIME    DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL COMMENT '更新时间'
+    create_time TIMESTAMP    DEFAULT CURRENT_TIMESTAMP NOT NULL COMMENT '创建时间',
+    update_time TIMESTAMP    DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL COMMENT '更新时间'
 ) COMMENT '系统菜单表';
 
 -- 5. 角色-菜单关联表
