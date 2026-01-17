@@ -4,9 +4,10 @@ POST http://localhost:8081/ems/user/add
 Content-Type: application/json
 
 {
-"username": "SuperAdmin",
-"password": "123456",
-"displayName": "超级管理员"
+  "id": "SuperAdmin",
+  "username": "SuperAdmin",
+  "password": "123456",
+  "displayName": "超级管理员"
 }
 
 ### 添加普通用户

@@ -2,6 +2,7 @@ package cn.gzus.lyf.service;
 
 import cn.gzus.lyf.common.constant.UserStatusEnum;
 import cn.gzus.lyf.common.dto.UserDto;
+import cn.gzus.lyf.common.dto.UserQueryDto;
 import cn.gzus.lyf.dao.*;
 import cn.gzus.lyf.dao.entity.*;
 import org.apache.commons.lang3.ObjectUtils;
@@ -13,7 +14,9 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -113,5 +116,54 @@ public class UserService implements UserDetailsService {
             userEntity.setPassword(encryptedPassword);
         }
         return userDAO.addUser(userEntity);
+    }
+
+    /**
+     * 修改用户信息
+     * @param userEntity 用户实体，id必填，其他字段可选
+     * @return 是否成功
+     */
+    public boolean updateUser(UserEntity userEntity) {
+        Objects.requireNonNull(userEntity, "用户实体不能为空");
+        Objects.requireNonNull(userDAO.getById(userEntity.getId()), "用户id不存在");
+        // 更新用户信息不允许同时更新用户密码
+        userEntity.setPassword(null);
+        return userDAO.updateUser(userEntity);
+    }
+
+    /**
+     * 重置密码
+     * @param userEntity 用户实体，id必填，其他字段可选
+     * @return 是否成功
+     */
+    public boolean resetPassword(UserEntity userEntity) {
+        Objects.requireNonNull(userEntity, "用户实体不能为空");
+        Objects.requireNonNull(userDAO.getById(userEntity.getId()), "用户id不存在");
+        // 对新密码进行加密
+        String encryptedPassword = passwordEncoder.encode(userEntity.getPassword());
+        userEntity.setPassword(encryptedPassword);
+        return userDAO.updateUser(userEntity);
+    }
+
+    /**
+     * 删除用户（修改状态为已删除）
+     * @param userId 用户ID
+     * @return 是否成功
+     */
+    public boolean deleteUser(String userId) {
+        Objects.requireNonNull(userDAO.getById(userId), "用户id不存在");
+
+        return userDAO.deleteUser(userId);
+    }
+
+    /**
+     * 根据条件分页查询用户信息
+     * @param current 当前页码
+     * @param size 每页大小
+     * @param userQueryDto 用户查询信息，用于查询条件
+     * @return 分页结果
+     */
+    public IPage<UserEntity> getUserPage(int current, int size, UserQueryDto userQueryDto) {
+        return userDAO.getUserPage(current, size, userQueryDto);
     }
 }

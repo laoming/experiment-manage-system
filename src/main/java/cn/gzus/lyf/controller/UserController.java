@@ -1,8 +1,10 @@
 package cn.gzus.lyf.controller;
 
 import cn.gzus.lyf.common.dto.Result;
+import cn.gzus.lyf.common.dto.UserQueryDto;
 import cn.gzus.lyf.dao.entity.UserEntity;
 import cn.gzus.lyf.service.UserService;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -25,10 +27,42 @@ public class UserController {
 
 
     /**
+     * 分页查询用户
+     */
+    @PostMapping("/page")
+    public Result<IPage<UserEntity>> getUserPage(int current, int size, @RequestBody UserQueryDto userQueryDto) {
+        return Result.success(userService.getUserPage(current, size, userQueryDto));
+    }
+
+    /**
      * 新增用户
      */
     @PostMapping("/add")
     public Result<Boolean> addUser(@RequestBody UserEntity userEntity) {
         return Result.success(userService.addUser(userEntity));
+    }
+
+    /**
+     * 更新用户信息
+     */
+    @PostMapping("/update")
+    public Result<Boolean> updateUser(@RequestBody UserEntity userEntity) {
+        return Result.success(userService.updateUser(userEntity));
+    }
+
+    /**
+     * 重置用户密码
+     */
+    @PostMapping("/resetPassword")
+    public Result<Boolean> resetPassword(@RequestBody UserEntity userEntity) {
+        return Result.success(userService.resetPassword(userEntity));
+    }
+
+    /**
+     * 删除用户
+     */
+    @PostMapping("/delete")
+    public Result<Boolean> deleteUser(@RequestBody UserEntity userEntity) {
+        return Result.success(userService.deleteUser(userEntity.getId()));
     }
 }

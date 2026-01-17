@@ -1,12 +1,17 @@
 package cn.gzus.lyf.dao;
 
 import cn.gzus.lyf.common.constant.UserStatusEnum;
+import cn.gzus.lyf.common.dto.UserQueryDto;
 import cn.gzus.lyf.dao.entity.UserEntity;
 import cn.gzus.lyf.dao.mapper.UserMapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.Objects;
 
 @Service
@@ -36,5 +41,52 @@ public class UserDAO extends ServiceImpl<UserMapper, UserEntity> {
 
         userEntity.setStatus(UserStatusEnum.ACTIVE.getCode());
         return this.save(userEntity);
+    }
+
+    /**
+     * 删除用户（修改状态为已删除）
+     * @param userId 用户ID
+     * @return
+     */
+    public boolean deleteUser(String userId) {
+        Objects.requireNonNull(userId, "用户ID不能为空");
+
+        UserEntity userEntity = new UserEntity();
+        userEntity.setId(userId);
+        userEntity.setStatus(UserStatusEnum.DELETED.getCode());
+        userEntity.setUpdateTime(new Date());
+        return this.updateById(userEntity);
+    }
+
+    /**
+     * 修改用户信息
+     * @param userEntity 用户实体，id必填
+     * @return
+     */
+    public boolean updateUser(UserEntity userEntity) {
+        Objects.requireNonNull(userEntity, "用户实体不能为空");
+        Objects.requireNonNull(userEntity.getId(), "用户ID不能为空");
+
+        userEntity.setUpdateTime(new Date());
+        return this.updateById(userEntity);
+    }
+
+    /**
+     * 根据条件分页查询用户信息
+     * @param current 当前页码
+     * @param size 每页大小
+     * @param userQueryDto 用户查询条件
+     * @return 分页结果
+     */
+    public IPage<UserEntity> getUserPage(Integer current, Integer size, UserQueryDto userQueryDto) {
+        Objects.requireNonNull(current, "当前页码不能为空");
+        Objects.requireNonNull(size, "每页大小不能为空");
+
+        return this.page(new Page<>(current, size), Wrappers.<UserEntity>lambdaQuery()
+                .eq(userQueryDto.getUsername() != null, UserEntity::getUsername, userQueryDto.getUsername())
+                .eq(userQueryDto.getDisplayName() != null, UserEntity::getDisplayName, userQueryDto.getDisplayName())
+                .eq(userQueryDto.getStatus() != null, UserEntity::getStatus, userQueryDto.getStatus())
+                .orderByDesc(UserEntity::getUpdateTime)
+        );
     }
 }
