@@ -8,6 +8,7 @@ public class PageDto<T> {
     private long total;
     private long size;
     private long current;
+    private long pages;
 
     public List<T> getRecords() {
         return records;
@@ -39,5 +40,13 @@ public class PageDto<T> {
 
     public void setCurrent(long current) {
         this.current = current;
+    }
+
+    public long getPages() {
+        return pages;
+    }
+
+    public void setPages(long pages) {
+        this.pages = pages;
     }
 }
