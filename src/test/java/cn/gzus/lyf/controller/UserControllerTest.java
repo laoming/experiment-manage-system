@@ -2,9 +2,9 @@ package cn.gzus.lyf.controller;
 
 import cn.gzus.lyf.BaseTest;
 import cn.gzus.lyf.common.constant.UserStatusEnum;
+import cn.gzus.lyf.common.dto.PageDto;
 import cn.gzus.lyf.common.dto.UserQueryDto;
 import cn.gzus.lyf.dao.entity.UserEntity;
-import com.baomidou.mybatisplus.core.metadata.IPage;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -77,7 +77,7 @@ class UserControllerTest extends BaseTest {
     @Test
     public void testGetUserPage() {
         UserQueryDto userQueryDto = new UserQueryDto();
-        IPage<UserEntity> result = userController.getUserPage(1, 10, userQueryDto).getData();
+        PageDto<UserEntity> result = userController.getUserPage(1, 10, userQueryDto).getData();
         assertNotNull(result);
     }
 
@@ -85,7 +85,7 @@ class UserControllerTest extends BaseTest {
     public void testGetUserPageWithQueryConditions() {
         UserQueryDto userQueryDto = new UserQueryDto();
         userQueryDto.setUsername("admin");
-        IPage<UserEntity> result = userController.getUserPage(1, 10, userQueryDto).getData();
+        PageDto<UserEntity> result = userController.getUserPage(1, 10, userQueryDto).getData();
         assertNotNull(result);
     }
 
@@ -93,7 +93,7 @@ class UserControllerTest extends BaseTest {
     public void testGetUserPageWithStatusCondition() {
         UserQueryDto userQueryDto = new UserQueryDto();
         userQueryDto.setStatus(UserStatusEnum.ACTIVE.getCode());
-        IPage<UserEntity> result = userController.getUserPage(1, 10, userQueryDto).getData();
+        PageDto<UserEntity> result = userController.getUserPage(1, 10, userQueryDto).getData();
         assertNotNull(result);
     }
 }

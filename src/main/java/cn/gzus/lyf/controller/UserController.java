@@ -1,10 +1,10 @@
 package cn.gzus.lyf.controller;
 
+import cn.gzus.lyf.common.dto.PageDto;
 import cn.gzus.lyf.common.dto.Result;
 import cn.gzus.lyf.common.dto.UserQueryDto;
 import cn.gzus.lyf.dao.entity.UserEntity;
 import cn.gzus.lyf.service.UserService;
-import com.baomidou.mybatisplus.core.metadata.IPage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -30,7 +30,7 @@ public class UserController {
      * 分页查询用户
      */
     @PostMapping("/page")
-    public Result<IPage<UserEntity>> getUserPage(int current, int size, @RequestBody UserQueryDto userQueryDto) {
+    public Result<PageDto<UserEntity>> getUserPage(int current, int size, @RequestBody UserQueryDto userQueryDto) {
         return Result.success(userService.getUserPage(current, size, userQueryDto));
     }
 

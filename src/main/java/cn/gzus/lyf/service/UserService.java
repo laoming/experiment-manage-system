@@ -1,6 +1,7 @@
 package cn.gzus.lyf.service;
 
 import cn.gzus.lyf.common.constant.UserStatusEnum;
+import cn.gzus.lyf.common.dto.PageDto;
 import cn.gzus.lyf.common.dto.UserDto;
 import cn.gzus.lyf.common.dto.UserQueryDto;
 import cn.gzus.lyf.dao.*;
@@ -14,7 +15,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import com.baomidou.mybatisplus.core.metadata.IPage;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -167,7 +167,7 @@ public class UserService implements UserDetailsService {
      * @param userQueryDto 用户查询信息，用于查询条件
      * @return 分页结果
      */
-    public IPage<UserEntity> getUserPage(int current, int size, UserQueryDto userQueryDto) {
+    public PageDto<UserEntity> getUserPage(int current, int size, UserQueryDto userQueryDto) {
         return userDAO.getUserPage(current, size, userQueryDto);
     }
 }

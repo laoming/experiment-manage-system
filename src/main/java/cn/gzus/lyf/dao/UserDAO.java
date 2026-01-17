@@ -1,7 +1,9 @@
 package cn.gzus.lyf.dao;
 
 import cn.gzus.lyf.common.constant.UserStatusEnum;
+import cn.gzus.lyf.common.dto.PageDto;
 import cn.gzus.lyf.common.dto.UserQueryDto;
+import cn.gzus.lyf.common.util.BeanCopyUtils;
 import cn.gzus.lyf.dao.entity.UserEntity;
 import cn.gzus.lyf.dao.mapper.UserMapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -10,7 +12,6 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -75,16 +76,18 @@ public class UserDAO extends ServiceImpl<UserMapper, UserEntity> {
      * @param userQueryDto 用户查询条件
      * @return 分页结果
      */
-    public IPage<UserEntity> getUserPage(Integer current, Integer size, UserQueryDto userQueryDto) {
+    public PageDto<UserEntity> getUserPage(Integer current, Integer size, UserQueryDto userQueryDto) {
         Objects.requireNonNull(current, "当前页码不能为空");
         Objects.requireNonNull(size, "每页大小不能为空");
 
-        return this.page(new Page<>(current, size), Wrappers.<UserEntity>lambdaQuery()
+        // TODO 这里没有返回分页总数
+        IPage<UserEntity> userEntityIPage = this.page(new Page<>(current, size), Wrappers.<UserEntity>lambdaQuery()
                 .eq(StringUtils.isNotEmpty(userQueryDto.getUsername()), UserEntity::getUsername, userQueryDto.getUsername())
                 .eq(StringUtils.isNotEmpty(userQueryDto.getDisplayName()), UserEntity::getDisplayName, userQueryDto.getDisplayName())
                 .eq(userQueryDto.getStatus() != null, UserEntity::getStatus, userQueryDto.getStatus())
                 .orderByAsc(UserEntity::getStatus)
                 .orderByDesc(UserEntity::getUpdateTime)
         );
+        return BeanCopyUtils.copy(userEntityIPage, PageDto.class);
     }
 }
