@@ -23,7 +23,6 @@ import java.util.stream.Collectors;
 public class UserService implements UserDetailsService {
 
     private UserDAO userDAO;
-    private UserRoleRelationDAO userRoleRelationDAO;
     private RoleDAO roleDAO;
     private RoleMenuRelationDAO roleMenuRelationDAO;
     private MenuDAO menuDAO;
@@ -32,11 +31,6 @@ public class UserService implements UserDetailsService {
     @Autowired
     public void setUserDAO(UserDAO userDAO) {
         this.userDAO = userDAO;
-    }
-
-    @Autowired
-    public void setUserRoleRelationDAO(UserRoleRelationDAO userRoleRelationDAO) {
-        this.userRoleRelationDAO = userRoleRelationDAO;
     }
 
     @Autowired
@@ -71,7 +65,7 @@ public class UserService implements UserDetailsService {
         }
 
         // 2. 查询用户权限（菜单权限标识）
-        List<MenuEntity> menuList = getMenusByUserId(userEntity.getId());
+        List<MenuEntity> menuList = getMenusByRoleId(userEntity.getRoleId());
         List<SimpleGrantedAuthority> authorities = menuList.stream()
                 .map(menu -> new SimpleGrantedAuthority(menu.getMenuCode()))
                 .collect(Collectors.toList());
@@ -81,24 +75,22 @@ public class UserService implements UserDetailsService {
                 .id(userEntity.getId())
                 .username(userEntity.getUsername())
                 .displayName(userEntity.getDisplayName())
+                .roleId(userEntity.getRoleId())
                 .status(userEntity.getStatus())
                 .authorities(authorities)
                 .build();
     }
 
     /**
-     * 根据用户ID查询菜单列表
-     * @param userId
+     * 根据角色ID查询菜单列表
+     * @param roleId
      * @return
      */
-    public List<MenuEntity> getMenusByUserId(String userId) {
-        List<UserRoleRelationEntity> userRoleRelationEntityList = userRoleRelationDAO.getUserRoleRelationsByUserId(userId);
-        List<RoleEntity> roleEntityList = roleDAO.getRolesByIds(userRoleRelationEntityList.stream()
-                .map(UserRoleRelationEntity::getRoleId)
-                .collect(Collectors.toList()));
-        List<RoleMenuRelationEntity> roleMenuRelationEntityList = roleMenuRelationDAO.getRoleMenuRelationsByRoleIds(roleEntityList.stream()
-                .map(RoleEntity::getId)
-                .collect(Collectors.toList()));
+    public List<MenuEntity> getMenusByRoleId(String roleId) {
+        if (roleId == null || roleId.isEmpty()) {
+            return new java.util.LinkedList<>();
+        }
+        List<RoleMenuRelationEntity> roleMenuRelationEntityList = roleMenuRelationDAO.getRoleMenuRelationsByRoleIds(java.util.Collections.singletonList(roleId));
         return menuDAO.getMenusByIds(roleMenuRelationEntityList.stream()
                 .map(RoleMenuRelationEntity::getMenuId)
                 .collect(Collectors.toList()));
@@ -110,6 +102,8 @@ public class UserService implements UserDetailsService {
      * @return 是否成功
      */
     public boolean addUser(UserEntity userEntity) {
+        Objects.requireNonNull(userEntity.getRoleId(), "用户角色不能为空");
+
         if (userEntity.getPassword() != null && !userEntity.getPassword().isEmpty()) {
             // 对密码进行加密
             String encryptedPassword = passwordEncoder.encode(userEntity.getPassword());
@@ -146,15 +140,12 @@ public class UserService implements UserDetailsService {
     }
 
     /**
-     * 删除用户（硬删除，同时删除用户角色关联）
+     * 删除用户（硬删除）
      * @param userId 用户ID
      * @return 是否成功
      */
     public boolean deleteUser(String userId) {
         Objects.requireNonNull(userDAO.getById(userId), "用户id不存在");
-
-        // 先删除用户角色关联
-        userRoleRelationDAO.deleteUserRoleRelationsByUserId(userId);
 
         // 再删除用户
         return userDAO.deleteUser(userId);

@@ -242,6 +242,13 @@ const API = {
     },
 
     /**
+     * 分页查询角色
+     */
+    async getRolePage(current, size, roleQueryDto) {
+        return this.post(`/role/page?current=${current}&size=${size}`, roleQueryDto);
+    },
+
+    /**
      * 新增用户
      */
     async addUser(userEntity) {

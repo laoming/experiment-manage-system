@@ -31,6 +31,11 @@ public class UserEntity {
     private String displayName;
 
     /**
+     * 角色ID（一个用户只能拥有一个角色）
+     */
+    private String roleId;
+
+    /**
      * 状态：0-禁用，1-正常
      */
     private Integer status;
@@ -77,6 +82,14 @@ public class UserEntity {
 
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
+    }
+
+    public String getRoleId() {
+        return roleId;
+    }
+
+    public void setRoleId(String roleId) {
+        this.roleId = roleId;
     }
 
     public Integer getStatus() {

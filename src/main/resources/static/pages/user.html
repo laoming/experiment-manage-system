@@ -36,6 +36,12 @@
                             class="search-input"
                             placeholder="输入用户名称搜索"
                         >
+                        <select v-model="queryForm.roleId" class="search-select">
+                            <option :value="null">全部角色</option>
+                            <option v-for="role in roleList" :key="role.id" :value="role.id">
+                                {{ role.roleName }}
+                            </option>
+                        </select>
                         <select v-model="queryForm.status" class="search-select">
                             <option :value="null">全部状态</option>
                             <option :value="1">激活</option>
@@ -68,6 +74,7 @@
                                 <th>序号</th>
                                 <th>账号</th>
                                 <th>用户名称</th>
+                                <th>角色</th>
                                 <th>状态</th>
                                 <th>创建时间</th>
                                 <th>更新时间</th>
@@ -76,7 +83,7 @@
                         </thead>
                         <tbody>
                             <tr v-if="userList.length === 0">
-                                <td colspan="7" class="empty-cell">
+                                <td colspan="8" class="empty-cell">
                                     <div class="empty-content">
                                         <div class="empty-icon">📭</div>
                                         <p>暂无数据</p>
@@ -87,6 +94,7 @@
                                 <td>{{ (pagination.current - 1) * pagination.size + index + 1 }}</td>
                                 <td>{{ user.username }}</td>
                                 <td>{{ user.displayName }}</td>
+                                <td>{{ getRoleName(user.roleId) }}</td>
                                 <td>
                                     <span class="status-badge" :class="getStatusClass(user.status)">
                                         {{ getStatusText(user.status) }}
@@ -173,6 +181,15 @@
                                 class="form-input"
                                 placeholder="请输入用户名称"
                             >
+                        </div>
+                        <div class="form-group" v-if="userModalMode === 'add'">
+                            <label class="form-label">用户角色 <span class="required">*</span></label>
+                            <select v-model="userForm.roleId" class="form-input">
+                                <option value="">请选择角色</option>
+                                <option v-for="role in roleList" :key="role.id" :value="role.id">
+                                    {{ role.roleName }}
+                                </option>
+                            </select>
                         </div>
                         <div class="form-group" v-if="userModalMode === 'edit'">
                             <label class="form-label">状态</label>

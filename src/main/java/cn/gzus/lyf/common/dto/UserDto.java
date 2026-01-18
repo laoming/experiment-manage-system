@@ -37,6 +37,11 @@ public class UserDto extends User {
     private Integer status;
 
     /**
+     * 角色ID
+     */
+    private String roleId;
+
+    /**
      * 构造函数（基础）
      * @param username 用户名
      * @param password 密码
@@ -180,6 +185,22 @@ public class UserDto extends User {
     }
 
     /**
+     * 获取角色ID
+     * @return 角色ID
+     */
+    public String getRoleId() {
+        return roleId;
+    }
+
+    /**
+     * 设置角色ID
+     * @param roleId 角色ID
+     */
+    public void setRoleId(String roleId) {
+        this.roleId = roleId;
+    }
+
+    /**
      * Builder类，用于构建UserDto
      */
     public static class Builder {
@@ -195,6 +216,7 @@ public class UserDto extends User {
         private String email;
         private String phone;
         private Integer status;
+        private String roleId;
 
         public Builder(String username, String password) {
             this.username = username;
@@ -233,6 +255,11 @@ public class UserDto extends User {
 
         public Builder status(Integer status) {
             this.status = status;
+            return this;
+        }
+
+        public Builder roleId(String roleId) {
+            this.roleId = roleId;
             return this;
         }
 

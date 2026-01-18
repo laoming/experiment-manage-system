@@ -8,9 +8,11 @@ const app = createApp({
         return {
             loading: false,
             userList: [],
+            roleList: [],
             queryForm: {
                 username: '',
                 displayName: '',
+                roleId: null,
                 status: null
             },
             pagination: {
@@ -26,6 +28,7 @@ const app = createApp({
                 username: '',
                 password: '',
                 displayName: '',
+                roleId: '',
                 status: 1
             },
             showPasswordModal: false,
@@ -48,6 +51,7 @@ const app = createApp({
 
     mounted() {
         this.checkLogin();
+        this.fetchRoleList();
         this.fetchUserList();
     },
 
@@ -60,6 +64,26 @@ const app = createApp({
             if (!token) {
                 window.location.href = '/ems/pages/index.html';
                 return;
+            }
+        },
+
+        /**
+         * 获取角色列表
+         */
+        async fetchRoleList() {
+            try {
+                console.log('📋 [USER] 开始获取角色列表...');
+                const response = await API.getRolePage(1, 1000, {});
+                console.log('✅ [USER] 获取角色列表成功:', response);
+
+                if (response.code === 200) {
+                    this.roleList = response.data.records || [];
+                } else {
+                    this.showError('获取角色列表失败: ' + (response.message || '未知错误'));
+                }
+            } catch (error) {
+                console.error('❌ [USER] 获取角色列表失败:', error);
+                this.showError('获取角色列表失败: ' + error.message);
             }
         },
 
@@ -107,6 +131,7 @@ const app = createApp({
             this.queryForm = {
                 username: '',
                 displayName: '',
+                roleId: null,
                 status: null
             };
             this.pagination.current = 1;
@@ -131,6 +156,7 @@ const app = createApp({
                 username: '',
                 password: '',
                 displayName: '',
+                roleId: '',
                 status: 1
             };
             this.showUserModal = true;
@@ -146,6 +172,7 @@ const app = createApp({
                 username: user.username,
                 password: '',
                 displayName: user.displayName,
+                roleId: user.roleId || '',
                 status: user.status
             };
             this.showUserModal = true;
@@ -161,6 +188,7 @@ const app = createApp({
                 username: '',
                 password: '',
                 displayName: '',
+                roleId: '',
                 status: 1
             };
         },
@@ -182,6 +210,10 @@ const app = createApp({
                 this.showError('用户名称不能为空');
                 return;
             }
+            if (!this.userForm.roleId) {
+                this.showError('请选择用户角色');
+                return;
+            }
 
             try {
                 let response;
@@ -194,7 +226,7 @@ const app = createApp({
                 }
 
                 console.log('✅ [USER] 操作成功:', response);
-                
+
                 if (response.code === 200) {
                     this.showSuccess(this.userModalMode === 'add' ? '新增用户成功' : '更新用户成功');
                     this.closeUserModal();
@@ -303,6 +335,17 @@ const app = createApp({
                 0: '已删除'
             };
             return statusMap[status] || '未知';
+        },
+
+        /**
+         * 根据角色ID获取角色名称
+         */
+        getRoleName(roleId) {
+            if (!roleId) {
+                return '-';
+            }
+            const role = this.roleList.find(r => r.id === roleId);
+            return role ? role.roleName : '-';
         },
 
         /**

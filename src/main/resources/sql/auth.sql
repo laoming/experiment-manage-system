@@ -11,10 +11,17 @@ CREATE TABLE user
     username     VARCHAR(50)                        NOT NULL UNIQUE COMMENT '用户名（账号）',
     password     VARCHAR(100)                       NOT NULL COMMENT '密码（摘要值）',
     display_name VARCHAR(30)                        NOT NULL COMMENT '显示名称',
+    role_id      VARCHAR(64)                        NOT NULL COMMENT '角色ID',
     status       INT                                NOT NULL COMMENT '状态：0-禁用，1-正常',
     create_time  DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL COMMENT '创建时间',
     update_time  DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL COMMENT '更新时间'
 ) COMMENT '系统用户表';
+
+INSERT INTO `USER` (`id`, `username`, `password`, `display_name`, `role_id`, `status`)
+VALUES ('1', 'admin', '$2a$10$iuFatogHkRpBbDJMllKluejzho/7Favm0zBQ.PUEeDTC1Bs301hZW', '超级管理员', '1', '1'),
+       ('2', 'lm', '$2a$10$rZS9riAbYP.cjHgGSbl2f.dsNChdE.ZgQvQDg5caoELbHGdVJuvFu', '刘明', '2', '1'),
+       ('3', 'feifei', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '菲菲', '3', '1');
+
 
 -- 2. 角色表
 CREATE TABLE role
@@ -26,6 +33,11 @@ CREATE TABLE role
     create_time DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL COMMENT '创建时间',
     update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL COMMENT '更新时间'
 ) COMMENT '系统角色表';
+
+INSERT INTO role(id, role_name, role_code, status)
+VALUES ("1", "管理员", "admin", 1),
+       ("2", "老师", "teacher", 1),
+       ("3", "学生", "student", 1);
 
 -- 3. 用户-角色关联表
 CREATE TABLE user_role_relation

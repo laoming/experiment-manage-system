@@ -41,6 +41,7 @@ public class UserDAO extends ServiceImpl<UserMapper, UserEntity> {
         Objects.requireNonNull(userEntity.getUsername(), "用户名（账号）不能为空");
         Objects.requireNonNull(userEntity.getPassword(), "用户密码不能为空");
         Objects.requireNonNull(userEntity.getDisplayName(), "用户显示名称不能为空");
+        Objects.requireNonNull(userEntity.getRoleId(), "用户角色不能为空");
 
         userEntity.setStatus(UserStatusEnum.ACTIVE.getCode());
         return this.save(userEntity);
@@ -83,6 +84,7 @@ public class UserDAO extends ServiceImpl<UserMapper, UserEntity> {
         IPage<UserEntity> userEntityIPage = this.page(new Page<>(current, size), Wrappers.<UserEntity>lambdaQuery()
                 .eq(StringUtils.isNotEmpty(userQueryDto.getUsername()), UserEntity::getUsername, userQueryDto.getUsername())
                 .eq(StringUtils.isNotEmpty(userQueryDto.getDisplayName()), UserEntity::getDisplayName, userQueryDto.getDisplayName())
+                .eq(StringUtils.isNotEmpty(userQueryDto.getRoleId()), UserEntity::getRoleId, userQueryDto.getRoleId())
                 .eq(userQueryDto.getStatus() != null, UserEntity::getStatus, userQueryDto.getStatus())
                 .orderByAsc(UserEntity::getStatus)
                 .orderByDesc(UserEntity::getUpdateTime)
