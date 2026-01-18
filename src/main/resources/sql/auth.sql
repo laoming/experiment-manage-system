@@ -39,16 +39,7 @@ VALUES ("1", "管理员", "admin", 1),
        ("2", "老师", "teacher", 1),
        ("3", "学生", "student", 1);
 
--- 3. 用户-角色关联表
-CREATE TABLE user_role_relation
-(
-    id      VARCHAR(64) PRIMARY KEY COMMENT '主键ID',
-    user_id VARCHAR(64) NOT NULL COMMENT '用户ID',
-    role_id VARCHAR(64) NOT NULL COMMENT '角色ID',
-    UNIQUE KEY (user_id, role_id)
-) COMMENT '用户-角色关联表';
-
--- 4. 菜单表
+-- 3. 菜单表
 CREATE TABLE menu
 (
     id          VARCHAR(64) PRIMARY KEY COMMENT '菜单ID',
@@ -62,7 +53,15 @@ CREATE TABLE menu
     update_time TIMESTAMP    DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL COMMENT '更新时间'
 ) COMMENT '系统菜单表';
 
--- 5. 角色-菜单关联表
+-- 更新菜单表，添加组织管理菜单
+INSERT INTO menu(id, parent_id, menu_name, menu_code, path, menu_type, sort)
+VALUES ('10', '0', '系统管理', 'system_management', '', 'D', 1),
+       ('11', '10', '用户管理', 'user_management', '/ems/pages/user.html', 'M', 1),
+       ('12', '10', '角色管理', 'role_management', '/ems/pages/role.html', 'M', 2),
+       ('13', '10', '组织管理', 'organization_management', '/ems/pages/organization.html', 'M', 3);
+
+
+-- 4. 角色-菜单关联表
 CREATE TABLE role_menu_relation
 (
     id      VARCHAR(64) PRIMARY KEY COMMENT '主键ID',
@@ -70,3 +69,28 @@ CREATE TABLE role_menu_relation
     menu_id VARCHAR(64) NOT NULL COMMENT '菜单ID',
     UNIQUE KEY (role_id, menu_id)
 ) COMMENT '角色-菜单关联表';
+
+-- 为管理员角色分配所有菜单权限
+INSERT INTO role_menu_relation(id, role_id, menu_id)
+VALUES ('1', '1', '10'),  -- 系统管理（管理员）
+       ('2', '1', '11'),  -- 用户管理
+       ('3', '1', '12'),  -- 角色管理
+       ('4', '1', '13');  -- 组织管理
+
+-- 5. 组织表
+CREATE TABLE organization
+(
+    id          VARCHAR(64) PRIMARY KEY COMMENT '组织ID',
+    org_name    VARCHAR(100) NOT NULL COMMENT '组织名称',
+    org_code    VARCHAR(50)  NOT NULL COMMENT '组织编码',
+    description VARCHAR(500) COMMENT '组织描述',
+    create_time DATETIME     DEFAULT CURRENT_TIMESTAMP NOT NULL COMMENT '创建时间',
+    update_time DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL COMMENT '更新时间',
+    UNIQUE KEY (org_code)
+) COMMENT '组织表';
+
+-- 插入组织数据
+INSERT INTO organization(id, org_name, org_code, description)
+VALUES ('1', '计算机学院', 'CS', '计算机科学与技术学院'),
+       ('2', '软件学院', 'SE', '软件工程与开发学院'),
+       ('3', '信息工程学院', 'IE', '信息工程与技术学院');

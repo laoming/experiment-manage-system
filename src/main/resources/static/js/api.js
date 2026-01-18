@@ -235,6 +235,13 @@ const API = {
     },
 
     /**
+     * 获取当前用户的菜单列表
+     */
+    async getMenuList() {
+        return this.get('/menu/list');
+    },
+
+    /**
      * 分页查询用户
      */
     async getUserPage(current, size, userQueryDto) {
@@ -246,6 +253,34 @@ const API = {
      */
     async getRolePage(current, size, roleQueryDto) {
         return this.post(`/role/page?current=${current}&size=${size}`, roleQueryDto);
+    },
+
+    /**
+     * 分页查询组织
+     */
+    async getOrganizationPage(current, size, organizationQueryDto) {
+        return this.post(`/organization/page?current=${current}&size=${size}`, organizationQueryDto);
+    },
+
+    /**
+     * 新增组织
+     */
+    async addOrganization(organizationEntity) {
+        return this.post('/organization/add', organizationEntity);
+    },
+
+    /**
+     * 更新组织信息
+     */
+    async updateOrganization(organizationEntity) {
+        return this.post('/organization/update', organizationEntity);
+    },
+
+    /**
+     * 删除组织
+     */
+    async deleteOrganization(organizationEntity) {
+        return this.post('/organization/delete', organizationEntity);
     },
 
     /**

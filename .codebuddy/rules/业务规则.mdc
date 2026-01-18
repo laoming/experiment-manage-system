@@ -1,0 +1,9 @@
+---
+description: 
+alwaysApply: true
+enabled: true
+updatedAt: 2026-01-18T15:53:43.615Z
+provider: 
+---
+
+1. 一个用户只能且必须关联一个角色。

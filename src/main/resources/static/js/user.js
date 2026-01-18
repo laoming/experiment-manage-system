@@ -210,7 +210,7 @@ const app = createApp({
                 this.showError('用户名称不能为空');
                 return;
             }
-            if (!this.userForm.roleId) {
+            if (this.userModalMode === 'add' && !this.userForm.roleId) {
                 this.showError('请选择用户角色');
                 return;
             }

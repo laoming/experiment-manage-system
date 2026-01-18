@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>实验管理系统 - 组织管理</title>
+    <link rel="stylesheet" href="/ems/css/common.css">
+    <link rel="stylesheet" href="/ems/css/user.css">
+</head>
+<body>
+    <div id="app">
+        <!-- 顶部导航栏组件 -->
+        <header-component @open-profile="openUserProfileModal"></header-component>
+
+        <!-- 主内容区域 -->
+        <div class="main-content">
+            <div class="container">
+                <!-- 页面标题 -->
+                <div class="page-header">
+                    <h1 class="page-title">组织管理</h1>
+                    <p class="page-subtitle">管理系统组织，包括组织添加、编辑、删除</p>
+                </div>
+
+                <!-- 搜索和操作栏 -->
+                <div class="toolbar">
+                    <div class="search-box">
+                        <input
+                            v-model="queryForm.orgName"
+                            type="text"
+                            class="search-input"
+                            placeholder="输入组织名称搜索"
+                        >
+                        <input
+                            v-model="queryForm.orgCode"
+                            type="text"
+                            class="search-input"
+                            placeholder="输入组织编码搜索"
+                        >
+                        <button class="btn btn-primary" @click="handleSearch">
+                            <span>🔍</span>
+                            <span>搜索</span>
+                        </button>
+                        <button class="btn btn-secondary" @click="handleReset">
+                            <span>↺</span>
+                            <span>重置</span>
+                        </button>
+                    </div>
+                    <button class="btn btn-success" @click="openAddModal">
+                        <span>+</span>
+                        <span>新增组织</span>
+                    </button>
+                </div>
+
+                <!-- 组织列表 -->
+                <div class="table-container">
+                    <div v-if="loading" class="loading">
+                        <div class="loading-spinner"></div>
+                        <p>加载中...</p>
+                    </div>
+                    <table v-else class="user-table">
+                        <thead>
+                            <tr>
+                                <th>序号</th>
+                                <th>组织名称</th>
+                                <th>组织编码</th>
+                                <th>组织描述</th>
+                                <th>创建时间</th>
+                                <th>更新时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-if="organizationList.length === 0">
+                                <td colspan="7" class="empty-cell">
+                                    <div class="empty-content">
+                                        <div class="empty-icon">📭</div>
+                                        <p>暂无数据</p>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr v-for="(org, index) in organizationList" :key="org.id">
+                                <td>{{ (pagination.current - 1) * pagination.size + index + 1 }}</td>
+                                <td>{{ org.orgName }}</td>
+                                <td>{{ org.orgCode }}</td>
+                                <td>{{ org.description || '-' }}</td>
+                                <td>{{ formatDateTime(org.createTime) }}</td>
+                                <td>{{ formatDateTime(org.updateTime) }}</td>
+                                <td class="actions">
+                                    <button class="action-btn btn-edit" @click="openEditModal(org)">
+                                        <span>✏️</span>
+                                        编辑
+                                    </button>
+                                    <button class="action-btn btn-delete" @click="handleDelete(org)">
+                                        <span>🗑️</span>
+                                        删除
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 分页 -->
+                <div class="pagination" v-if="organizationList.length > 0">
+                    <button
+                        class="pagination-btn"
+                        :disabled="pagination.current === 1"
+                        @click="handlePageChange(pagination.current - 1)"
+                    >
+                        上一页
+                    </button>
+                    <span class="pagination-info">
+                        第 {{ pagination.current }} / {{ pagination.pages }} 页
+                        <span class="pagination-total">共 {{ pagination.total }} 条记录</span>
+                    </span>
+                    <button
+                        class="pagination-btn"
+                        :disabled="pagination.current >= pagination.pages"
+                        @click="handlePageChange(pagination.current + 1)"
+                    >
+                        下一页
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 新增/编辑组织弹窗 -->
+        <div class="modal-overlay" v-if="showOrgModal" @click.self="closeOrgModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>{{ orgModalMode === 'add' ? '新增组织' : '编辑组织' }}</h2>
+                    <button class="modal-close" @click="closeOrgModal">✕</button>
+                </div>
+                <div class="modal-body">
+                    <form @submit.prevent="handleOrgSubmit">
+                        <div class="form-group">
+                            <label class="form-label">组织名称 <span class="required">*</span></label>
+                            <input
+                                v-model="orgForm.orgName"
+                                type="text"
+                                class="form-input"
+                                placeholder="请输入组织名称"
+                            >
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">组织编码 <span class="required">*</span></label>
+                            <input
+                                v-model="orgForm.orgCode"
+                                type="text"
+                                class="form-input"
+                                placeholder="请输入组织编码"
+                                :disabled="orgModalMode === 'edit'"
+                            >
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">组织描述</label>
+                            <textarea
+                                v-model="orgForm.description"
+                                class="form-input"
+                                placeholder="请输入组织描述"
+                                rows="4"
+                            ></textarea>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" @click="closeOrgModal">
+                                取消
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                确定
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vue.js CDN -->
+        <script src="https://unpkg.com/vue@3.3.4/dist/vue.global.js"></script>
+        <!-- API 工具 -->
+        <script src="/ems/js/api.js"></script>
+        <!-- 顶部导航栏组件 -->
+        <script src="/ems/js/header-component.js"></script>
+        <!-- 组织管理逻辑 -->
+        <script src="/ems/js/organization.js"></script>
+    </div>
+</body>
+</html>
