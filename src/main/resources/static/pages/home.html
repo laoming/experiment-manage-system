@@ -4,25 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>实验管理系统 - 首页</title>
+    <link rel="stylesheet" href="/ems/css/common.css">
     <link rel="stylesheet" href="/ems/css/home.css">
 </head>
 <body>
     <div id="app">
-        <!-- 顶部导航栏 -->
-        <div class="header">
-            <div class="header-content">
-                <div class="logo">
-                    <div class="logo-icon">EMS</div>
-                    <div>
-                        <div class="logo-text">实验管理系统</div>
-                    </div>
-                </div>
-                <div class="user-info">
-                    <span class="user-name">欢迎, {{ username }}</span>
-                    <button class="logout-btn" @click="handleLogout">退出登录</button>
-                </div>
-            </div>
-        </div>
+        <!-- 顶部导航栏组件 -->
+        <header-component @open-profile="openUserProfileModal"></header-component>
 
         <!-- 主内容区域 -->
         <div class="main-content">
@@ -33,10 +21,6 @@
                     <p class="welcome-subtitle">Experiment Management System - 高效、便捷的实验管理平台</p>
                     
                     <div class="welcome-info">
-                        <div class="info-item">
-                            <span class="info-label">用户名</span>
-                            <span class="info-value">{{ username }}</span>
-                        </div>
                         <div class="info-item">
                             <span class="info-label">登录时间</span>
                             <span class="info-value">{{ loginTime }}</span>
@@ -96,12 +80,81 @@
                 </div>
             </div>
         </div>
+
+        <!-- 修改个人信息弹窗 -->
+        <div class="modal-overlay" v-if="showUserProfileModal" @click.self="closeUserProfileModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>修改个人信息</h2>
+                    <button class="modal-close" @click="closeUserProfileModal">✕</button>
+                </div>
+                <div class="modal-body">
+                    <form @submit.prevent="handleUserProfileSubmit">
+                        <div class="form-group">
+                            <label class="form-label">账号</label>
+                            <input
+                                :value="userProfileForm.username"
+                                type="text"
+                                class="form-input"
+                                disabled
+                            >
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">用户名称 <span class="required">*</span></label>
+                            <input
+                                v-model="userProfileForm.displayName"
+                                type="text"
+                                class="form-input"
+                                placeholder="请输入用户名称"
+                            >
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">旧密码</label>
+                            <input
+                                v-model="userProfileForm.oldPassword"
+                                type="password"
+                                class="form-input"
+                                placeholder="如不修改密码请留空"
+                            >
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">新密码</label>
+                            <input
+                                v-model="userProfileForm.newPassword"
+                                type="password"
+                                class="form-input"
+                                placeholder="如不修改密码请留空"
+                            >
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">确认新密码</label>
+                            <input
+                                v-model="userProfileForm.confirmPassword"
+                                type="password"
+                                class="form-input"
+                                placeholder="如不修改密码请留空"
+                            >
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" @click="closeUserProfileModal">
+                                取消
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                保存
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Vue.js CDN -->
     <script src="https://unpkg.com/vue@3.3.4/dist/vue.global.js"></script>
     <!-- API 工具 -->
     <script src="/ems/js/api.js"></script>
+    <!-- 顶部导航栏组件 -->
+    <script src="/ems/js/header-component.js"></script>
     <!-- 首页逻辑 -->
     <script src="/ems/js/home.js"></script>
 </body>

@@ -3,12 +3,19 @@
  */
 const { createApp } = Vue;
 
-createApp({
+const app = createApp({
     data() {
         return {
-            username: '',
             loginTime: '',
-            loading: true
+            loading: true,
+            showUserProfileModal: false,
+            userProfileForm: {
+                username: '',
+                displayName: '',
+                oldPassword: '',
+                newPassword: '',
+                confirmPassword: ''
+            }
         };
     },
 
@@ -36,31 +43,6 @@ createApp({
          */
         initData() {
             console.log('🚀 [HOME] 开始初始化数据...');
-            
-            // 从 token 中解析显示名称
-            const userInfo = API.getUserInfoFromToken();
-            console.log('📋 [HOME] 获取到的用户信息:', userInfo);
-            
-            // 优先使用 displayName，如果没有则使用 username
-            if (userInfo && userInfo.displayName) {
-                this.username = userInfo.displayName;
-                console.log('✅ [HOME] 使用 displayName:', this.username);
-            } else if (userInfo && userInfo.username) {
-                this.username = userInfo.username;
-                console.log('✅ [HOME] 使用 username:', this.username);
-            } else {
-                // 如果 token 中没有信息，从 localStorage 获取保存的用户名
-                const savedUsername = localStorage.getItem('saved_username');
-                console.log('📦 [HOME] 从 localStorage 获取的保存用户名:', savedUsername);
-                if (savedUsername) {
-                    this.username = savedUsername;
-                    console.log('✅ [HOME] 使用保存的用户名:', this.username);
-                } else {
-                    console.warn('⚠️ [HOME] 无法获取用户名');
-                }
-            }
-            
-            console.log('🏁 [HOME] 最终设置的用户名:', this.username);
 
             // 获取当前时间
             const now = new Date();
@@ -126,6 +108,106 @@ createApp({
          */
         navigateToSettings() {
             alert('系统设置功能开发中...');
+        },
+
+        /**
+         * 打开个人信息弹窗
+         */
+        openUserProfileModal() {
+            const userInfo = API.getUserInfoFromToken();
+            this.userProfileForm = {
+                username: userInfo.username || '',
+                displayName: userInfo.displayName || '',
+                oldPassword: '',
+                newPassword: '',
+                confirmPassword: ''
+            };
+            this.showUserProfileModal = true;
+        },
+
+        /**
+         * 关闭个人信息弹窗
+         */
+        closeUserProfileModal() {
+            this.showUserProfileModal = false;
+            this.userProfileForm = {
+                username: '',
+                displayName: '',
+                oldPassword: '',
+                newPassword: '',
+                confirmPassword: ''
+            };
+        },
+
+        /**
+         * 提交个人信息修改
+         */
+        async handleUserProfileSubmit() {
+            // 验证用户名称
+            if (!this.userProfileForm.displayName.trim()) {
+                alert('请输入用户名称');
+                return;
+            }
+
+            // 如果要修改密码
+            if (this.userProfileForm.newPassword || this.userProfileForm.oldPassword) {
+                if (!this.userProfileForm.oldPassword) {
+                    alert('请输入旧密码');
+                    return;
+                }
+                if (!this.userProfileForm.newPassword) {
+                    alert('请输入新密码');
+                    return;
+                }
+                if (this.userProfileForm.newPassword !== this.userProfileForm.confirmPassword) {
+                    alert('两次输入的密码不一致');
+                    return;
+                }
+                if (this.userProfileForm.newPassword.length < 6) {
+                    alert('新密码长度不能少于6位');
+                    return;
+                }
+            }
+
+            try {
+                // 更新用户信息
+                const response = await API.updateUser({
+                    username: this.userProfileForm.username,
+                    displayName: this.userProfileForm.displayName
+                });
+
+                if (response.code === 200) {
+                    // 如果修改了密码，调用重置密码接口
+                    if (this.userProfileForm.newPassword) {
+                        const passwordResponse = await API.resetPassword({
+                            username: this.userProfileForm.username,
+                            password: this.userProfileForm.newPassword
+                        });
+
+                        if (passwordResponse.code === 200) {
+                            alert('个人信息和密码修改成功，请重新登录');
+                            API.logout();
+                        } else {
+                            alert('密码修改失败：' + (passwordResponse.message || '未知错误'));
+                        }
+                    } else {
+                        alert('个人信息修改成功');
+                        this.username = this.userProfileForm.displayName;
+                        this.closeUserProfileModal();
+                    }
+                } else {
+                    alert('个人信息修改失败：' + (response.message || '未知错误'));
+                }
+            } catch (error) {
+                console.error('修改个人信息失败:', error);
+                alert('修改失败：' + (error.message || '网络错误，请稍后重试'));
+            }
         }
     }
-}).mount('#app');
+});
+
+// 注册顶部导航栏组件
+app.component('header-component', HeaderComponent);
+
+// 挂载应用
+app.mount('#app');
