@@ -34,6 +34,7 @@ public class MenuController {
     }
 
     /**
+     * TODO 前端应该从这里获取当前用户的所有菜单列表，这个接口有点问题
      * 获取当前用户的菜单列表
      */
     @GetMapping("/list")
