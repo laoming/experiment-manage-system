@@ -48,9 +48,9 @@ public class OrganizationDAO extends ServiceImpl<OrganizationMapper, Organizatio
         String parentId = organizationEntity.getParentId();
         String orgName = organizationEntity.getOrgName();
 
-        if ("0".equals(parentId)) {
+        if (parentId == null) {
             // 顶级组织，全路径就是组织名称
-            organizationEntity.setFullPath(orgName);
+            organizationEntity.setFullPath("/" + orgName);
         } else {
             // 子组织，全路径 = 父组织全路径 + / + 当前组织名称
             OrganizationEntity parentOrg = this.getById(parentId);
