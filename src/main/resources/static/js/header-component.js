@@ -11,17 +11,6 @@ const HeaderComponent = {
                         <div class="logo-text">实验管理系统</div>
                     </div>
                 </div>
-                <nav class="nav-menu">
-                    <a 
-                        v-for="menu in menuList" 
-                        :key="menu.id" 
-                        class="nav-item"
-                        :class="{ active: isActiveMenu(menu.path) }"
-                        @click="navigateTo(menu.path)"
-                    >
-                        {{ menu.menuName }}
-                    </a>
-                </nav>
                 <div class="user-info">
                     <span class="user-name clickable" @click="$emit('open-profile')" title="点击修改个人信息">
                         欢迎, {{ username }}
@@ -33,13 +22,11 @@ const HeaderComponent = {
     `,
     data() {
         return {
-            username: '',
-            menuList: []
+            username: ''
         };
     },
     mounted() {
         this.initUsername();
-        this.fetchMenuList();
     },
     methods: {
         /**
@@ -51,38 +38,6 @@ const HeaderComponent = {
                 this.username = userInfo.displayName;
             } else if (userInfo && userInfo.username) {
                 this.username = userInfo.username;
-            }
-        },
-
-        /**
-         * 获取菜单列表
-         */
-        async fetchMenuList() {
-            try {
-                const response = await API.getMenuList();
-                if (response.code === 200) {
-                    this.menuList = response.data || [];
-                }
-            } catch (error) {
-                console.error('获取菜单列表失败:', error);
-            }
-        },
-
-        /**
-         * 判断当前菜单是否激活
-         */
-        isActiveMenu(path) {
-            if (!path) return false;
-            const currentPath = window.location.pathname;
-            return currentPath === path || currentPath.startsWith(path);
-        },
-
-        /**
-         * 导航到指定页面
-         */
-        navigateTo(path) {
-            if (path && path.startsWith('/ems/pages/')) {
-                window.location.href = path;
             }
         },
 

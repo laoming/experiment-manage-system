@@ -32,31 +32,38 @@
                     </div>
                 </div>
 
-                <!-- 功能卡片 -->
-                <div class="features-grid">
-                    <div class="feature-card" @click="navigateToUserManagement">
-                        <div class="feature-icon">👥</div>
-                        <h3 class="feature-title">用户管理</h3>
-                        <p class="feature-description">管理系统用户，包括用户添加、编辑、删除以及权限分配</p>
+                <!-- 功能卡片（菜单目录） -->
+                <div v-if="menuDirectories.length > 0" class="menu-section">
+                    <div v-for="directory in menuDirectories" :key="directory.id" class="menu-directory-card">
+                        <div class="directory-header" @click="toggleDirectory(directory.id)">
+                            <div class="directory-icon">{{ getDirectoryIcon(directory.menuName) }}</div>
+                            <div class="directory-info">
+                                <h3 class="directory-title">{{ directory.menuName }}</h3>
+                                <p class="directory-description">{{ directory.menuName }}相关功能</p>
+                            </div>
+                            <div class="toggle-icon" :class="{ expanded: expandedDirectories.includes(directory.id) }">
+                                ▼
+                            </div>
+                        </div>
+                        <div class="menu-items" :class="{ expanded: expandedDirectories.includes(directory.id) }">
+                            <div
+                                v-for="menu in getMenusByDirectory(directory.id)"
+                                :key="menu.id"
+                                class="menu-item-card"
+                                @click="navigateToMenu(menu)"
+                            >
+                                <div class="menu-icon">{{ getMenuIcon(menu.menuName) }}</div>
+                                <div class="menu-info">
+                                    <h4 class="menu-title">{{ menu.menuName }}</h4>
+                                </div>
+                            </div>
+                        </div>
                     </div>
+                </div>
 
-                    <div class="feature-card" @click="navigateToExperimentManagement">
-                        <div class="feature-icon">🔬</div>
-                        <h3 class="feature-title">实验管理</h3>
-                        <p class="feature-description">创建和管理实验项目，跟踪实验进度和结果</p>
-                    </div>
-
-                    <div class="feature-card" @click="navigateToDataAnalysis">
-                        <div class="feature-icon">📊</div>
-                        <h3 class="feature-title">数据分析</h3>
-                        <p class="feature-description">对实验数据进行统计分析，生成可视化报表</p>
-                    </div>
-
-                    <div class="feature-card" @click="navigateToSettings">
-                        <div class="feature-icon">⚙️</div>
-                        <h3 class="feature-title">系统设置</h3>
-                        <p class="feature-description">配置系统参数，管理菜单和权限</p>
-                    </div>
+                <!-- 如果没有菜单，显示默认提示 -->
+                <div v-else class="no-menu-hint">
+                    <p>暂无可用菜单，请联系管理员分配权限</p>
                 </div>
 
                 <!-- 统计卡片 -->

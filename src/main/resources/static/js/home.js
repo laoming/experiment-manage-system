@@ -15,13 +15,17 @@ const app = createApp({
                 oldPassword: '',
                 newPassword: '',
                 confirmPassword: ''
-            }
+            },
+            menuList: [],
+            menuDirectories: [],
+            expandedDirectories: []
         };
     },
 
     mounted() {
         this.checkLogin();
         this.initData();
+        this.fetchMenuList();
     },
 
     methods: {
@@ -60,6 +64,94 @@ const app = createApp({
         },
 
         /**
+         * 获取菜单列表
+         */
+        async fetchMenuList() {
+            try {
+                const response = await API.getMenuList();
+                if (response.code === 200 && Array.isArray(response.data)) {
+                    this.menuList = response.data;
+                    this.processMenus();
+                }
+            } catch (error) {
+                console.error('获取菜单列表失败:', error);
+            }
+        },
+
+        /**
+         * 处理菜单数据
+         */
+        processMenus() {
+            // 获取所有菜单目录（parentId = '0'，menuType = 'D'）
+            this.menuDirectories = this.menuList.filter(menu =>
+                menu.parentId === '0' && menu.menuType === 'D'
+            );
+        },
+
+        /**
+         * 根据目录ID获取菜单列表
+         */
+        getMenusByDirectory(directoryId) {
+            return this.menuList.filter(menu =>
+                menu.parentId === directoryId && menu.menuType === 'M'
+            );
+        },
+
+        /**
+         * 切换目录展开/收起
+         */
+        toggleDirectory(directoryId) {
+            const index = this.expandedDirectories.indexOf(directoryId);
+            if (index > -1) {
+                this.expandedDirectories.splice(index, 1);
+            } else {
+                this.expandedDirectories.push(directoryId);
+            }
+        },
+
+        /**
+         * 导航到菜单页面
+         */
+        navigateToMenu(menu) {
+            if (menu.path) {
+                window.location.href = menu.path;
+            } else {
+                console.warn('菜单没有配置路径:', menu);
+            }
+        },
+
+        /**
+         * 获取目录图标
+         */
+        getDirectoryIcon(menuName) {
+            const iconMap = {
+                '系统管理': '⚙️',
+                '用户管理': '👥',
+                '实验管理': '🔬',
+                '数据分析': '📊',
+                '权限管理': '🔐',
+                '组织管理': '🏢'
+            };
+            return iconMap[menuName] || '📁';
+        },
+
+        /**
+         * 获取菜单图标
+         */
+        getMenuIcon(menuName) {
+            const iconMap = {
+                '用户列表': '👤',
+                '角色管理': '👥',
+                '菜单管理': '📋',
+                '组织列表': '🏢',
+                '实验项目': '📝',
+                '实验数据': '📊',
+                '数据统计': '📈'
+            };
+            return iconMap[menuName] || '📄';
+        },
+
+        /**
          * 获取用户信息
          */
         async fetchUserInfo() {
@@ -80,34 +172,6 @@ const app = createApp({
             if (confirm('确定要退出登录吗？')) {
                 API.logout();
             }
-        },
-
-        /**
-         * 导航到用户管理
-         */
-        navigateToUserManagement() {
-            window.location.href = '/ems/pages/user.html';
-        },
-
-        /**
-         * 导航到实验管理
-         */
-        navigateToExperimentManagement() {
-            alert('实验管理功能开发中...');
-        },
-
-        /**
-         * 导航到数据分析
-         */
-        navigateToDataAnalysis() {
-            alert('数据分析功能开发中...');
-        },
-
-        /**
-         * 导航到系统设置
-         */
-        navigateToSettings() {
-            alert('系统设置功能开发中...');
         },
 
         /**

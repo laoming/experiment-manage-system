@@ -130,6 +130,148 @@ body {
     line-height: 1.6;
 }
 
+/* 菜单区域 */
+.menu-section {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.menu-directory-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    transition: all 0.3s;
+}
+
+.menu-directory-card:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.directory-header {
+    display: flex;
+    align-items: center;
+    padding: 24px;
+    cursor: pointer;
+    transition: all 0.3s;
+    gap: 16px;
+}
+
+.directory-header:hover {
+    background: #f8f9fa;
+}
+
+.directory-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 28px;
+    flex-shrink: 0;
+}
+
+.directory-info {
+    flex: 1;
+}
+
+.directory-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #333;
+    margin: 0 0 8px 0;
+}
+
+.directory-description {
+    font-size: 14px;
+    color: #999;
+    margin: 0;
+}
+
+.toggle-icon {
+    font-size: 12px;
+    color: #999;
+    transition: transform 0.3s;
+    transform: rotate(-90deg);
+}
+
+.toggle-icon.expanded {
+    transform: rotate(0deg);
+}
+
+.menu-items {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+    background: #f8f9fa;
+}
+
+.menu-items.expanded {
+    max-height: 1000px;
+    transition: max-height 0.5s ease-in;
+}
+
+.menu-item-card {
+    display: flex;
+    align-items: center;
+    padding: 20px 24px;
+    cursor: pointer;
+    border-bottom: 1px solid #e8e8e8;
+    transition: all 0.3s;
+    gap: 16px;
+}
+
+.menu-item-card:last-child {
+    border-bottom: none;
+}
+
+.menu-item-card:hover {
+    background: #fff;
+    padding-left: 32px;
+}
+
+.menu-icon {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.menu-info {
+    flex: 1;
+}
+
+.menu-title {
+    font-size: 16px;
+    font-weight: 500;
+    color: #333;
+    margin: 0;
+}
+
+.no-menu-hint {
+    background: white;
+    border-radius: 12px;
+    padding: 60px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.no-menu-hint p {
+    font-size: 16px;
+    color: #999;
+    margin: 0;
+}
+
 /* 统计卡片区域 */
 .stats-grid {
     display: grid;
@@ -187,6 +329,30 @@ body {
 
     .features-grid {
         grid-template-columns: 1fr;
+    }
+
+    .directory-header {
+        padding: 20px;
+    }
+
+    .directory-icon {
+        width: 48px;
+        height: 48px;
+        font-size: 24px;
+    }
+
+    .directory-title {
+        font-size: 18px;
+    }
+
+    .menu-item-card {
+        padding: 16px 20px;
+    }
+
+    .menu-icon {
+        width: 36px;
+        height: 36px;
+        font-size: 18px;
     }
 }
 
