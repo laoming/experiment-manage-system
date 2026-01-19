@@ -1,6 +1,7 @@
 package cn.gzus.lyf.controller;
 
 import cn.gzus.lyf.common.dto.Result;
+import cn.gzus.lyf.common.dto.UserDto;
 import cn.gzus.lyf.dao.MenuDAO;
 import cn.gzus.lyf.dao.entity.MenuEntity;
 import cn.gzus.lyf.service.UserService;
@@ -34,36 +35,26 @@ public class MenuController {
     }
 
     /**
-     * TODO 前端应该从这里获取当前用户的所有菜单列表，这个接口有点问题
      * 获取当前用户的菜单列表
      */
     @GetMapping("/list")
     public Result<List<MenuEntity>> getMenuList() {
-        try {
-            // 从 SecurityContext 获取当前用户信息
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            
-            if (authentication == null || !authentication.isAuthenticated()) {
-                return Result.error("未登录");
-            }
+        // 从 SecurityContext 获取当前用户信息
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-            // 获取当前用户的角色ID
-            String roleId = null;
-            if (authentication.getPrincipal() instanceof cn.gzus.lyf.common.dto.UserDto) {
-                cn.gzus.lyf.common.dto.UserDto userDto = (cn.gzus.lyf.common.dto.UserDto) authentication.getPrincipal();
-                roleId = userDto.getRoleId();
-            }
-
-            if (roleId == null) {
-                return Result.error("未找到用户角色");
-            }
-
-            // 根据角色ID查询菜单列表
-            List<MenuEntity> menuList = userService.getMenusByRoleId(roleId);
-            return Result.success(menuList);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return Result.error("获取菜单列表失败: " + e.getMessage());
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return Result.error("未登录");
         }
+
+        // 获取当前用户的角色ID
+        String roleId = ((UserDto) authentication.getPrincipal()).getRoleId();
+
+        if (roleId == null) {
+            return Result.error("未找到用户角色");
+        }
+
+        // 根据角色ID查询菜单列表
+        List<MenuEntity> menuList = userService.getMenusByRoleId(roleId);
+        return Result.success(menuList);
     }
 }

@@ -51,6 +51,7 @@ public class AuthService {
         additionalClaims.put("id", userDto.getId());
         additionalClaims.put("username", userDto.getUsername());
         additionalClaims.put("displayName", userDto.getDisplayName());
+        additionalClaims.put("roleId", userDto.getRoleId());
 
         // 生成包含完整信息的JWT Token
         return jwtUtil.generateToken(userDetails, additionalClaims);

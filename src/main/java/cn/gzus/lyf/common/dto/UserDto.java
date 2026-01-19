@@ -102,6 +102,7 @@ public class UserDto extends User {
         this.email = builder.email;
         this.phone = builder.phone;
         this.status = builder.status;
+        this.roleId = builder.roleId;
     }
 
     /**

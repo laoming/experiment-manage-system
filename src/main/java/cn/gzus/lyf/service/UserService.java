@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 public class UserService implements UserDetailsService {
@@ -64,10 +65,9 @@ public class UserService implements UserDetailsService {
             throw new UsernameNotFoundException("用户未激活，无法登录");
         }
 
-        // 2. 查询用户权限（菜单权限标识）
-        List<MenuEntity> menuList = getMenusByRoleId(userEntity.getRoleId());
-        List<SimpleGrantedAuthority> authorities = menuList.stream()
-                .map(menu -> new SimpleGrantedAuthority(menu.getMenuCode()))
+        // 2. 查询用户角色信息
+        List<SimpleGrantedAuthority> authorities = Stream.of(userEntity.getRoleId())
+                .map(SimpleGrantedAuthority::new)
                 .collect(Collectors.toList());
 
         // 3. 使用Builder模式构建UserDto，包含完整的用户信息
