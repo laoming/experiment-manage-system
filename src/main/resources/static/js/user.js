@@ -9,6 +9,7 @@ const app = createApp({
             loading: false,
             userList: [],
             roleList: [],
+            orgList: [],
             queryForm: {
                 username: '',
                 displayName: '',
@@ -29,6 +30,7 @@ const app = createApp({
                 password: '',
                 displayName: '',
                 roleId: '',
+                orgId: '',
                 status: 1
             },
             showPasswordModal: false,
@@ -52,6 +54,7 @@ const app = createApp({
     mounted() {
         this.checkLogin();
         this.fetchRoleList();
+        this.fetchOrgList();
         this.fetchUserList();
     },
 
@@ -84,6 +87,26 @@ const app = createApp({
             } catch (error) {
                 console.error('❌ [USER] 获取角色列表失败:', error);
                 this.showError('获取角色列表失败: ' + error.message);
+            }
+        },
+
+        /**
+         * 获取组织列表
+         */
+        async fetchOrgList() {
+            try {
+                console.log('📋 [USER] 开始获取组织列表...');
+                const response = await API.getOrganizationList();
+                console.log('✅ [USER] 获取组织列表成功:', response);
+
+                if (response.code === 200) {
+                    this.orgList = response.data || [];
+                } else {
+                    this.showError('获取组织列表失败: ' + (response.message || '未知错误'));
+                }
+            } catch (error) {
+                console.error('❌ [USER] 获取组织列表失败:', error);
+                this.showError('获取组织列表失败: ' + error.message);
             }
         },
 
@@ -157,6 +180,7 @@ const app = createApp({
                 password: '',
                 displayName: '',
                 roleId: '',
+                orgId: '',
                 status: 1
             };
             this.showUserModal = true;
@@ -173,6 +197,7 @@ const app = createApp({
                 password: '',
                 displayName: user.displayName,
                 roleId: user.roleId || '',
+                orgId: user.orgId || '',
                 status: user.status
             };
             this.showUserModal = true;
@@ -189,6 +214,7 @@ const app = createApp({
                 password: '',
                 displayName: '',
                 roleId: '',
+                orgId: '',
                 status: 1
             };
         },
@@ -212,6 +238,10 @@ const app = createApp({
             }
             if (this.userModalMode === 'add' && !this.userForm.roleId) {
                 this.showError('请选择用户角色');
+                return;
+            }
+            if (!this.userForm.orgId) {
+                this.showError('请选择所属组织');
                 return;
             }
 
@@ -346,6 +376,17 @@ const app = createApp({
             }
             const role = this.roleList.find(r => r.id === roleId);
             return role ? role.roleName : '-';
+        },
+
+        /**
+         * 根据组织ID获取组织全路径
+         */
+        getOrgName(orgId) {
+            if (!orgId) {
+                return '-';
+            }
+            const org = this.orgList.find(o => o.id === orgId);
+            return org ? org.fullPath : '-';
         },
 
         /**

@@ -3,25 +3,76 @@
  */
 const { createApp } = Vue;
 
+// 树形组织项组件
+const TreeItem = {
+    name: 'TreeItem',
+    props: {
+        node: Object,
+        selectedOrg: Object
+    },
+    emits: ['select'],
+    template: `
+        <div class="tree-node-item">
+            <div
+                class="tree-node-content"
+                :class="{ 'selected': selectedOrg && selectedOrg.id === node.id, 'root': !node.parentId || node.parentId === '' }"
+                @click.stop="$emit('select', node)"
+            >
+                <span class="tree-toggle" @click.stop="toggleExpand">
+                    <span v-if="hasChildren" class="toggle-icon">{{ expanded ? '▼' : '▶' }}</span>
+                    <span v-else class="toggle-icon">●</span>
+                </span>
+                <span class="tree-label">
+                    {{ node.orgName }}
+                    <span v-if="!node.parentId || node.parentId === ''" class="root-badge">根</span>
+                </span>
+                <span class="tree-code">({{ node.orgCode }})</span>
+            </div>
+            <div v-if="hasChildren && expanded" class="tree-children">
+                <tree-item
+                    v-for="child in node.children"
+                    :key="child.id"
+                    :node="child"
+                    :selected-org="selectedOrg"
+                    @select="$emit('select', $event)"
+                ></tree-item>
+            </div>
+        </div>
+    `,
+    data() {
+        return {
+            expanded: false
+        };
+    },
+    computed: {
+        hasChildren() {
+            return this.node.children && this.node.children.length > 0;
+        }
+    },
+    methods: {
+        toggleExpand() {
+            this.expanded = !this.expanded;
+        }
+    }
+};
+
 const app = createApp({
     data() {
         return {
             loading: false,
             organizationList: [],
+            orgTree: [],
+            parentOrgList: [],
+            selectedOrg: null,
             queryForm: {
                 orgName: '',
                 orgCode: ''
             },
-            pagination: {
-                current: 1,
-                size: 10,
-                total: 0,
-                pages: 0
-            },
             showOrgModal: false,
-            orgModalMode: 'add', // 'add' or 'edit'
+            orgModalMode: 'add',
             orgForm: {
                 id: '',
+                parentId: '',
                 orgName: '',
                 orgCode: '',
                 description: ''
@@ -40,6 +91,7 @@ const app = createApp({
     mounted() {
         this.checkLogin();
         this.fetchOrganizationList();
+        this.fetchParentOrgList();
     },
 
     methods: {
@@ -61,17 +113,12 @@ const app = createApp({
             this.loading = true;
             try {
                 console.log('📋 [ORG] 开始获取组织列表...', this.queryForm);
-                const response = await API.getOrganizationPage(
-                    this.pagination.current,
-                    this.pagination.size,
-                    this.queryForm
-                );
+                const response = await API.getOrganizationList();
                 console.log('✅ [ORG] 获取组织列表成功:', response);
-                
+
                 if (response.code === 200) {
-                    this.organizationList = response.data.records || [];
-                    this.pagination.total = response.data.total || 0;
-                    this.pagination.pages = response.data.pages || 0;
+                    this.organizationList = response.data || [];
+                    this.buildOrgTree();
                 } else {
                     this.showError('获取组织列表失败: ' + (response.message || '未知错误'));
                 }
@@ -84,10 +131,64 @@ const app = createApp({
         },
 
         /**
+         * 构建组织树
+         */
+        buildOrgTree() {
+            const orgMap = {};
+            const roots = [];
+
+            // 构建映射
+            this.organizationList.forEach(org => {
+                orgMap[org.id] = { ...org, children: [] };
+            });
+
+            // 构建树形结构
+            this.organizationList.forEach(org => {
+                const node = orgMap[org.id];
+                if (!org.parentId || org.parentId === '') {
+                    roots.push(node);
+                } else {
+                    if (orgMap[org.parentId]) {
+                        orgMap[org.parentId].children.push(node);
+                    }
+                }
+            });
+
+            this.orgTree = roots;
+        },
+
+        /**
+         * 获取父组织列表（用于新增时选择父组织）
+         */
+        async fetchParentOrgList() {
+            try {
+                console.log('📋 [ORG] 开始获取父组织列表...');
+                const response = await API.getOrganizationList();
+                console.log('✅ [ORG] 获取父组织列表成功:', response);
+
+                if (response.code === 200) {
+                    this.parentOrgList = response.data || [];
+                } else {
+                    this.showError('获取父组织列表失败: ' + (response.message || '未知错误'));
+                }
+            } catch (error) {
+                console.error('❌ [ORG] 获取父组织列表失败:', error);
+                this.showError('获取父组织列表失败: ' + error.message);
+            }
+        },
+
+        /**
+         * 选中组织
+         */
+        selectOrg(org) {
+            this.selectedOrg = org;
+            console.log('📍 [ORG] 选中组织:', org);
+        },
+
+        /**
          * 搜索
          */
         handleSearch() {
-            this.pagination.current = 1;
             this.fetchOrganizationList();
         },
 
@@ -99,15 +200,6 @@ const app = createApp({
                 orgName: '',
                 orgCode: ''
             };
-            this.pagination.current = 1;
-            this.fetchOrganizationList();
-        },
-
-        /**
-         * 分页变化
-         */
-        handlePageChange(page) {
-            this.pagination.current = page;
             this.fetchOrganizationList();
         },
 
@@ -118,6 +210,7 @@ const app = createApp({
             this.orgModalMode = 'add';
             this.orgForm = {
                 id: '',
+                parentId: this.selectedOrg ? this.selectedOrg.id : '',
                 orgName: '',
                 orgCode: '',
                 description: ''
@@ -129,12 +222,26 @@ const app = createApp({
          * 打开编辑组织弹窗
          */
         openEditModal(org) {
+            if (!org && !this.selectedOrg) {
+                this.showError('请先选择一个组织');
+                return;
+            }
+
+            const targetOrg = org || this.selectedOrg;
+
+            // 不允许编辑根组织（parentId为空或null）
+            if (!targetOrg.parentId || targetOrg.parentId === '') {
+                this.showError('根组织不允许编辑');
+                return;
+            }
+
             this.orgModalMode = 'edit';
             this.orgForm = {
-                id: org.id,
-                orgName: org.orgName,
-                orgCode: org.orgCode,
-                description: org.description || ''
+                id: targetOrg.id,
+                parentId: targetOrg.parentId || '',
+                orgName: targetOrg.orgName,
+                orgCode: targetOrg.orgCode,
+                description: targetOrg.description || ''
             };
             this.showOrgModal = true;
         },
@@ -146,6 +253,7 @@ const app = createApp({
             this.showOrgModal = false;
             this.orgForm = {
                 id: '',
+                parentId: '',
                 orgName: '',
                 orgCode: '',
                 description: ''
@@ -181,6 +289,7 @@ const app = createApp({
                 if (response.code === 200) {
                     this.showSuccess(this.orgModalMode === 'add' ? '新增组织成功' : '更新组织成功');
                     this.closeOrgModal();
+                    this.selectedOrg = null;
                     this.fetchOrganizationList();
                 } else {
                     this.showError((this.orgModalMode === 'add' ? '新增' : '更新') + '组织失败: ' + (response.message || '未知错误'));
@@ -194,18 +303,24 @@ const app = createApp({
         /**
          * 删除组织
          */
-        async handleDelete(org) {
-            if (!confirm(`确定要删除组织 "${org.orgName}" 吗？`)) {
+        async handleDelete() {
+            if (!this.selectedOrg) {
+                this.showError('请先选择一个组织');
+                return;
+            }
+
+            if (!confirm(`确定要删除组织 "${this.selectedOrg.orgName}" 吗？`)) {
                 return;
             }
 
             try {
-                console.log('🗑️ [ORG] 删除组织:', { id: org.id, orgName: org.orgName });
-                const response = await API.deleteOrganization({ id: org.id });
+                console.log('🗑️ [ORG] 删除组织:', { id: this.selectedOrg.id, orgName: this.selectedOrg.orgName });
+                const response = await API.deleteOrganization({ id: this.selectedOrg.id });
                 console.log('✅ [ORG] 删除组织成功:', response);
-                
+
                 if (response.code === 200) {
                     this.showSuccess('删除组织成功');
+                    this.selectedOrg = null;
                     this.fetchOrganizationList();
                 } else {
                     this.showError('删除组织失败: ' + (response.message || '未知错误'));
@@ -213,27 +328,6 @@ const app = createApp({
             } catch (error) {
                 console.error('❌ [ORG] 删除组织失败:', error);
                 this.showError('删除组织失败: ' + error.message);
-            }
-        },
-
-        /**
-         * 格式化日期时间
-         */
-        formatDateTime(dateStr) {
-            if (!dateStr) return '-';
-            try {
-                const date = new Date(dateStr);
-                return date.toLocaleString('zh-CN', {
-                    year: 'numeric',
-                    month: '2-digit',
-                    day: '2-digit',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit'
-                });
-            } catch (error) {
-                console.error('日期格式化失败:', error);
-                return dateStr;
             }
         },
 
@@ -354,6 +448,9 @@ const app = createApp({
         }
     }
 });
+
+// 注册树形组件
+app.component('tree-item', TreeItem);
 
 // 注册顶部导航栏组件
 app.component('header-component', HeaderComponent);

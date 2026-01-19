@@ -7,6 +7,7 @@ import cn.gzus.lyf.dao.entity.OrganizationEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Objects;
 
 @Service
@@ -28,6 +29,7 @@ public class OrganizationService {
         Objects.requireNonNull(organizationEntity, "组织实体不能为空");
         Objects.requireNonNull(organizationEntity.getOrgName(), "组织名称不能为空");
         Objects.requireNonNull(organizationEntity.getOrgCode(), "组织编码不能为空");
+        // parentId可以为空，用于创建根组织
         return organizationDAO.addOrganization(organizationEntity);
     }
 
@@ -48,7 +50,13 @@ public class OrganizationService {
      * @return 是否成功
      */
     public boolean deleteOrganization(String organizationId) {
-        Objects.requireNonNull(organizationDAO.getById(organizationId), "组织id不存在");
+        OrganizationEntity organization = organizationDAO.getById(organizationId);
+        Objects.requireNonNull(organization, "组织id不存在");
+
+        // 检查组织下是否有子组织
+        if (organizationDAO.hasChildOrganizations(organizationId)) {
+            throw new RuntimeException("该组织下存在子组织，不允许删除");
+        }
         return organizationDAO.deleteOrganization(organizationId);
     }
 
@@ -61,5 +69,13 @@ public class OrganizationService {
      */
     public PageDto<OrganizationEntity> getOrganizationPage(int current, int size, OrganizationQueryDto organizationQueryDto) {
         return organizationDAO.getOrganizationPage(current, size, organizationQueryDto);
+    }
+
+    /**
+     * 获取所有组织列表（用于父组织选择）
+     * @return 组织列表
+     */
+    public List<OrganizationEntity> getOrganizationList() {
+        return organizationDAO.getOrganizationList();
     }
 }

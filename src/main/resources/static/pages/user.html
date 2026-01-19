@@ -75,6 +75,7 @@
                                 <th>账号</th>
                                 <th>用户名称</th>
                                 <th>角色</th>
+                                <th>组织</th>
                                 <th>状态</th>
                                 <th>创建时间</th>
                                 <th>更新时间</th>
@@ -83,7 +84,7 @@
                         </thead>
                         <tbody>
                             <tr v-if="userList.length === 0">
-                                <td colspan="8" class="empty-cell">
+                                <td colspan="9" class="empty-cell">
                                     <div class="empty-content">
                                         <div class="empty-icon">📭</div>
                                         <p>暂无数据</p>
@@ -95,6 +96,7 @@
                                 <td>{{ user.username }}</td>
                                 <td>{{ user.displayName }}</td>
                                 <td>{{ getRoleName(user.roleId) }}</td>
+                                <td>{{ getOrgName(user.orgId) }}</td>
                                 <td>
                                     <span class="status-badge" :class="getStatusClass(user.status)">
                                         {{ getStatusText(user.status) }}
@@ -188,6 +190,15 @@
                                 <option value="">请选择角色</option>
                                 <option v-for="role in roleList" :key="role.id" :value="role.id">
                                     {{ role.roleName }}
+                                </option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">所属组织 <span class="required">*</span></label>
+                            <select v-model="userForm.orgId" class="form-input">
+                                <option value="">请选择组织</option>
+                                <option v-for="org in orgList" :key="org.id" :value="org.id">
+                                    {{ org.fullPath }}
                                 </option>
                             </select>
                         </div>

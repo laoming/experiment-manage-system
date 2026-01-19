@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 /**
  * 组织管理
  */
@@ -31,6 +33,14 @@ public class OrganizationController {
     @PostMapping("/page")
     public Result<PageDto<OrganizationEntity>> getOrganizationPage(int current, int size, @RequestBody OrganizationQueryDto organizationQueryDto) {
         return Result.success(organizationService.getOrganizationPage(current, size, organizationQueryDto));
+    }
+
+    /**
+     * 获取所有组织列表（用于父组织选择）
+     */
+    @PostMapping("/list")
+    public Result<List<OrganizationEntity>> getOrganizationList() {
+        return Result.success(organizationService.getOrganizationList());
     }
 
     /**

@@ -15,6 +15,11 @@ public class OrganizationEntity {
     private String id;
 
     /**
+     * 父组织ID（0为顶级组织）
+     */
+    private String parentId;
+
+    /**
      * 组织名称
      */
     private String orgName;
@@ -23,6 +28,11 @@ public class OrganizationEntity {
      * 组织编码
      */
     private String orgCode;
+
+    /**
+     * 组织名称全路径
+     */
+    private String fullPath;
 
     /**
      * 组织描述
@@ -48,6 +58,14 @@ public class OrganizationEntity {
         this.id = id;
     }
 
+    public String getParentId() {
+        return parentId;
+    }
+
+    public void setParentId(String parentId) {
+        this.parentId = parentId;
+    }
+
     public String getOrgName() {
         return orgName;
     }
@@ -62,6 +80,14 @@ public class OrganizationEntity {
 
     public void setOrgCode(String orgCode) {
         this.orgCode = orgCode;
+    }
+
+    public String getFullPath() {
+        return fullPath;
+    }
+
+    public void setFullPath(String fullPath) {
+        this.fullPath = fullPath;
     }
 
     public String getDescription() {

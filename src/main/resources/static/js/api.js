@@ -263,6 +263,13 @@ const API = {
     },
 
     /**
+     * 获取所有组织列表（用于父组织选择）
+     */
+    async getOrganizationList() {
+        return this.post('/organization/list', {});
+    },
+
+    /**
      * 新增组织
      */
     async addOrganization(organizationEntity) {

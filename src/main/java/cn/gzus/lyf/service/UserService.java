@@ -103,6 +103,7 @@ public class UserService implements UserDetailsService {
      */
     public boolean addUser(UserEntity userEntity) {
         Objects.requireNonNull(userEntity.getRoleId(), "用户角色不能为空");
+        Objects.requireNonNull(userEntity.getOrgId(), "用户组织不能为空");
 
         if (userEntity.getPassword() != null && !userEntity.getPassword().isEmpty()) {
             // 对密码进行加密

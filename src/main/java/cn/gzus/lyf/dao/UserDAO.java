@@ -42,6 +42,7 @@ public class UserDAO extends ServiceImpl<UserMapper, UserEntity> {
         Objects.requireNonNull(userEntity.getPassword(), "用户密码不能为空");
         Objects.requireNonNull(userEntity.getDisplayName(), "用户显示名称不能为空");
         Objects.requireNonNull(userEntity.getRoleId(), "用户角色不能为空");
+        Objects.requireNonNull(userEntity.getOrgId(), "用户组织不能为空");
 
         userEntity.setStatus(UserStatusEnum.ACTIVE.getCode());
         return this.save(userEntity);

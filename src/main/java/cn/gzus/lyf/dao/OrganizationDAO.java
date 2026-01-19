@@ -35,6 +35,34 @@ public class OrganizationDAO extends ServiceImpl<OrganizationMapper, Organizatio
     }
 
     /**
+     * 生成组织全路径
+     * @param organizationEntity 组织实体
+     */
+    private void generateFullPath(OrganizationEntity organizationEntity) {
+        // 设置默认父组织ID为0（顶级组织）
+        if (organizationEntity.getParentId() == null || organizationEntity.getParentId().isEmpty()) {
+            organizationEntity.setParentId("0");
+        }
+
+        // 生成全路径
+        String parentId = organizationEntity.getParentId();
+        String orgName = organizationEntity.getOrgName();
+
+        if ("0".equals(parentId)) {
+            // 顶级组织，全路径就是组织名称
+            organizationEntity.setFullPath(orgName);
+        } else {
+            // 子组织，全路径 = 父组织全路径 + / + 当前组织名称
+            OrganizationEntity parentOrg = this.getById(parentId);
+            if (parentOrg != null) {
+                organizationEntity.setFullPath(parentOrg.getFullPath() + "/" + orgName);
+            } else {
+                organizationEntity.setFullPath(orgName);
+            }
+        }
+    }
+
+    /**
      * 新增组织
      * @param organizationEntity 组织实体
      * @return 是否成功
@@ -43,6 +71,9 @@ public class OrganizationDAO extends ServiceImpl<OrganizationMapper, Organizatio
         Objects.requireNonNull(organizationEntity, "组织实体不能为空");
         Objects.requireNonNull(organizationEntity.getOrgName(), "组织名称不能为空");
         Objects.requireNonNull(organizationEntity.getOrgCode(), "组织编码不能为空");
+
+        // 生成组织全路径
+        generateFullPath(organizationEntity);
 
         return this.save(organizationEntity);
     }
@@ -87,5 +118,27 @@ public class OrganizationDAO extends ServiceImpl<OrganizationMapper, Organizatio
                 .orderByDesc(OrganizationEntity::getUpdateTime)
         );
         return BeanCopyUtils.copy(organizationEntityIPage, PageDto.class);
+    }
+
+    /**
+     * 获取所有组织列表（用于父组织选择）
+     * @return 组织列表
+     */
+    public List<OrganizationEntity> getOrganizationList() {
+        return this.list(Wrappers.<OrganizationEntity>lambdaQuery()
+                .orderByAsc(OrganizationEntity::getFullPath)
+        );
+    }
+
+    /**
+     * 检查组织下是否有子组织
+     * @param organizationId 组织ID
+     * @return 是否有子组织
+     */
+    public boolean hasChildOrganizations(String organizationId) {
+        Objects.requireNonNull(organizationId, "组织ID不能为空");
+        long count = this.count(Wrappers.<OrganizationEntity>lambdaQuery()
+                .eq(OrganizationEntity::getParentId, organizationId));
+        return count > 0;
     }
 }

@@ -36,6 +36,11 @@ public class UserEntity {
     private String roleId;
 
     /**
+     * 组织ID（一个用户必须关联一个组织）
+     */
+    private String orgId;
+
+    /**
      * 状态：0-禁用，1-正常
      */
     private Integer status;
@@ -90,6 +95,14 @@ public class UserEntity {
 
     public void setRoleId(String roleId) {
         this.roleId = roleId;
+    }
+
+    public String getOrgId() {
+        return orgId;
+    }
+
+    public void setOrgId(String orgId) {
+        this.orgId = orgId;
     }
 
     public Integer getStatus() {
