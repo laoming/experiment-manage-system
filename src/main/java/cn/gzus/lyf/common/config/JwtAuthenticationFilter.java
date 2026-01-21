@@ -1,6 +1,6 @@
 package cn.gzus.lyf.common.config;
 
-import cn.gzus.lyf.service.UserService;
+import cn.gzus.lyf.service.auth.UserService;
 import cn.gzus.lyf.common.util.JwtUtil;
 
 import cn.gzus.lyf.common.constant.JwtConstants;

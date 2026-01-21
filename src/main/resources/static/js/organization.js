@@ -104,7 +104,7 @@ const app = createApp({
          * 检查登录状态
          */
         checkLogin() {
-            const token = API.getToken();
+            const token = Auth.getToken();
             if (!token) {
                 window.location.href = '/ems/pages/index.html';
                 return;
@@ -119,7 +119,13 @@ const app = createApp({
             try {
                 console.log('📋 [ORG] ========== 开始获取组织列表 ==========');
                 console.log('📋 [ORG] 查询条件:', this.queryForm);
-                const response = await API.getOrganizationList();
+                const response = await fetch('/organization/list', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(this.queryForm)
+                });
                 console.log('✅ [ORG] 获取组织列表成功:', response);
                 console.log('📋 [ORG] 响应数据:', response.data);
 
@@ -193,7 +199,13 @@ const app = createApp({
         async fetchParentOrgList() {
             try {
                 console.log('📋 [ORG] 开始获取父组织列表...');
-                const response = await API.getOrganizationList();
+                const response = await fetch('/organization/list', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({})
+                });
                 console.log('✅ [ORG] 获取父组织列表成功:', response);
 
                 if (response.code === 200) {
@@ -391,10 +403,22 @@ const app = createApp({
                 let response;
                 if (this.orgModalMode === 'add') {
                     console.log('➕ [ORG] 新增组织:', this.orgForm);
-                    response = await API.addOrganization(this.orgForm);
+                    response = await fetch('/organization/add', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(this.orgForm)
+                    });
                 } else {
                     console.log('✏️ [ORG] 更新组织:', this.orgForm);
-                    response = await API.updateOrganization(this.orgForm);
+                    response = await fetch('/organization/update', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(this.orgForm)
+                    });
                 }
 
                 console.log('✅ [ORG] 操作成功:', response);
@@ -428,7 +452,13 @@ const app = createApp({
 
             try {
                 console.log('🗑️ [ORG] 删除组织:', { id: this.selectedOrg.id, orgName: this.selectedOrg.orgName });
-                const response = await API.deleteOrganization({ id: this.selectedOrg.id });
+                const response = await fetch('/organization/delete', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ id: this.selectedOrg.id })
+                });
                 console.log('✅ [ORG] 删除组织成功:', response);
 
                 if (response.code === 200) {
@@ -463,7 +493,7 @@ const app = createApp({
          */
         handleLogout() {
             if (confirm('确定要退出登录吗？')) {
-                API.logout();
+                Auth.logout();
             }
         },
 
@@ -471,7 +501,7 @@ const app = createApp({
          * 打开个人信息弹窗
          */
         openUserProfileModal() {
-            const userInfo = API.getUserInfoFromToken();
+            const userInfo = Auth.getUserInfo();
             this.userProfileForm = {
                 username: userInfo.username || '',
                 displayName: userInfo.displayName || '',
@@ -528,22 +558,34 @@ const app = createApp({
 
             try {
                 // 更新用户信息
-                const response = await API.updateUser({
-                    username: this.userProfileForm.username,
-                    displayName: this.userProfileForm.displayName
+                const response = await fetch('/user/update', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: this.userProfileForm.username,
+                        displayName: this.userProfileForm.displayName
+                    })
                 });
 
                 if (response.code === 200) {
                     // 如果修改了密码，调用重置密码接口
                     if (this.userProfileForm.newPassword) {
-                        const passwordResponse = await API.resetPassword({
-                            username: this.userProfileForm.username,
-                            password: this.userProfileForm.newPassword
+                        const passwordResponse = await fetch('/user/resetPassword', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                username: this.userProfileForm.username,
+                                password: this.userProfileForm.newPassword
+                            })
                         });
 
                         if (passwordResponse.code === 200) {
                             alert('个人信息和密码修改成功，请重新登录');
-                            API.logout();
+                            Auth.logout();
                         } else {
                             alert('密码修改失败：' + (passwordResponse.message || '未知错误'));
                         }

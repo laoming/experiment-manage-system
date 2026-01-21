@@ -2,11 +2,9 @@ package cn.gzus.lyf.controller;
 
 import cn.gzus.lyf.BaseTest;
 import cn.gzus.lyf.dao.entity.UserEntity;
-import cn.gzus.lyf.service.AuthService;
+import cn.gzus.lyf.service.auth.AuthService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class AuthControllerTest extends BaseTest {
 

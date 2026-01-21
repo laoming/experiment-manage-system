@@ -1,4 +1,4 @@
-package cn.gzus.lyf.service;
+package cn.gzus.lyf.service.auth;
 
 import cn.gzus.lyf.common.dto.PageDto;
 import cn.gzus.lyf.common.dto.RoleQueryDto;

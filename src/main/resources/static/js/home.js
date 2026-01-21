@@ -33,7 +33,7 @@ const app = createApp({
          * 检查登录状态
          */
         checkLogin() {
-            const token = API.getToken();
+            const token = Auth.getToken();
             if (!token) {
                 // 未登录，跳转到登录页
                 window.location.href = '/ems/pages/index.html';
@@ -68,13 +68,24 @@ const app = createApp({
          */
         async fetchMenuList() {
             try {
-                const response = await API.getMenuList();
+                console.log('🔍 [HOME] 开始获取菜单列表...');
+
+                // 直接使用fetch，让拦截器自动处理token和前缀
+                const response = await fetch('/menu/list', {
+                    method: 'GET'
+                });
+
+                console.log('📦 [HOME] 菜单响应:', response);
+
                 if (response.code === 200 && Array.isArray(response.data)) {
                     this.menuList = response.data;
                     this.processMenus();
+                    console.log('✅ [HOME] 菜单列表加载成功，共', response.data.length, '个菜单');
+                } else {
+                    console.error('❌ [HOME] 菜单响应格式错误:', response);
                 }
             } catch (error) {
-                console.error('获取菜单列表失败:', error);
+                console.error('❌ [HOME] 获取菜单列表失败:', error);
             }
         },
 

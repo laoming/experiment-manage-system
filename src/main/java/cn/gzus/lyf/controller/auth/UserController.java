@@ -1,10 +1,10 @@
-package cn.gzus.lyf.controller;
+package cn.gzus.lyf.controller.auth;
 
 import cn.gzus.lyf.common.dto.PageDto;
 import cn.gzus.lyf.common.dto.Result;
 import cn.gzus.lyf.common.dto.UserQueryDto;
 import cn.gzus.lyf.dao.entity.UserEntity;
-import cn.gzus.lyf.service.UserService;
+import cn.gzus.lyf.service.auth.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

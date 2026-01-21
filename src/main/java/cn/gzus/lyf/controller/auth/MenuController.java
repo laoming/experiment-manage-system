@@ -1,10 +1,9 @@
-package cn.gzus.lyf.controller;
+package cn.gzus.lyf.controller.auth;
 
 import cn.gzus.lyf.common.dto.Result;
 import cn.gzus.lyf.common.dto.UserDto;
-import cn.gzus.lyf.dao.MenuDAO;
 import cn.gzus.lyf.dao.entity.MenuEntity;
-import cn.gzus.lyf.service.UserService;
+import cn.gzus.lyf.service.auth.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;

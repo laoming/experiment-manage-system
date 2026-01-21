@@ -33,11 +33,14 @@ const HeaderComponent = {
          * 初始化用户名
          */
         initUsername() {
-            const userInfo = API.getUserInfoFromToken();
-            if (userInfo && userInfo.displayName) {
-                this.username = userInfo.displayName;
-            } else if (userInfo && userInfo.username) {
-                this.username = userInfo.username;
+            const displayName = Auth.getDisplayName();
+            if (displayName) {
+                this.username = displayName;
+            } else {
+                const userInfo = Auth.getUserInfo();
+                if (userInfo && userInfo.username) {
+                    this.username = userInfo.username;
+                }
             }
         },
 
@@ -53,7 +56,7 @@ const HeaderComponent = {
          */
         handleLogout() {
             if (confirm('确定要退出登录吗？')) {
-                API.logout();
+                Auth.logout();
             }
         }
     }

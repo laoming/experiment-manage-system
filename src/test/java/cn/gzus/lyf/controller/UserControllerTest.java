@@ -4,6 +4,7 @@ import cn.gzus.lyf.BaseTest;
 import cn.gzus.lyf.common.constant.UserStatusEnum;
 import cn.gzus.lyf.common.dto.PageDto;
 import cn.gzus.lyf.common.dto.UserQueryDto;
+import cn.gzus.lyf.controller.auth.UserController;
 import cn.gzus.lyf.dao.entity.UserEntity;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

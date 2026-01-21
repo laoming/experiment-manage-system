@@ -1,6 +1,6 @@
 package cn.gzus.lyf.common.config;
 
-import cn.gzus.lyf.service.UserService;
+import cn.gzus.lyf.service.auth.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

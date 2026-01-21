@@ -16,7 +16,7 @@ createApp({
     
     mounted() {
         // 如果已登录，直接跳转到首页
-        const token = API.getToken();
+        const token = Auth.getToken();
         if (token) {
             this.redirectToHome();
         }
@@ -52,25 +52,13 @@ createApp({
             console.log('🔐 [LOGIN] 用户名:', this.username);
 
             try {
-                const response = await API.login(this.username, this.password);
+                const result = await Auth.login(this.username, this.password);
 
-                console.log('📦 [LOGIN] 登录响应:', response);
-
-                if (response.code === 200) {
+                if (result.success) {
                     // 登录成功
                     console.log('✅ [LOGIN] 登录成功！');
-                    console.log('🎫 [LOGIN] 返回的 Token:', response.data);
-                    
-                    // 验证 token 是否正确保存
-                    const savedToken = API.getToken();
-                    console.log('💾 [LOGIN] 保存的 Token:', savedToken);
-                    
-                    // 解析 token 验证内容
-                    if (savedToken) {
-                        const userInfo = API.getUserInfoFromToken();
-                        console.log('👤 [LOGIN] Token 中的用户信息:', userInfo);
-                    }
-                    
+                    console.log('👤 [LOGIN] 用户信息:', result.data);
+
                     // 保存用户名（如果选择了记住我）
                     if (this.rememberMe) {
                         localStorage.setItem('saved_username', this.username);
@@ -86,8 +74,8 @@ createApp({
                     }, 500);
                 } else {
                     // 登录失败
-                    console.error('❌ [LOGIN] 登录失败:', response.message);
-                    this.errorMessage = response.message || '登录失败，请检查用户名和密码';
+                    console.error('❌ [LOGIN] 登录失败:', result.message);
+                    this.errorMessage = result.message || '登录失败，请检查用户名和密码';
                 }
             } catch (error) {
                 console.error('❌ [LOGIN] 登录错误:', error);

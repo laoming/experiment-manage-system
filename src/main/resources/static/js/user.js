@@ -63,7 +63,7 @@ const app = createApp({
          * 检查登录状态
          */
         checkLogin() {
-            const token = API.getToken();
+            const token = Auth.getToken();
             if (!token) {
                 window.location.href = '/ems/pages/index.html';
                 return;
@@ -76,7 +76,13 @@ const app = createApp({
         async fetchRoleList() {
             try {
                 console.log('📋 [USER] 开始获取角色列表...');
-                const response = await API.getRolePage(1, 1000, {});
+                const response = await fetch('/role/page?current=1&size=1000', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({})
+                });
                 console.log('✅ [USER] 获取角色列表成功:', response);
 
                 if (response.code === 200) {
@@ -96,7 +102,13 @@ const app = createApp({
         async fetchOrgList() {
             try {
                 console.log('📋 [USER] 开始获取组织列表...');
-                const response = await API.getOrganizationList();
+                const response = await fetch('/organization/list', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({})
+                });
                 console.log('✅ [USER] 获取组织列表成功:', response);
 
                 if (response.code === 200) {
@@ -117,13 +129,15 @@ const app = createApp({
             this.loading = true;
             try {
                 console.log('📋 [USER] 开始获取用户列表...', this.queryForm);
-                const response = await API.getUserPage(
-                    this.pagination.current,
-                    this.pagination.size,
-                    this.queryForm
-                );
+                const response = await fetch(`/user/page?current=${this.pagination.current}&size=${this.pagination.size}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(this.queryForm)
+                });
                 console.log('✅ [USER] 获取用户列表成功:', response);
-                
+
                 if (response.code === 200) {
                     this.userList = response.data.records || [];
                     this.pagination.total = response.data.total || 0;
@@ -249,10 +263,22 @@ const app = createApp({
                 let response;
                 if (this.userModalMode === 'add') {
                     console.log('➕ [USER] 新增用户:', this.userForm);
-                    response = await API.addUser(this.userForm);
+                    response = await fetch('/user/add', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(this.userForm)
+                    });
                 } else {
                     console.log('✏️ [USER] 更新用户:', this.userForm);
-                    response = await API.updateUser(this.userForm);
+                    response = await fetch('/user/update', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(this.userForm)
+                    });
                 }
 
                 console.log('✅ [USER] 操作成功:', response);
@@ -312,9 +338,15 @@ const app = createApp({
 
             try {
                 console.log('🔑 [USER] 重置密码:', { id: this.passwordForm.id });
-                const response = await API.resetPassword({
-                    id: this.passwordForm.id,
-                    password: this.passwordForm.password
+                const response = await fetch('/user/resetPassword', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        id: this.passwordForm.id,
+                        password: this.passwordForm.password
+                    })
                 });
                 console.log('✅ [USER] 重置密码成功:', response);
                 
@@ -340,7 +372,13 @@ const app = createApp({
 
             try {
                 console.log('🗑️ [USER] 删除用户:', { id: user.id, displayName: user.displayName });
-                const response = await API.deleteUser({ id: user.id });
+                const response = await fetch('/user/delete', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ id: user.id })
+                });
                 console.log('✅ [USER] 删除用户成功:', response);
                 
                 if (response.code === 200) {
@@ -448,7 +486,7 @@ const app = createApp({
          */
         handleLogout() {
             if (confirm('确定要退出登录吗？')) {
-                API.logout();
+                Auth.logout();
             }
         },
 
@@ -456,7 +494,7 @@ const app = createApp({
          * 打开个人信息弹窗
          */
         openUserProfileModal() {
-            const userInfo = API.getUserInfoFromToken();
+            const userInfo = Auth.getUserInfo();
             this.userProfileForm = {
                 username: userInfo.username || '',
                 displayName: userInfo.displayName || '',
@@ -513,22 +551,34 @@ const app = createApp({
 
             try {
                 // 更新用户信息
-                const response = await API.updateUser({
-                    username: this.userProfileForm.username,
-                    displayName: this.userProfileForm.displayName
+                const response = await fetch('/user/update', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: this.userProfileForm.username,
+                        displayName: this.userProfileForm.displayName
+                    })
                 });
 
                 if (response.code === 200) {
                     // 如果修改了密码，调用重置密码接口
                     if (this.userProfileForm.newPassword) {
-                        const passwordResponse = await API.resetPassword({
-                            username: this.userProfileForm.username,
-                            password: this.userProfileForm.newPassword
+                        const passwordResponse = await fetch('/user/resetPassword', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                username: this.userProfileForm.username,
+                                password: this.userProfileForm.newPassword
+                            })
                         });
 
                         if (passwordResponse.code === 200) {
                             alert('个人信息和密码修改成功，请重新登录');
-                            API.logout();
+                            Auth.logout();
                         } else {
                             alert('密码修改失败：' + (passwordResponse.message || '未知错误'));
                         }
