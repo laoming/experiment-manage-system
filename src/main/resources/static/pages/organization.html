@@ -51,11 +51,11 @@
                             <span>+</span>
                             <span>新增组织</span>
                         </button>
-                        <button class="btn btn-info" @click="openEditModal" :disabled="!selectedOrg || !selectedOrg.parentId || selectedOrg.parentId === ''">
+                        <button class="btn btn-info" @click="openEditModal" :disabled="!selectedOrg">
                             <span>✏️</span>
                             <span>编辑组织</span>
                         </button>
-                        <button class="btn btn-danger" @click="handleDelete" :disabled="!selectedOrg || !selectedOrg.parentId || selectedOrg.parentId === ''">
+                        <button class="btn btn-danger" @click="handleDelete" :disabled="!selectedOrg">
                             <span>🗑️</span>
                             <span>删除组织</span>
                         </button>
@@ -88,7 +88,7 @@
         </div>
 
         <!-- 新增/编辑组织弹窗 -->
-        <div class="modal-overlay" v-if="showOrgModal" @click.self="closeOrgModal">
+        <div class="modal-overlay" v-show="showOrgModal" @click.self="closeOrgModal">
             <div class="modal-content">
                 <div class="modal-header">
                     <h2>{{ orgModalMode === 'add' ? '新增组织' : '编辑组织' }}</h2>

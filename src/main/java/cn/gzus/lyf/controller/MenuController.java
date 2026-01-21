@@ -21,13 +21,7 @@ import java.util.List;
 @RequestMapping("/menu")
 public class MenuController {
 
-    private MenuDAO menuDAO;
     private UserService userService;
-
-    @Autowired
-    public void setMenuDAO(MenuDAO menuDAO) {
-        this.menuDAO = menuDAO;
-    }
 
     @Autowired
     public void setUserService(UserService userService) {

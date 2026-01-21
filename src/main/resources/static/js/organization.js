@@ -16,7 +16,7 @@ const TreeItem = {
             <div
                 class="tree-node-content"
                 :class="{ 'selected': selectedOrg && selectedOrg.id === node.id, 'root': !node.parentId || node.parentId === '' }"
-                @click.stop="$emit('select', node)"
+                @click.stop="handleClick"
             >
                 <span class="tree-toggle" @click.stop="toggleExpand">
                     <span v-if="hasChildren" class="toggle-icon">{{ expanded ? '▼' : '▶' }}</span>
@@ -50,6 +50,11 @@ const TreeItem = {
         }
     },
     methods: {
+        handleClick() {
+            console.log('🌳 [TREE] 树节点被点击:', this.node);
+            console.log('🌳 [TREE] 发出 select 事件');
+            this.$emit('select', this.node);
+        },
         toggleExpand() {
             this.expanded = !this.expanded;
         }
@@ -112,12 +117,20 @@ const app = createApp({
         async fetchOrganizationList() {
             this.loading = true;
             try {
-                console.log('📋 [ORG] 开始获取组织列表...', this.queryForm);
+                console.log('📋 [ORG] ========== 开始获取组织列表 ==========');
+                console.log('📋 [ORG] 查询条件:', this.queryForm);
                 const response = await API.getOrganizationList();
                 console.log('✅ [ORG] 获取组织列表成功:', response);
+                console.log('📋 [ORG] 响应数据:', response.data);
 
                 if (response.code === 200) {
                     this.organizationList = response.data || [];
+                    console.log('📋 [ORG] organizationList 已设置，长度:', this.organizationList.length);
+
+                    if (this.organizationList.length > 0) {
+                        console.log('📋 [ORG] 第一个组织示例:', this.organizationList[0]);
+                    }
+
                     this.buildOrgTree();
                 } else {
                     this.showError('获取组织列表失败: ' + (response.message || '未知错误'));
@@ -134,18 +147,34 @@ const app = createApp({
          * 构建组织树
          */
         buildOrgTree() {
+            console.log('🌳 [ORG] 开始构建组织树，organizationList 长度:', this.organizationList.length);
+
             const orgMap = {};
             const roots = [];
 
             // 构建映射
-            this.organizationList.forEach(org => {
-                orgMap[org.id] = { ...org, children: [] };
+            this.organizationList.forEach((org, index) => {
+                console.log(`🌳 [ORG] 处理组织 [${index}]:`, org);
+
+                orgMap[org.id] = {
+                    id: org.id,
+                    parentId: org.parentId,
+                    orgName: org.orgName,
+                    orgCode: org.orgCode,
+                    fullPath: org.fullPath || '',
+                    description: org.description || '',
+                    createTime: org.createTime,
+                    updateTime: org.updateTime,
+                    children: []
+                };
+
+                console.log(`🌳 [ORG] 树节点已创建，id: ${org.id}, orgName: ${orgMap[org.id].orgName}`);
             });
 
             // 构建树形结构
             this.organizationList.forEach(org => {
                 const node = orgMap[org.id];
-                if (!org.parentId || org.parentId === '') {
+                if (!org.parentId || org.parentId === '' || org.parentId === '0') {
                     roots.push(node);
                 } else {
                     if (orgMap[org.parentId]) {
@@ -155,6 +184,7 @@ const app = createApp({
             });
 
             this.orgTree = roots;
+            console.log('🌳 [ORG] 组织树构建完成，根节点数:', roots.length);
         },
 
         /**
@@ -181,8 +211,27 @@ const app = createApp({
          * 选中组织
          */
         selectOrg(org) {
+            console.log('📍 [ORG] ========== 选中组织 ==========');
+            console.log('📍 [ORG] 接收到的 org 参数:', org);
+
             this.selectedOrg = org;
-            console.log('📍 [ORG] 选中组织:', org);
+
+            console.log('📍 [ORG] 设置后的 selectedOrg:', this.selectedOrg);
+            console.log('📍 [ORG] selectedOrg 类型:', typeof this.selectedOrg);
+            console.log('📍 [ORG] selectedOrg 是否为 null:', this.selectedOrg === null);
+            console.log('📍 [ORG] selectedOrg 是否为 undefined:', this.selectedOrg === undefined);
+
+            if (this.selectedOrg) {
+                console.log('📍 [ORG] 选中的组织字段:');
+                console.log('📍 [ORG]   - id:', this.selectedOrg.id);
+                console.log('📍 [ORG]   - parentId:', this.selectedOrg.parentId);
+                console.log('📍 [ORG]   - orgName:', this.selectedOrg.orgName);
+                console.log('📍 [ORG]   - orgCode:', this.selectedOrg.orgCode);
+                console.log('📍 [ORG]   - description:', this.selectedOrg.description);
+                console.log('📍 [ORG]   - fullPath:', this.selectedOrg.fullPath);
+            } else {
+                console.log('📍 [ORG] selectedOrg 为空，无法显示组织信息');
+            }
         },
 
         /**
@@ -207,7 +256,9 @@ const app = createApp({
          * 打开新增组织弹窗
          */
         openAddModal() {
-            this.orgModalMode = 'add';
+            console.log('➕ [ORG] openAddModal 被调用');
+
+            // 创建全新的 orgForm 对象
             this.orgForm = {
                 id: '',
                 parentId: this.selectedOrg ? this.selectedOrg.id : '',
@@ -215,27 +266,58 @@ const app = createApp({
                 orgCode: '',
                 description: ''
             };
+
+            console.log('➕ [ORG] 新增组织表单数据:', this.orgForm);
+
+            this.orgModalMode = 'add';
             this.showOrgModal = true;
+
+            console.log('➕ [ORG] 弹窗已显示');
         },
 
         /**
          * 打开编辑组织弹窗
          */
         openEditModal(org) {
-            if (!org && !this.selectedOrg) {
+            console.log('='.repeat(60));
+            console.log('📝 [ORG] ========== openEditModal 被调用 ==========');
+            console.log('📝 [ORG] 参数 org:', org);
+            console.log('📝 [ORG] 参数 org 类型:', typeof org);
+            console.log('📝 [ORG] 参数 org 是否为事件对象:', org && typeof org.type === 'string' && org.type.startsWith('pointer'));
+            console.log('📝 [ORG] 当前选中的组织 selectedOrg:', this.selectedOrg);
+
+            // 检查 org 参数是否为事件对象，如果是则忽略，使用 selectedOrg
+            let targetOrg;
+            if (org && typeof org === 'object' && org.id && typeof org.id === 'string') {
+                // org 是组织对象
+                console.log('📝 [ORG] org 是组织对象，使用 org');
+                targetOrg = org;
+            } else {
+                // org 是事件对象或 undefined，使用 selectedOrg
+                console.log('📝 [ORG] org 是事件对象或未定义，使用 selectedOrg');
+                targetOrg = this.selectedOrg;
+            }
+
+            if (!targetOrg) {
+                console.error('📝 [ORG] 没有选中组织，无法编辑');
                 this.showError('请先选择一个组织');
                 return;
             }
 
-            const targetOrg = org || this.selectedOrg;
-
-            // 不允许编辑根组织（parentId为空或null）
-            if (!targetOrg.parentId || targetOrg.parentId === '') {
-                this.showError('根组织不允许编辑');
-                return;
-            }
+            console.log('📝 [ORG] 目标组织 targetOrg:', targetOrg);
+            console.log('📝 [ORG] 目标组织字段值:', {
+                id: targetOrg.id,
+                parentId: targetOrg.parentId,
+                parentId类型: typeof targetOrg.parentId,
+                orgName: targetOrg.orgName,
+                orgCode: targetOrg.orgCode,
+                description: targetOrg.description,
+                fullPath: targetOrg.fullPath
+            });
 
             this.orgModalMode = 'edit';
+
+            // 编辑模式：保留原始 parentId 值（包括 '0'）
             this.orgForm = {
                 id: targetOrg.id,
                 parentId: targetOrg.parentId || '',
@@ -243,14 +325,44 @@ const app = createApp({
                 orgCode: targetOrg.orgCode,
                 description: targetOrg.description || ''
             };
+
+            console.log('📝 [ORG] orgForm 已设置为组织的原始数据:', this.orgForm);
+            console.log('📝 [ORG] orgForm.orgName:', this.orgForm.orgName);
+            console.log('📝 [ORG] orgForm.orgCode:', this.orgForm.orgCode);
+            console.log('📝 [ORG] orgForm.parentId:', this.orgForm.parentId);
+            console.log('📝 [ORG] orgForm.parentId 类型:', typeof this.orgForm.parentId);
+            console.log('📝 [ORG] orgForm.description:', this.orgForm.description);
+
+            // 显示弹窗
             this.showOrgModal = true;
+
+            console.log('📝 [ORG] 弹窗已显示，等待 DOM 更新...');
+
+            // 使用 $nextTick 确保 DOM 更新后检查
+            this.$nextTick(() => {
+                console.log('📝 [ORG] ========== $nextTick 回调，检查 DOM ==========');
+                const nameInput = document.querySelector('input[placeholder="请输入组织名称"]');
+                const codeInput = document.querySelector('input[placeholder="请输入组织编码"]');
+                const descTextarea = document.querySelector('textarea[placeholder="请输入组织描述"]');
+                const parentIdSelect = document.querySelector('select.form-input');
+
+                console.log('📝 [ORG] DOM 元素检查:');
+                console.log('📝 [ORG] 上级组织选择框:', parentIdSelect ? parentIdSelect.value : '未找到');
+                console.log('📝 [ORG] 组织名称输入框:', nameInput ? nameInput.value : '未找到');
+                console.log('📝 [ORG] 组织编码输入框:', codeInput ? codeInput.value : '未找到');
+                console.log('📝 [ORG] 组织描述文本域:', descTextarea ? descTextarea.value : '未找到');
+                console.log('='.repeat(60));
+            });
         },
 
         /**
          * 关闭组织弹窗
          */
         closeOrgModal() {
+            console.log('📝 [ORG] closeOrgModal 被调用');
             this.showOrgModal = false;
+
+            // 每次关闭都清空表单数据
             this.orgForm = {
                 id: '',
                 parentId: '',
@@ -258,6 +370,7 @@ const app = createApp({
                 orgCode: '',
                 description: ''
             };
+            console.log('📝 [ORG] 表单数据已清空');
         },
 
         /**

@@ -2,8 +2,7 @@
 CREATE
 DATABASE ems;
 -- 使用数据库
-USE
-ems;
+USE ems;
 
 -- 1. 用户表
 CREATE TABLE user
