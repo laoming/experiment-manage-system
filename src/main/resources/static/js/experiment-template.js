@@ -43,10 +43,12 @@ function initDragDrop() {
 
     canvas.addEventListener('dragover', (e) => {
         e.preventDefault();
+        e.stopPropagation();
     });
 
     canvas.addEventListener('drop', (e) => {
         e.preventDefault();
+        e.stopPropagation();
         const type = e.dataTransfer.getData('type');
         if (type) {
             addComponent(type);
@@ -85,14 +87,23 @@ function renderCanvas() {
     const emptyTip = document.getElementById('emptyTip');
 
     if (components.length === 0) {
-        emptyTip.style.display = 'block';
-        canvas.innerHTML = '';
-        canvas.appendChild(emptyTip);
+        // 显示空提示
+        if (!canvas.querySelector('#emptyTip')) {
+            canvas.innerHTML = '<div class="empty-tip" id="emptyTip"><p>从左侧拖拽组件到此处开始创建模板</p></div>';
+        } else {
+            emptyTip.style.display = 'block';
+        }
         return;
     }
 
-    emptyTip.style.display = 'none';
-    canvas.innerHTML = '';
+    // 隐藏空提示
+    if (emptyTip) {
+        emptyTip.style.display = 'none';
+    }
+
+    // 只重新渲染组件部分
+    const existingComponents = canvas.querySelectorAll('.canvas-component');
+    existingComponents.forEach(el => el.remove());
 
     components.forEach((component, index) => {
         const componentEl = createComponentElement(component, index);
@@ -116,16 +127,32 @@ function createComponentElement(component, index) {
             <span class="component-type-name">${typeConfig.name}</span>
         </div>
         <div class="canvas-component-actions">
-            <button class="component-btn component-btn-edit" onclick="editComponent(${index})">✎</button>
-            <button class="component-btn component-btn-delete" onclick="deleteComponent(${index})">✕</button>
+            <button class="component-btn component-btn-edit" data-index="${index}" data-action="edit">✎</button>
+            <button class="component-btn component-btn-delete" data-index="${index}" data-action="delete">✕</button>
         </div>
         <div class="component-preview">
             ${renderComponentPreview(component)}
         </div>
     `;
 
-    el.addEventListener('click', () => {
-        selectComponent(index);
+    // 绑定点击事件
+    el.addEventListener('click', (e) => {
+        e.stopPropagation();
+
+        // 检查是否点击了按钮
+        if (e.target.tagName === 'BUTTON') {
+            const action = e.target.dataset.action;
+            const btnIndex = parseInt(e.target.dataset.index);
+
+            if (action === 'edit') {
+                editComponent(btnIndex);
+            } else if (action === 'delete') {
+                deleteComponent(btnIndex);
+            }
+        } else {
+            // 点击组件本身，选择该组件
+            selectComponent(index);
+        }
     });
 
     return el;
@@ -348,6 +375,8 @@ function saveTemplate() {
         creatorId: getCurrentUserId()
     };
 
+    console.log('保存模板数据:', templateData);
+
     const apiUrl = currentTemplateId ? '/ems/experimentTemplate/update' : '/ems/experimentTemplate/add';
     fetch(apiUrl, {
         method: 'POST',
@@ -357,20 +386,30 @@ function saveTemplate() {
         },
         body: JSON.stringify(templateData)
     })
-    .then(response => response.json())
     .then(result => {
+        console.log('服务器返回结果:', result);
+
         if (result.code === 200) {
-            alert('模板保存成功');
-            if (result.data) {
-                currentTemplateId = result.data.id || currentTemplateId;
+            if (result.data === true) {
+                alert('模板保存成功');
+
+                // 如果是新增模板（没有currentTemplateId），跳转到列表页面
+                if (!currentTemplateId) {
+                    setTimeout(() => {
+                        window.location.href = '/ems/pages/experiment-template-list.html';
+                    }, 1000);
+                }
+                // 如果是编辑模板，保持在当前页面
+            } else {
+                alert('模板保存失败：操作未成功');
             }
         } else {
-            alert('模板保存失败：' + result.message);
+            alert('模板保存失败：' + (result.message || '未知错误'));
         }
     })
     .catch(error => {
-        console.error('Error:', error);
-        alert('模板保存失败');
+        console.error('请求失败:', error);
+        alert('模板保存失败：' + (error.message || '网络错误'));
     });
 }
 
@@ -453,7 +492,6 @@ function loadTemplate(templateId) {
             'Authorization': 'Bearer ' + localStorage.getItem('token')
         }
     })
-    .then(response => response.json())
     .then(result => {
         if (result.code === 200 && result.data) {
             const template = result.data;
@@ -468,13 +506,17 @@ function loadTemplate(templateId) {
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('加载模板失败');
+        alert('加载模板失败：' + (error.message || '网络错误'));
     });
 }
 
 // 页面加载完成后初始化
 document.addEventListener('DOMContentLoaded', () => {
     initDragDrop();
+
+    // 初始化画布状态
+    renderCanvas();
+    renderPropertiesPanel();
 
     // 检查URL参数，如果有模板ID则加载模板
     const urlParams = new URLSearchParams(window.location.search);

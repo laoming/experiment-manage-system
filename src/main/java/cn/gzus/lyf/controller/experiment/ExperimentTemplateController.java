@@ -28,8 +28,8 @@ public class ExperimentTemplateController {
      * 分页查询模板
      */
     @PostMapping("/page")
-    public Result<PageDto<ExperimentTemplateEntity>> getTemplatePage(int current, int size, String creatorId) {
-        return Result.success(templateService.getTemplatePage(current, size, creatorId));
+    public Result<PageDto<ExperimentTemplateEntity>> getTemplatePage(int current, int size, String creatorId, String templateName) {
+        return Result.success(templateService.getTemplatePage(current, size, creatorId, templateName));
     }
 
     /**

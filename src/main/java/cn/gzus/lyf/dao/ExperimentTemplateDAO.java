@@ -71,15 +71,17 @@ public class ExperimentTemplateDAO extends ServiceImpl<ExperimentTemplateMapper,
      * @param current 当前页码
      * @param size 每页大小
      * @param creatorId 创建者ID
+     * @param templateName 模板名称（支持模糊查询）
      * @return 分页结果
      */
-    public PageDto<ExperimentTemplateEntity> getTemplatePage(Integer current, Integer size, String creatorId) {
+    public PageDto<ExperimentTemplateEntity> getTemplatePage(Integer current, Integer size, String creatorId, String templateName) {
         Objects.requireNonNull(current, "当前页码不能为空");
         Objects.requireNonNull(size, "每页大小不能为空");
 
         IPage<ExperimentTemplateEntity> templatePage = this.page(new Page<>(current, size),
                 new LambdaQueryWrapper<ExperimentTemplateEntity>()
                         .eq(creatorId != null, ExperimentTemplateEntity::getCreatorId, creatorId)
+                        .like(templateName != null && !templateName.trim().isEmpty(), ExperimentTemplateEntity::getTemplateName, templateName)
                         .orderByDesc(ExperimentTemplateEntity::getUpdateTime)
         );
         return BeanCopyUtils.copy(templatePage, PageDto.class);

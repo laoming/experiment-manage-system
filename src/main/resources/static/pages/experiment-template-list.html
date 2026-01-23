@@ -17,10 +17,16 @@
         <div class="main-content">
             <div class="content-header">
                 <div class="content-title">实验模板管理</div>
-                <button class="btn btn-primary" onclick="createNewTemplate()">
-                    <span class="btn-icon">+</span>
-                    新建模板
-                </button>
+                <div class="header-actions">
+                    <div class="search-box">
+                        <input type="text" id="templateNameInput" class="search-input" placeholder="请输入模板名称" onkeypress="handleSearchKeypress(event)">
+                        <button class="btn btn-secondary" onclick="searchTemplates()">搜索</button>
+                    </div>
+                    <button class="btn btn-primary" onclick="createNewTemplate()">
+                        <span class="btn-icon">+</span>
+                        新建模板
+                    </button>
+                </div>
             </div>
 
             <div class="template-list" id="templateList">

@@ -57,9 +57,10 @@ public class ExperimentTemplateService {
      * @param current 当前页码
      * @param size 每页大小
      * @param creatorId 创建者ID
+     * @param templateName 模板名称（支持模糊查询）
      * @return 分页结果
      */
-    public PageDto<ExperimentTemplateEntity> getTemplatePage(Integer current, Integer size, String creatorId) {
-        return templateDAO.getTemplatePage(current, size, creatorId);
+    public PageDto<ExperimentTemplateEntity> getTemplatePage(Integer current, Integer size, String creatorId, String templateName) {
+        return templateDAO.getTemplatePage(current, size, creatorId, templateName);
     }
 }

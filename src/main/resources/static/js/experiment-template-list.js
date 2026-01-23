@@ -2,26 +2,33 @@
 let currentPage = 1;
 let pageSize = 10;
 let templates = [];
+let searchTemplateName = '';
 
 // 加载模板列表
 function loadTemplates() {
-    fetch(`/ems/experimentTemplate/page?current=${currentPage}&size=${pageSize}`, {
+    let url = `/ems/experimentTemplate/page?current=${currentPage}&size=${pageSize}`;
+    if (searchTemplateName && searchTemplateName.trim()) {
+        url += `&templateName=${encodeURIComponent(searchTemplateName)}`;
+    }
+
+    fetch(url, {
         method: 'POST',
         headers: {
             'Authorization': 'Bearer ' + localStorage.getItem('token')
         }
     })
-    .then(response => response.json())
     .then(result => {
         if (result.code === 200 && result.data) {
             templates = result.data.records || [];
             renderTemplateList();
             renderPagination(result.data.total, result.data.pages);
+        } else {
+            alert('加载模板列表失败：' + (result.message || '未知错误'));
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('加载模板列表失败');
+        alert('加载模板列表失败：' + (error.message || '网络错误'));
     });
 }
 
@@ -82,6 +89,21 @@ function changePage(page) {
     loadTemplates();
 }
 
+// 搜索模板
+function searchTemplates() {
+    const searchInput = document.getElementById('templateNameInput');
+    searchTemplateName = searchInput.value.trim();
+    currentPage = 1;
+    loadTemplates();
+}
+
+// 处理搜索框回车事件
+function handleSearchKeypress(event) {
+    if (event.key === 'Enter') {
+        searchTemplates();
+    }
+}
+
 // 查看模板
 function viewTemplate(templateId) {
     window.location.href = `/ems/pages/experiment-template.html?templateId=${templateId}`;
@@ -108,7 +130,6 @@ function deleteTemplate(templateId) {
             },
             body: JSON.stringify({ id: templateId })
         })
-        .then(response => response.json())
         .then(result => {
             if (result.code === 200) {
                 alert('删除成功');
@@ -119,7 +140,7 @@ function deleteTemplate(templateId) {
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('删除失败');
+            alert('删除失败：' + (error.message || '网络错误'));
         });
     }
 }
