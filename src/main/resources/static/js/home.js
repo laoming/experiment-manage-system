@@ -8,14 +8,6 @@ const app = createApp({
         return {
             loginTime: '',
             loading: true,
-            showUserProfileModal: false,
-            userProfileForm: {
-                username: '',
-                displayName: '',
-                oldPassword: '',
-                newPassword: '',
-                confirmPassword: ''
-            },
             menuList: [],
             menuDirectories: [],
             expandedDirectories: []
@@ -182,100 +174,6 @@ const app = createApp({
         handleLogout() {
             if (confirm('确定要退出登录吗？')) {
                 API.logout();
-            }
-        },
-
-        /**
-         * 打开个人信息弹窗
-         */
-        openUserProfileModal() {
-            const userInfo = API.getUserInfoFromToken();
-            this.userProfileForm = {
-                username: userInfo.username || '',
-                displayName: userInfo.displayName || '',
-                oldPassword: '',
-                newPassword: '',
-                confirmPassword: ''
-            };
-            this.showUserProfileModal = true;
-        },
-
-        /**
-         * 关闭个人信息弹窗
-         */
-        closeUserProfileModal() {
-            this.showUserProfileModal = false;
-            this.userProfileForm = {
-                username: '',
-                displayName: '',
-                oldPassword: '',
-                newPassword: '',
-                confirmPassword: ''
-            };
-        },
-
-        /**
-         * 提交个人信息修改
-         */
-        async handleUserProfileSubmit() {
-            // 验证用户名称
-            if (!this.userProfileForm.displayName.trim()) {
-                alert('请输入用户名称');
-                return;
-            }
-
-            // 如果要修改密码
-            if (this.userProfileForm.newPassword || this.userProfileForm.oldPassword) {
-                if (!this.userProfileForm.oldPassword) {
-                    alert('请输入旧密码');
-                    return;
-                }
-                if (!this.userProfileForm.newPassword) {
-                    alert('请输入新密码');
-                    return;
-                }
-                if (this.userProfileForm.newPassword !== this.userProfileForm.confirmPassword) {
-                    alert('两次输入的密码不一致');
-                    return;
-                }
-                if (this.userProfileForm.newPassword.length < 6) {
-                    alert('新密码长度不能少于6位');
-                    return;
-                }
-            }
-
-            try {
-                // 更新用户信息
-                const response = await API.updateUser({
-                    username: this.userProfileForm.username,
-                    displayName: this.userProfileForm.displayName
-                });
-
-                if (response.code === 200) {
-                    // 如果修改了密码，调用重置密码接口
-                    if (this.userProfileForm.newPassword) {
-                        const passwordResponse = await API.resetPassword({
-                            username: this.userProfileForm.username,
-                            password: this.userProfileForm.newPassword
-                        });
-
-                        if (passwordResponse.code === 200) {
-                            alert('个人信息和密码修改成功，请重新登录');
-                            API.logout();
-                        } else {
-                            alert('密码修改失败：' + (passwordResponse.message || '未知错误'));
-                        }
-                    } else {
-                        alert('个人信息修改成功');
-                        this.username = this.userProfileForm.displayName;
-                        this.closeUserProfileModal();
-                    }
-                } else {
-                    alert('个人信息修改失败：' + (response.message || '未知错误'));
-                }
-            } catch (error) {
-                console.error('修改个人信息失败:', error);
-                alert('修改失败：' + (error.message || '网络错误，请稍后重试'));
             }
         }
     }

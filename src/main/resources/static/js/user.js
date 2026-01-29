@@ -39,14 +39,6 @@ const app = createApp({
                 username: '',
                 password: '',
                 confirmPassword: ''
-            },
-            showUserProfileModal: false,
-            userProfileForm: {
-                username: '',
-                displayName: '',
-                oldPassword: '',
-                newPassword: '',
-                confirmPassword: ''
             }
         };
     },

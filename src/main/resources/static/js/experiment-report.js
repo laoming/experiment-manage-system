@@ -4,6 +4,128 @@ let currentReport = null;
 let reportComponents = [];
 let currentTemplateId = null;
 
+const { createApp } = Vue;
+
+const app = createApp({
+    data() {
+        return {
+            showUserProfileModal: false,
+            userProfileForm: {
+                username: '',
+                displayName: '',
+                oldPassword: '',
+                newPassword: '',
+                confirmPassword: ''
+            }
+        };
+    },
+    mounted() {
+        this.checkLogin();
+        init();
+    },
+    methods: {
+        checkLogin() {
+            const token = Auth.getToken();
+            if (!token) {
+                window.location.href = '/ems/pages/index.html';
+                return;
+            }
+        },
+        openUserProfileModal() {
+            const userInfo = Auth.getUserInfo();
+            this.userProfileForm = {
+                username: userInfo.username || '',
+                displayName: userInfo.displayName || '',
+                oldPassword: '',
+                newPassword: '',
+                confirmPassword: ''
+            };
+            this.showUserProfileModal = true;
+        },
+        closeUserProfileModal() {
+            this.showUserProfileModal = false;
+            this.userProfileForm = {
+                username: '',
+                displayName: '',
+                oldPassword: '',
+                newPassword: '',
+                confirmPassword: ''
+            };
+        },
+        async handleUserProfileSubmit() {
+            if (!this.userProfileForm.displayName.trim()) {
+                alert('请输入用户名称');
+                return;
+            }
+
+            if (this.userProfileForm.newPassword || this.userProfileForm.oldPassword) {
+                if (!this.userProfileForm.oldPassword) {
+                    alert('请输入旧密码');
+                    return;
+                }
+                if (!this.userProfileForm.newPassword) {
+                    alert('请输入新密码');
+                    return;
+                }
+                if (this.userProfileForm.newPassword !== this.userProfileForm.confirmPassword) {
+                    alert('两次输入的密码不一致');
+                    return;
+                }
+                if (this.userProfileForm.newPassword.length < 6) {
+                    alert('新密码长度不能少于6位');
+                    return;
+                }
+            }
+
+            try {
+                const response = await fetch('/user/update', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: this.userProfileForm.username,
+                        displayName: this.userProfileForm.displayName
+                    })
+                });
+
+                if (response.code === 200) {
+                    if (this.userProfileForm.newPassword) {
+                        const passwordResponse = await fetch('/user/resetPassword', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                username: this.userProfileForm.username,
+                                password: this.userProfileForm.newPassword
+                            })
+                        });
+
+                        if (passwordResponse.code === 200) {
+                            alert('个人信息和密码修改成功，请重新登录');
+                            Auth.logout();
+                        } else {
+                            alert('密码修改失败：' + (passwordResponse.message || '未知错误'));
+                        }
+                    } else {
+                        alert('个人信息修改成功');
+                        this.closeUserProfileModal();
+                    }
+                } else {
+                    alert('个人信息修改失败：' + (response.message || '未知错误'));
+                }
+            } catch (error) {
+                console.error('修改个人信息失败:', error);
+                alert('修改失败：' + (error.message || '网络错误，请稍后重试'));
+            }
+        }
+    }
+});
+
+app.component('header-component', HeaderComponent);
+app.mount('#app');
+
 // 初始化
 function init() {
     showTemplateSelector();
@@ -32,8 +154,10 @@ function loadTemplates() {
     fetch('/ems/experimentTemplate/page?current=1&size=100', {
         method: 'POST',
         headers: {
+            'Content-Type': 'application/json',
             'Authorization': 'Bearer ' + localStorage.getItem('token')
-        }
+        },
+        body: JSON.stringify({})
     })
     .then(response => response.json())
     .then(result => {
@@ -509,7 +633,4 @@ function formatDate(dateStr) {
     });
 }
 
-// 页面加载完成后初始化
-document.addEventListener('DOMContentLoaded', () => {
-    init();
-});
+

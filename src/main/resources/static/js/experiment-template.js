@@ -3,6 +3,35 @@ let components = [];
 let selectedComponentIndex = -1;
 let currentTemplateId = null;
 
+const { createApp } = Vue;
+
+const app = createApp({
+    mounted() {
+        this.checkLogin();
+        initDragDrop();
+        renderCanvas();
+        renderPropertiesPanel();
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const templateId = urlParams.get('templateId');
+        if (templateId) {
+            loadTemplate(templateId);
+        }
+    },
+    methods: {
+        checkLogin() {
+            const token = Auth.getToken();
+            if (!token) {
+                window.location.href = '/ems/pages/index.html';
+                return;
+            }
+        }
+    }
+});
+
+app.component('header-component', HeaderComponent);
+app.mount('#app');
+
 // 组件类型定义（简化版）
 const componentTypes = {
     text: {
@@ -509,19 +538,3 @@ function loadTemplate(templateId) {
         alert('加载模板失败：' + (error.message || '网络错误'));
     });
 }
-
-// 页面加载完成后初始化
-document.addEventListener('DOMContentLoaded', () => {
-    initDragDrop();
-
-    // 初始化画布状态
-    renderCanvas();
-    renderPropertiesPanel();
-
-    // 检查URL参数，如果有模板ID则加载模板
-    const urlParams = new URLSearchParams(window.location.search);
-    const templateId = urlParams.get('templateId');
-    if (templateId) {
-        loadTemplate(templateId);
-    }
-});

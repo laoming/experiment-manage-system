@@ -8,7 +8,11 @@ const TreeItem = {
     name: 'TreeItem',
     props: {
         node: Object,
-        selectedOrg: Object
+        selectedOrg: Object,
+        expandedAll: {
+            type: Boolean,
+            default: false
+        }
     },
     emits: ['select'],
     template: `
@@ -34,6 +38,7 @@ const TreeItem = {
                     :key="child.id"
                     :node="child"
                     :selected-org="selectedOrg"
+                    :expanded-all="expandedAll"
                     @select="$emit('select', $event)"
                 ></tree-item>
             </div>
@@ -47,6 +52,11 @@ const TreeItem = {
     computed: {
         hasChildren() {
             return this.node.children && this.node.children.length > 0;
+        }
+    },
+    watch: {
+        expandedAll(newVal) {
+            this.expanded = newVal;
         }
     },
     methods: {
@@ -69,6 +79,7 @@ const app = createApp({
             orgTree: [],
             parentOrgList: [],
             selectedOrg: null,
+            expandedAll: false,
             queryForm: {
                 orgName: '',
                 orgCode: ''
@@ -217,6 +228,13 @@ const app = createApp({
                 console.error('❌ [ORG] 获取父组织列表失败:', error);
                 this.showError('获取父组织列表失败: ' + error.message);
             }
+        },
+
+        /**
+         * 展开全部组织树
+         */
+        expandAll() {
+            this.expandedAll = !this.expandedAll;
         },
 
         /**

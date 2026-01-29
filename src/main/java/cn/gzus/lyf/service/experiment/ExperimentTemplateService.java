@@ -1,5 +1,6 @@
 package cn.gzus.lyf.service.experiment;
 
+import cn.gzus.lyf.common.dto.ExperimentTemplateQueryDto;
 import cn.gzus.lyf.common.dto.PageDto;
 import cn.gzus.lyf.dao.ExperimentTemplateDAO;
 import cn.gzus.lyf.dao.entity.ExperimentTemplateEntity;
@@ -56,11 +57,10 @@ public class ExperimentTemplateService {
      * 分页查询模板
      * @param current 当前页码
      * @param size 每页大小
-     * @param creatorId 创建者ID
-     * @param templateName 模板名称（支持模糊查询）
+     * @param experimentTemplateQueryDto 查询条件
      * @return 分页结果
      */
-    public PageDto<ExperimentTemplateEntity> getTemplatePage(Integer current, Integer size, String creatorId, String templateName) {
-        return templateDAO.getTemplatePage(current, size, creatorId, templateName);
+    public PageDto<ExperimentTemplateEntity> getTemplatePage(Integer current, Integer size, ExperimentTemplateQueryDto experimentTemplateQueryDto) {
+        return templateDAO.getTemplatePage(current, size, experimentTemplateQueryDto);
     }
 }

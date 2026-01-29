@@ -1,0 +1,10 @@
+---
+description: 
+alwaysApply: true
+enabled: true
+updatedAt: 2026-01-29T15:41:09.392Z
+provider: 
+---
+
+1. 除登录页外，系统所有菜单页面使用统一的导航栏。
+2. 前端页面风格保持一致。

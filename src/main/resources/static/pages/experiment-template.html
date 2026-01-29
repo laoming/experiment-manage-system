@@ -11,8 +11,9 @@
     <script src="/ems/js/auth.js"></script>
 </head>
 <body>
-    <div class="app-container">
-        <div class="header" id="header"></div>
+    <div id="app">
+        <!-- 顶部导航栏组件 -->
+        <header-component></header-component>
 
         <div class="main-content">
             <!-- 左侧工具栏 -->
@@ -67,6 +68,9 @@
         </div>
     </div>
 
+    <!-- Vue.js CDN -->
+    <script src="https://unpkg.com/vue@3.3.4/dist/vue.global.js"></script>
+    <!-- 顶部导航栏组件 -->
     <script src="/ems/js/header-component.js"></script>
     <script src="/ems/js/api.js"></script>
     <script src="/ems/js/experiment-template.js"></script>

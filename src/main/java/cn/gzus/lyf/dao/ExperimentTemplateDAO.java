@@ -1,14 +1,15 @@
 package cn.gzus.lyf.dao;
 
+import cn.gzus.lyf.common.dto.ExperimentTemplateQueryDto;
 import cn.gzus.lyf.common.dto.PageDto;
 import cn.gzus.lyf.common.util.BeanCopyUtils;
 import cn.gzus.lyf.dao.entity.ExperimentTemplateEntity;
 import cn.gzus.lyf.dao.mapper.ExperimentTemplateMapper;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -70,19 +71,17 @@ public class ExperimentTemplateDAO extends ServiceImpl<ExperimentTemplateMapper,
      * 根据创建者ID分页查询模板
      * @param current 当前页码
      * @param size 每页大小
-     * @param creatorId 创建者ID
-     * @param templateName 模板名称（支持模糊查询）
+     * @param experimentTemplateQueryDto 查询条件
      * @return 分页结果
      */
-    public PageDto<ExperimentTemplateEntity> getTemplatePage(Integer current, Integer size, String creatorId, String templateName) {
+    public PageDto<ExperimentTemplateEntity> getTemplatePage(Integer current, Integer size, ExperimentTemplateQueryDto experimentTemplateQueryDto) {
         Objects.requireNonNull(current, "当前页码不能为空");
         Objects.requireNonNull(size, "每页大小不能为空");
 
-        IPage<ExperimentTemplateEntity> templatePage = this.page(new Page<>(current, size),
-                new LambdaQueryWrapper<ExperimentTemplateEntity>()
-                        .eq(creatorId != null, ExperimentTemplateEntity::getCreatorId, creatorId)
-                        .like(templateName != null && !templateName.trim().isEmpty(), ExperimentTemplateEntity::getTemplateName, templateName)
-                        .orderByDesc(ExperimentTemplateEntity::getUpdateTime)
+        IPage<ExperimentTemplateEntity> templatePage = this.page(new Page<>(current, size), Wrappers.<ExperimentTemplateEntity>lambdaQuery()
+                .eq(StringUtils.isNotEmpty(experimentTemplateQueryDto.getCreatorId()), ExperimentTemplateEntity::getCreatorId, experimentTemplateQueryDto.getCreatorId())
+                .like(StringUtils.isNotEmpty(experimentTemplateQueryDto.getTemplateName()), ExperimentTemplateEntity::getTemplateName, experimentTemplateQueryDto.getTemplateName())
+                .orderByDesc(ExperimentTemplateEntity::getUpdateTime)
         );
         return BeanCopyUtils.copy(templatePage, PageDto.class);
     }

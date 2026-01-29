@@ -1,5 +1,6 @@
 package cn.gzus.lyf.controller.experiment;
 
+import cn.gzus.lyf.common.dto.ExperimentTemplateQueryDto;
 import cn.gzus.lyf.common.dto.PageDto;
 import cn.gzus.lyf.common.dto.Result;
 import cn.gzus.lyf.dao.entity.ExperimentTemplateEntity;
@@ -8,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -28,15 +30,18 @@ public class ExperimentTemplateController {
      * 分页查询模板
      */
     @PostMapping("/page")
-    public Result<PageDto<ExperimentTemplateEntity>> getTemplatePage(int current, int size, String creatorId, String templateName) {
-        return Result.success(templateService.getTemplatePage(current, size, creatorId, templateName));
+    public Result<PageDto<ExperimentTemplateEntity>> getTemplatePage(
+            @RequestParam int current,
+            @RequestParam int size,
+            @RequestBody ExperimentTemplateQueryDto queryDto) {
+        return Result.success(templateService.getTemplatePage(current, size, queryDto));
     }
 
     /**
      * 根据ID获取模板
      */
     @PostMapping("/get")
-    public Result<ExperimentTemplateEntity> getTemplateById(String templateId) {
+    public Result<ExperimentTemplateEntity> getTemplateById(@RequestParam String templateId) {
         return Result.success(templateService.getTemplateById(templateId));
     }
 
