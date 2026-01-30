@@ -31,8 +31,7 @@ CREATE TABLE experiment_report
 -- 插入菜单数据
 INSERT INTO menu(id, parent_id, menu_name, menu_code, path, menu_type, sort)
 VALUES ('401', '400', '实验模板管理', 'experiment_template_management', '/ems/pages/experiment-template-list.html', 'M', 1),
-       ('402', '400', '实验报告管理', 'experiment_report_management', '/ems/pages/experiment-report.html', 'M', 2),
-       ('403', '400', '模板编辑器', 'template_editor', '/ems/pages/experiment-template.html', 'M', 3);
+       ('402', '400', '实验报告管理', 'experiment_report_management', '/ems/pages/experiment-report.html', 'M', 2);
 
 -- 为管理员分配权限
 INSERT INTO role_menu_relation(id, role_id, menu_id)

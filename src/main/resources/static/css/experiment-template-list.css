@@ -1,0 +1,116 @@
+/* 实验模板管理列表页面样式 */
+
+.template-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.template-table thead {
+    background: #fafafa;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.template-table th {
+    padding: 16px;
+    text-align: left;
+    font-weight: 600;
+    color: #333;
+    font-size: 14px;
+}
+
+.template-table td {
+    padding: 16px;
+    border-bottom: 1px solid #f0f0f0;
+    color: #666;
+    font-size: 14px;
+}
+
+.template-table tbody tr:hover {
+    background: #fafafa;
+}
+
+.template-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* 描述预览 */
+.description-preview {
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 13px;
+    color: #999;
+}
+
+/* 组件数量徽章 */
+.badge {
+    display: inline-block;
+    padding: 4px 12px;
+    background: #e6f7ff;
+    color: #1890ff;
+    border: 1px solid #91d5ff;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+/* 大弹窗 */
+.modal-large {
+    max-width: 800px;
+}
+
+/* 查看弹窗样式 */
+.view-item {
+    margin-bottom: 20px;
+}
+
+.view-label {
+    display: inline-block;
+    width: 100px;
+    font-weight: 500;
+    color: #333;
+    font-size: 14px;
+}
+
+.view-value {
+    color: #666;
+    font-size: 14px;
+}
+
+.view-description {
+    margin: 8px 0 0;
+    padding: 12px;
+    background: #f5f7fa;
+    border-radius: 6px;
+    color: #666;
+    font-size: 14px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.view-content {
+    display: block;
+    margin: 8px 0 0;
+    padding: 16px;
+    background: #f5f7fa;
+    border-radius: 6px;
+    color: #333;
+    font-size: 13px;
+    line-height: 1.6;
+    overflow-x: auto;
+    max-height: 400px;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+/* 查看按钮样式 */
+.btn-view {
+    background: #f6ffed;
+    color: #52c41a;
+}
+
+.btn-view:hover {
+    background: #d9f7be;
+}
