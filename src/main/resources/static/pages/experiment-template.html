@@ -6,6 +6,8 @@
     <title>实验模板编辑器</title>
     <link rel="stylesheet" href="/ems/css/common.css">
     <link rel="stylesheet" href="/ems/css/experiment-template.css">
+    <!-- MathJax 用于公式渲染 -->
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <!-- 请求拦截器 - 必须在其他JS之前加载 -->
     <script src="/ems/js/request.js"></script>
     <script src="/ems/js/auth.js"></script>
@@ -32,6 +34,22 @@
                         <div class="component-icon">_</div>
                         <div class="component-name">填空</div>
                     </div>
+                    <div class="component-item" draggable="true" data-type="richtext">
+                        <div class="component-icon">📝</div>
+                        <div class="component-name">富文本</div>
+                    </div>
+                    <div class="component-item" draggable="true" data-type="divider">
+                        <div class="component-icon">─</div>
+                        <div class="component-name">分割线</div>
+                    </div>
+                    <div class="component-item" draggable="true" data-type="formula">
+                        <div class="component-icon">∑</div>
+                        <div class="component-name">公式</div>
+                    </div>
+                    <div class="component-item" draggable="true" data-type="image">
+                        <div class="component-icon">🖼️</div>
+                        <div class="component-name">图片</div>
+                    </div>
                 </div>
             </div>
 
@@ -39,7 +57,7 @@
             <div class="canvas-container">
                 <div class="canvas-header">
                     <div class="canvas-title">
-                        <input type="text" id="templateName" placeholder="请输入模板名称" value="新建实验模板">
+                        <input type="text" id="templateName" placeholder="请输入模板名称">
                     </div>
                     <div class="canvas-actions">
                         <button class="btn btn-secondary" onclick="clearCanvas()">清空画布</button>

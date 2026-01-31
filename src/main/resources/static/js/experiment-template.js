@@ -56,6 +56,39 @@ const componentTypes = {
             { type: 'input', name: 'label', label: '问题' },
             { type: 'input', name: 'placeholder', label: '占位符' }
         ]
+    },
+    richtext: {
+        name: '富文本',
+        icon: '📝',
+        fields: [
+            { type: 'textarea', name: 'content', label: '富文本内容' },
+            { type: 'select', name: 'alignment', label: '对齐方式', options: ['left', 'center', 'right'] }
+        ]
+    },
+    divider: {
+        name: '分割线',
+        icon: '─',
+        fields: [
+            { type: 'select', name: 'style', label: '线条样式', options: ['solid', 'dashed', 'dotted'] },
+            { type: 'input', name: 'color', label: '颜色（如 #333）' }
+        ]
+    },
+    formula: {
+        name: '公式',
+        icon: '∑',
+        fields: [
+            { type: 'textarea', name: 'formula', label: 'LaTeX公式' },
+            { type: 'textarea', name: 'description', label: '公式说明' }
+        ]
+    },
+    image: {
+        name: '图片',
+        icon: '🖼️',
+        fields: [
+            { type: 'textarea', name: 'url', label: '图片URL' },
+            { type: 'input', name: 'alt', label: '图片描述' },
+            { type: 'select', name: 'size', label: '尺寸', options: ['small', 'medium', 'large'] }
+        ]
     }
 };
 
@@ -197,6 +230,26 @@ function renderComponentPreview(component) {
             return `<div>${data.rows || 0} 行 × ${data.cols || 0} 列</div>`;
         case 'input':
             return `<label>${data.label || '未设置问题'}</label><br><input type="text" placeholder="${data.placeholder || ''}" disabled>`;
+        case 'richtext':
+            return `<div class="richtext-preview" style="text-align: ${data.alignment || 'left'}">${data.content || '暂无富文本内容'}</div>`;
+        case 'divider':
+            const borderStyle = data.style || 'solid';
+            const borderColor = data.color || '#ddd';
+            return `<div style="border-top: 2px ${borderStyle} ${borderColor}; margin: 20px 0;"></div>`;
+        case 'formula':
+            const previewFormula = data.formula || '暂无公式';
+            return `<div class="formula-preview">
+                <div class="formula-display">$${previewFormula}$</div>
+                ${data.description ? `<div class="formula-desc">${data.description}</div>` : ''}
+            </div>`;
+        case 'image':
+            const imgUrl = data.url || '';
+            const imgAlt = data.alt || '图片';
+            const imgSize = data.size || 'medium';
+            const sizeClass = `img-${imgSize}`;
+            return imgUrl 
+                ? `<div class="image-preview ${sizeClass}"><img src="${imgUrl}" alt="${imgAlt}" /></div>`
+                : `<div class="image-placeholder">暂无图片</div>`;
         default:
             return '未知组件类型';
     }
@@ -368,6 +421,32 @@ function previewTemplate() {
                 previewContent += `<label>${data.label || '问题'}</label>`;
                 previewContent += `<p>【填写区域：${data.placeholder || '请输入内容'}】</p>`;
                 break;
+            case 'richtext':
+                previewContent += `<div style="text-align: ${data.alignment || 'left'}">${data.content || '暂无内容'}</div>`;
+                break;
+            case 'divider':
+                previewContent += `<hr style="border: 2px ${data.style || 'solid'} ${data.color || '#ddd'}; margin: 20px 0;">`;
+                break;
+            case 'formula':
+                previewContent += `<div style="padding: 10px; background: #f9f9f9; margin: 10px 0;">`;
+                previewContent += `<p><strong>公式：</strong>${data.formula || '未设置'}</p>`;
+                if (data.description) {
+                    previewContent += `<p><strong>说明：</strong>${data.description}</p>`;
+                }
+                previewContent += `</div>`;
+                break;
+            case 'image':
+                const imgPreviewUrl = data.url || '';
+                const imgPreviewAlt = data.alt || '图片';
+                if (imgPreviewUrl) {
+                    previewContent += `<img src="${imgPreviewUrl}" alt="${imgPreviewAlt}" style="max-width: 100%;">`;
+                    if (data.alt) {
+                        previewContent += `<p style="font-size: 12px; color: #666;">${data.alt}</p>`;
+                    }
+                } else {
+                    previewContent += `<p style="color: #999;">[图片位置]</p>`;
+                }
+                break;
         }
         
         previewContent += '</div>';
@@ -494,6 +573,30 @@ function exportTemplateAsMarkdown() {
                     markdown += `### ${data.label}\n\n`;
                 }
                 markdown += `*${data.placeholder || '待填写'}*\n\n`;
+                break;
+            case 'richtext':
+                markdown += `${data.content || ''}\n\n`;
+                break;
+            case 'divider':
+                markdown += '---\n\n';
+                break;
+            case 'formula':
+                if (data.formula) {
+                    markdown += `$$\n${data.formula}\n$$\n\n`;
+                }
+                if (data.description) {
+                    markdown += `> ${data.description}\n\n`;
+                }
+                break;
+            case 'image':
+                if (data.url) {
+                    markdown += `![${data.alt || '图片'}](${data.url})\n\n`;
+                    if (data.alt) {
+                        markdown += `*${data.alt}*\n\n`;
+                    }
+                } else {
+                    markdown += `[图片]\n\n`;
+                }
                 break;
         }
     });
