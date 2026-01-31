@@ -112,6 +112,178 @@
     color: #333;
 }
 
+/* 标签栏样式 */
+.tabs-bar {
+    position: fixed;
+    top: 60px;
+    left: 0;
+    right: 0;
+    height: 42px;
+    background: white;
+    border-bottom: 1px solid #e8e8e8;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    z-index: 999;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+.tabs-container {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex: 1;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.tabs-container::-webkit-scrollbar {
+    display: none;
+}
+
+.tab-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    background: #f5f5f5;
+    border: 1px solid #e8e8e8;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    font-size: 13px;
+    color: #666;
+    position: relative;
+    min-width: 100px;
+    max-width: 200px;
+}
+
+.tab-item:hover {
+    background: #e8e8e8;
+    color: #667eea;
+}
+
+.tab-item.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-color: #667eea;
+}
+
+.tab-icon {
+    font-size: 14px;
+}
+
+.tab-title {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tab-close {
+    font-size: 14px;
+    opacity: 0;
+    transition: opacity 0.2s;
+    padding: 2px;
+    border-radius: 3px;
+    margin-left: 4px;
+}
+
+.tab-close.show-close,
+.tab-item:hover .tab-close {
+    opacity: 1;
+}
+
+.tab-close:hover {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.tab-item.active .tab-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* 不可关闭的标签页 */
+.tab-unclosable {
+    position: relative;
+}
+
+.tab-unclosable::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 40px;
+    background: linear-gradient(to left, rgba(255, 255, 255, 0.3), transparent);
+    pointer-events: none;
+}
+
+.tabs-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: 12px;
+    flex-shrink: 0;
+}
+
+.tabs-action-btn {
+    padding: 6px 12px;
+    background: white;
+    border: 1px solid #e8e8e8;
+    border-radius: 4px;
+    color: #666;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.tabs-action-btn:hover {
+    background: #f5f5f5;
+    color: #667eea;
+    border-color: #667eea;
+}
+
+/* 右键菜单 */
+.context-menu {
+    position: fixed;
+    background: white;
+    border: 1px solid #e8e8e8;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    z-index: 1001;
+    min-width: 120px;
+    display: none;
+}
+
+.context-menu.show {
+    display: block;
+}
+
+.context-menu-item {
+    padding: 8px 16px;
+    cursor: pointer;
+    font-size: 13px;
+    color: #666;
+    transition: all 0.2s;
+}
+
+.context-menu-item:hover {
+    background: #f5f5f5;
+    color: #667eea;
+}
+
+.context-menu-item:first-child {
+    border-radius: 4px 4px 0 0;
+}
+
+.context-menu-item:last-child {
+    border-radius: 0 0 4px 4px;
+}
+
 /* 按钮样式 */
 .btn {
     padding: 10px 20px;

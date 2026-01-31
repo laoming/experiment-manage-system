@@ -117,7 +117,7 @@ const app = createApp({
          */
         navigateToMenu(menu) {
             if (menu.path) {
-                window.location.href = menu.path;
+                TabsManager.openTab(menu);
             } else {
                 console.warn('菜单没有配置路径:', menu);
             }

@@ -16,7 +16,7 @@ body {
 /* 主内容区域 */
 .main-content {
     flex: 1;
-    padding-top: 80px;
+    padding-top: 122px;
     padding-bottom: 40px;
 }
 
@@ -312,7 +312,7 @@ body {
 /* 响应式设计 */
 @media (max-width: 768px) {
     .main-content {
-        padding-top: 76px;
+        padding-top: 118px;
     }
 
     .welcome-section {

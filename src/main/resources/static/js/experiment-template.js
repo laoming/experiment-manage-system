@@ -425,7 +425,8 @@ function saveTemplate() {
                 // 如果是新增模板（没有currentTemplateId），跳转到列表页面
                 if (!currentTemplateId) {
                     setTimeout(() => {
-                        window.location.href = '/ems/pages/experiment-template-list.html';
+                        // 使用 TabsManager 打开新标签页
+                        TabsManager.openTabByPath('/ems/pages/experiment-template-list.html', '实验模板管理');
                     }, 1000);
                 }
                 // 如果是编辑模板，保持在当前页面

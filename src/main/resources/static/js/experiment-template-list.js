@@ -128,14 +128,16 @@ const app = createApp({
          * 打开创建模板编辑器
          */
         openCreateEditor() {
-            window.location.href = '/ems/pages/experiment-template.html';
+            // 使用 TabsManager 打开新标签页
+            TabsManager.openTabByPath('/ems/pages/experiment-template.html', '实验模板编辑');
         },
 
         /**
          * 打开编辑模板编辑器
          */
         openEditEditor(template) {
-            window.location.href = `/ems/pages/experiment-template.html?templateId=${template.id}`;
+            // 使用 TabsManager 打开新标签页
+            TabsManager.openTabByPath(`/ems/pages/experiment-template.html?templateId=${template.id}`, '实验模板编辑');
         },
 
         /**

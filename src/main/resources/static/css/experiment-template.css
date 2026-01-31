@@ -17,7 +17,7 @@ body {
 /* 主内容区域 */
 .main-content {
     flex: 1;
-    padding-top: 80px;
+    padding-top: 122px;
     padding-bottom: 40px;
 }
 
@@ -302,8 +302,8 @@ body {
 /* 编辑器主容器 - 覆盖列表页样式 */
 body:has(.canvas-container) .main-content {
     display: flex;
-    height: calc(100vh - 60px);
-    margin-top: 60px;
+    height: calc(100vh - 102px);
+    margin-top: 102px;
     padding-top: 0;
     overflow: hidden;
     background: #f0f2f5;

@@ -21,6 +21,49 @@ const HeaderComponent = {
                 </div>
             </div>
 
+            <!-- 标签栏 -->
+            <div class="tabs-bar" v-if="tabs.length > 0">
+                <div class="tabs-container">
+                    <div
+                        v-for="tab in tabs"
+                        :key="tab.key"
+                        class="tab-item"
+                        :class="{ active: tab.key === currentTab, 'tab-unclosable': !tab.closable }"
+                        @click="switchTab(tab.key)"
+                        @contextmenu.prevent="showContextMenu($event, tab)"
+                    >
+                        <span class="tab-icon">{{ tab.icon }}</span>
+                        <span class="tab-title">{{ tab.title }}</span>
+                        <span
+                            v-if="tab.closable"
+                            class="tab-close"
+                            @click.stop="closeTab(tab.key)"
+                            :class="{ 'show-close': tab.key === currentTab }"
+                        >✕</span>
+                    </div>
+                </div>
+                <div class="tabs-actions">
+                    <button class="tabs-action-btn" @click="closeOtherTabs(currentTab)" title="关闭其他">✕ 其他</button>
+                    <button class="tabs-action-btn" @click="closeAllTabs" title="关闭全部">✕ 全部</button>
+                </div>
+            </div>
+
+            <!-- 右键菜单 -->
+            <div
+                class="context-menu"
+                :class="{ show: showMenu }"
+                :style="{ top: menuY + 'px', left: menuX + 'px' }"
+                v-if="showMenu"
+            >
+                <div
+                    v-if="currentContextTab && currentContextTab.closable"
+                    class="context-menu-item"
+                    @click="closeTab(currentContextTab.key)"
+                >关闭</div>
+                <div class="context-menu-item" @click="closeOtherTabs(currentContextTab.key)">关闭其他</div>
+                <div class="context-menu-item" @click="closeAllTabs">关闭全部</div>
+            </div>
+
             <!-- 修改个人信息弹窗 -->
             <div class="modal-overlay" v-if="showProfileModal" @click.self="closeProfile">
                 <div class="modal-content">
@@ -99,11 +142,24 @@ const HeaderComponent = {
                 oldPassword: '',
                 newPassword: '',
                 confirmPassword: ''
-            }
+            },
+            tabs: [],
+            currentTab: '',
+            showMenu: false,
+            menuX: 0,
+            menuY: 0,
+            currentContextTab: null
         };
     },
     mounted() {
         this.initUsername();
+        TabsManager.init();
+        this.initTabs();
+        document.addEventListener('click', this.hideContextMenu);
+    },
+
+    beforeUnmount() {
+        document.removeEventListener('click', this.hideContextMenu);
     },
     methods: {
         /**
@@ -227,6 +283,8 @@ const HeaderComponent = {
          * 返回首页
          */
         goHome() {
+            this.currentTab = 'home';
+            TabsManager.saveCurrentTab('home');
             window.location.href = '/ems/pages/home.html';
         },
 
@@ -235,8 +293,125 @@ const HeaderComponent = {
          */
         handleLogout() {
             if (confirm('确定要退出登录吗？')) {
+                // 清除所有标签页
+                TabsManager.clearAll();
                 Auth.logout();
             }
+        },
+
+        /**
+         * 初始化标签页
+         */
+        initTabs() {
+            const currentPath = window.location.pathname;
+            console.log('📌 [Header] initTabs - 当前路径:', currentPath);
+
+            this.tabs = TabsManager.getTabs();
+            console.log('📌 [Header] initTabs - 读取的标签页:', this.tabs.map(t => ({ key: t.key, title: t.title })));
+
+            this.currentTab = TabsManager.getCurrentTab();
+            console.log('📌 [Header] initTabs - 当前标签页key:', this.currentTab);
+
+            // 检查当前页面是否在标签页中
+            const currentPageTabs = this.tabs.filter(tab => tab.path.includes(currentPath));
+            console.log('📌 [Header] initTabs - 匹配的标签页:', currentPageTabs.map(t => ({ key: t.key, title: t.title, path: t.path })));
+
+            if (currentPageTabs.length > 0) {
+                // 当前页面在标签页中，更新 currentTab 为匹配的标签页
+                const matchedTab = currentPageTabs[0];
+                console.log('📌 [Header] 当前页面匹配标签页:', matchedTab.key, matchedTab.title);
+                this.currentTab = matchedTab.key;
+                TabsManager.saveCurrentTab(matchedTab.key);
+            } else {
+                // 检查是否是首页
+                if (currentPath.includes('home.html')) {
+                    console.log('📌 [Header] 当前页面是首页');
+                    this.currentTab = 'home';
+                    TabsManager.saveCurrentTab('home');
+                    return;
+                }
+
+                // 当前页面不在标签页中，需要添加
+                const pageTitle = document.title.replace('实验管理系统 - ', '');
+                this.addTabForCurrentPage(pageTitle, currentPath);
+            }
+        },
+
+        /**
+         * 为当前页面添加标签页
+         */
+        addTabForCurrentPage(title, path) {
+            const tabKey = 'page_' + Date.now();
+            const newTab = {
+                key: tabKey,
+                title: title,
+                path: path,
+                icon: TabsManager.getMenuIcon(title),
+                closable: true
+            };
+            this.tabs.push(newTab);
+            TabsManager.saveTabs(this.tabs);
+            TabsManager.saveCurrentTab(tabKey);
+            this.currentTab = tabKey;
+        },
+
+        /**
+         * 切换标签页
+         */
+        switchTab(tabKey) {
+            // 如果点击的是当前标签页，不执行跳转
+            if (this.currentTab === tabKey) {
+                console.log('📌 [Header] 点击的是当前标签页，不跳转');
+                return;
+            }
+
+            this.currentTab = tabKey;
+            TabsManager.switchTab(tabKey);
+        },
+
+        /**
+         * 关闭标签页
+         */
+        closeTab(tabKey) {
+            // 不在 callback 中更新状态，因为页面跳转后会重新加载组件
+            // 让新页面加载时自己从 localStorage 读取状态
+            TabsManager.closeTab(tabKey, null);
+        },
+
+        /**
+         * 关闭其他标签页
+         */
+        closeOtherTabs(tabKey) {
+            this.hideContextMenu();
+            TabsManager.closeOtherTabs(tabKey);
+            this.tabs = TabsManager.getTabs();
+        },
+
+        /**
+         * 关闭所有标签页
+         */
+        closeAllTabs() {
+            this.hideContextMenu();
+            TabsManager.closeAllTabs();
+            this.tabs = [];
+            this.currentTab = '';
+        },
+
+        /**
+         * 显示右键菜单
+         */
+        showContextMenu(event, tab) {
+            this.currentContextTab = tab;
+            this.menuX = event.clientX;
+            this.menuY = event.clientY;
+            this.showMenu = true;
+        },
+
+        /**
+         * 隐藏右键菜单
+         */
+        hideContextMenu() {
+            this.showMenu = false;
         }
     }
 };

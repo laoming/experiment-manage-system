@@ -2,9 +2,10 @@
 description: 
 alwaysApply: true
 enabled: true
-updatedAt: 2026-01-29T15:41:09.392Z
+updatedAt: 2026-01-31T14:28:13.980Z
 provider: 
 ---
 
 1. 除登录页外，系统所有菜单页面使用统一的导航栏。
 2. 前端页面风格保持一致。
+3. 系统禁用当前页跳转，所有需页面跳转的场景，统一改为新开标签页打开。
