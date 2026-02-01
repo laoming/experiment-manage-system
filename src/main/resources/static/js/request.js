@@ -21,10 +21,15 @@
         const newOptions = {
             ...options,
             headers: {
-                'Content-Type': 'application/json',
                 ...options.headers
             }
         };
+
+        // 只在需要的时候添加 Content-Type（POST/PUT/PATCH 请求）
+        const method = (options.method || 'GET').toUpperCase();
+        if (['POST', 'PUT', 'PATCH'].includes(method)) {
+            newOptions.headers['Content-Type'] = 'application/json';
+        }
 
         // 从localStorage获取token并添加到请求头（登录接口除外）
         const token = localStorage.getItem('token');
@@ -66,14 +71,24 @@
                 }
 
                 if (!contentType || !contentType.includes('application/json')) {
-                    // 如果响应不是JSON，尝试解析或返回空对象
+                    // 如果响应不是JSON，尝试解析或返回原始文本
                     try {
                         const text = await response.text();
-                        console.log(`[响应] 非JSON响应:`, text);
+                        console.log(`[响应] 非JSON响应 (长度: ${text.length})`);
+
+                        // 尝试解析为 JSON（某些接口可能返回错误的 content-type）
                         try {
-                            return JSON.parse(text || '{}');
+                            const jsonData = JSON.parse(text || '{}');
+                            console.log('[响应] 成功解析为 JSON');
+                            return jsonData;
                         } catch (e) {
-                            return { code: 200, data: null, message: 'success' };
+                            // 无法解析为 JSON，返回原始文本
+                            console.log('[响应] 返回原始文本内容');
+                            return {
+                                code: 200,
+                                data: text,
+                                message: 'success'
+                            };
                         }
                     } catch (error) {
                         console.error('[拦截器] 读取响应失败:', error);

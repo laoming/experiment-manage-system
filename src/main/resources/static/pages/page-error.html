@@ -1,0 +1,106 @@
+<link rel="stylesheet" href="/ems/css/page-error.css">
+
+<div class="main-content">
+                <!-- 错误提示区域 -->
+                <div class="error-section">
+                    <div class="error-icon">⚠️</div>
+                    <h1 class="error-title">{{ errorInfo.title || '页面不存在' }}</h1>
+                    <p class="error-message">{{ errorInfo.message || '抱歉，您访问的页面不存在或已被删除。' }}</p>
+                    <div class="error-details" v-if="errorInfo.path">
+                        <span class="detail-label">页面路径：</span>
+                        <span class="detail-path">{{ errorInfo.path }}</span>
+                    </div>
+
+                    <!-- 操作按钮 -->
+                    <div class="error-actions">
+                        <button class="btn btn-primary" @click="goHome">
+                            🏠 返回首页
+                        </button>
+                        <button class="btn btn-secondary" @click="closeCurrentTab">
+                            ✕ 关闭此标签页
+                        </button>
+                    </div>
+
+                    <!-- 帮助信息 -->
+                    <div class="error-help">
+                        <h3>可能的原因：</h3>
+                        <ul>
+                            <li>页面链接已过期或失效</li>
+                            <li>页面已被管理员删除或移动</li>
+                            <li>您没有访问该页面的权限</li>
+                            <li>系统正在进行维护，部分功能暂时不可用</li>
+                        </ul>
+
+                        <h3>您可以尝试：</h3>
+                        <ul>
+                            <li>点击"返回首页"按钮回到系统首页</li>
+                            <li>点击"关闭此标签页"关闭当前错误页面</li>
+                            <li>联系系统管理员获取帮助</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const { createApp } = Vue;
+
+    const app = createApp({
+            data() {
+                return {
+                    errorInfo: {
+                        title: '',
+                        message: '',
+                        path: ''
+                    }
+                };
+            },
+
+            mounted() {
+                this.loadErrorInfo();
+                // 清除错误信息，避免下次打开时仍然显示
+                localStorage.removeItem('ems_page_error');
+            },
+
+            methods: {
+                /**
+                 * 加载错误信息
+                 */
+                loadErrorInfo() {
+                    try {
+                        const errorData = localStorage.getItem('ems_page_error');
+                        if (errorData) {
+                            this.errorInfo = JSON.parse(errorData);
+                        }
+                    } catch (error) {
+                        console.error('[ErrorPage] 加载错误信息失败:', error);
+                    }
+                },
+
+                /**
+                 * 返回首页
+                 */
+                goHome() {
+                    window.location.href = '/ems/pages/home.html';
+                },
+
+                /**
+                 * 关闭当前标签页
+                 */
+                closeCurrentTab() {
+                    const currentTab = TabsManager.getCurrentTab();
+                    if (currentTab) {
+                        TabsManager.closeTab(currentTab);
+                    } else {
+                        // 如果无法获取当前标签页，直接返回首页
+                        this.goHome();
+                    }
+                }
+            }
+        });
+
+        // 挂载应用
+        app.mount('#app');
+</script>

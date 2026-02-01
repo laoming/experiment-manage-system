@@ -1,0 +1,180 @@
+/* 错误页面样式 */
+.error-section {
+    background: white;
+    border-radius: 12px;
+    padding: 60px 40px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    animation: fadeInUp 0.5s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.error-icon {
+    font-size: 80px;
+    margin-bottom: 30px;
+    animation: shake 2s ease-in-out infinite;
+}
+
+@keyframes shake {
+    0%, 100% {
+        transform: rotate(0deg);
+    }
+    10%, 30%, 50%, 70%, 90% {
+        transform: rotate(-5deg);
+    }
+    20%, 40%, 60%, 80% {
+        transform: rotate(5deg);
+    }
+}
+
+.error-title {
+    font-size: 36px;
+    font-weight: 600;
+    color: #333;
+    margin: 0 0 20px 0;
+}
+
+.error-message {
+    font-size: 18px;
+    color: #666;
+    line-height: 1.6;
+    margin: 0 0 30px 0;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.error-details {
+    display: inline-block;
+    background: #f5f5f5;
+    padding: 12px 20px;
+    border-radius: 6px;
+    margin-bottom: 30px;
+    font-size: 14px;
+}
+
+.detail-label {
+    color: #999;
+    font-weight: 500;
+}
+
+.detail-path {
+    color: #f44336;
+    font-family: 'Courier New', monospace;
+    word-break: break-all;
+}
+
+.error-actions {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 40px;
+}
+
+.error-help {
+    text-align: left;
+    max-width: 600px;
+    margin: 0 auto;
+    padding-top: 40px;
+    border-top: 1px solid #e8e8e8;
+}
+
+.error-help h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    margin: 20px 0 12px 0;
+}
+
+.error-help h3:first-child {
+    margin-top: 0;
+}
+
+.error-help ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.error-help li {
+    font-size: 14px;
+    color: #666;
+    line-height: 1.8;
+    padding-left: 24px;
+    position: relative;
+}
+
+.error-help li:before {
+    content: '•';
+    color: #667eea;
+    font-weight: bold;
+    position: absolute;
+    left: 8px;
+    top: 0;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .error-section {
+        padding: 40px 24px;
+    }
+
+    .error-icon {
+        font-size: 60px;
+        margin-bottom: 20px;
+    }
+
+    .error-title {
+        font-size: 28px;
+    }
+
+    .error-message {
+        font-size: 16px;
+    }
+
+    .error-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .error-help {
+        padding-top: 30px;
+    }
+
+    .error-help li {
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 480px) {
+    .error-section {
+        padding: 30px 20px;
+    }
+
+    .error-icon {
+        font-size: 50px;
+    }
+
+    .error-title {
+        font-size: 24px;
+    }
+
+    .error-message {
+        font-size: 15px;
+    }
+
+    .error-details {
+        font-size: 12px;
+        padding: 10px 16px;
+    }
+}

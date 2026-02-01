@@ -573,3 +573,189 @@
     gap: 12px;
     margin-top: 24px;
 }
+
+/* 全局页面错误提示 */
+.global-page-error {
+    position: fixed;
+    top: 102px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #f5f7fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 998;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.global-error-content {
+    background: white;
+    border-radius: 12px;
+    padding: 60px 40px;
+    text-align: center;
+    max-width: 600px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.global-error-icon {
+    font-size: 80px;
+    margin-bottom: 30px;
+}
+
+.global-error-title {
+    font-size: 28px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.global-error-message {
+    font-size: 16px;
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 30px;
+}
+
+.global-error-actions {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+}
+
+/* 普通页面错误提示（嵌入在内容区域中） */
+.page-error {
+    background-color: white;
+    padding: 60px 40px;
+    border-radius: 8px;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+.page-error .error-icon {
+    font-size: 64px;
+    margin-bottom: 20px;
+}
+
+.page-error h2 {
+    color: #f44336;
+    margin: 0 0 16px 0;
+    font-size: 24px;
+}
+
+.page-error p {
+    color: #666;
+    margin: 0 0 24px 0;
+    font-size: 16px;
+}
+
+.page-error .btn {
+    margin: 0 8px;
+}
+
+/* 标签页内容区域 */
+.tab-content-area {
+    background-color: white;
+    border-radius: 8px;
+    padding: 0;
+    min-height: calc(100vh - 140px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+.tab-content-embed {
+    /* 嵌入的标签页内容样式 */
+    padding: 0;
+    width: 100%;
+    min-height: calc(100vh - 140px);
+}
+
+/* 确保嵌入的页面样式正常 */
+.tab-content-embed > div {
+    padding: 20px;
+}
+
+/* 确保嵌入的 #app 元素正常显示 */
+.tab-content-embed [id^="tab-app-"] {
+    width: 100%;
+}
+
+/* 嵌入页面中的表单、表格等元素 */
+.tab-content-embed .container {
+    max-width: 100%;
+    padding: 0;
+}
+
+.tab-content-embed .page-header {
+    margin: 0 0 20px 0;
+    padding: 24px;
+    background-color: white;
+    border-radius: 8px;
+}
+
+.tab-content-embed .toolbar {
+    margin: 0 20px 20px 20px;
+    padding: 16px;
+    background-color: white;
+    border-radius: 8px;
+}
+
+.tab-content-embed .table-container {
+    margin: 0 20px 20px 20px;
+    background-color: white;
+    border-radius: 8px;
+    padding: 16px;
+}
+
+/* 嵌入页面的表格样式 */
+.tab-content-embed table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.tab-content-embed .btn {
+    margin: 2px;
+}
+
+/* 嵌入页面的弹窗样式 */
+.tab-content-embed .modal-overlay {
+    z-index: 2000;
+}
+
+/* 嵌入页面的错误提示 */
+.tab-page-error {
+    background-color: #fff3cd;
+    border: 1px solid #ffc107;
+    border-radius: 8px;
+    padding: 60px 40px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.tab-page-error .error-icon {
+    font-size: 64px;
+    margin-bottom: 20px;
+}
+
+.tab-page-error h2 {
+    color: #856404;
+    margin: 0 0 16px 0;
+    font-size: 24px;
+}
+
+.tab-page-error p {
+    color: #856404;
+    margin: 0 0 24px 0;
+    font-size: 16px;
+}
+
+.tab-page-error .btn {
+    margin: 0 8px;
+}
+
+/* 确保嵌入的页面样式不冲突 */
+.tab-content-embed * {
+    max-width: 100%;
+}
+

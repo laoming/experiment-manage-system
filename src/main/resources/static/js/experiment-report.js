@@ -25,10 +25,15 @@ const app = createApp({
     },
     methods: {
         checkLogin() {
-            const token = Auth.getToken();
-            if (!token) {
+            try {
+                const token = Auth.getToken();
+                if (!token) {
+                    window.location.href = '/ems/pages/index.html';
+                    return;
+                }
+            } catch (error) {
+                console.error('[REPORT] 检查登录状态失败:', error);
                 window.location.href = '/ems/pages/index.html';
-                return;
             }
         },
         openUserProfileModal() {

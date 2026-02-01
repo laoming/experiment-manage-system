@@ -39,26 +39,56 @@ const app = createApp({
                 username: '',
                 password: '',
                 confirmPassword: ''
-            }
+            },
+            pageError: null
         };
     },
 
     mounted() {
+        console.log('📌 [USER] 用户管理页面开始加载...');
         this.checkLogin();
-        this.fetchRoleList();
-        this.fetchOrgList();
-        this.fetchUserList();
+        this.initPage();
+    },
+
+    errorCaptured(err, vm, info) {
+        console.error('[USER] Vue组件错误:', err, info);
+        console.error('[USER] 错误堆栈:', err.stack);
+        this.pageError = err.message || '页面加载失败';
+        return false; // 阻止错误继续向上传播
     },
 
     methods: {
         /**
+         * 初始化页面
+         */
+        async initPage() {
+            try {
+                console.log('📌 [USER] 开始加载页面数据...');
+                await Promise.all([
+                    this.fetchRoleList(),
+                    this.fetchOrgList(),
+                    this.fetchUserList()
+                ]);
+                console.log('✅ [USER] 页面数据加载完成');
+            } catch (error) {
+                console.error('[USER] 初始化页面失败:', error);
+                this.pageError = '初始化页面失败: ' + (error.message || '未知错误');
+            }
+        },
+
+        /**
          * 检查登录状态
          */
         checkLogin() {
-            const token = Auth.getToken();
-            if (!token) {
+            try {
+                const token = Auth.getToken();
+                if (!token) {
+                    window.location.href = '/ems/pages/index.html';
+                    return;
+                }
+            } catch (error) {
+                console.error('[USER] 检查登录状态失败:', error);
                 window.location.href = '/ems/pages/index.html';
-                return;
             }
         },
 

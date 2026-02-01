@@ -115,10 +115,15 @@ const app = createApp({
          * 检查登录状态
          */
         checkLogin() {
-            const token = Auth.getToken();
-            if (!token) {
+            try {
+                const token = Auth.getToken();
+                if (!token) {
+                    window.location.href = '/ems/pages/index.html';
+                    return;
+                }
+            } catch (error) {
+                console.error('[ORG] 检查登录状态失败:', error);
                 window.location.href = '/ems/pages/index.html';
-                return;
             }
         },
 

@@ -18,75 +18,112 @@
         <!-- 主内容区域 -->
         <div class="main-content">
             <div class="container">
-                <!-- 欢迎区域 -->
-                <div class="welcome-section">
-                    <h1 class="welcome-title">欢迎使用实验管理系统</h1>
-                    <p class="welcome-subtitle">Experiment Management System - 高效、便捷的实验管理平台</p>
-                    
-                    <div class="welcome-info">
-                        <div class="info-item">
-                            <span class="info-label">登录时间</span>
-                            <span class="info-value">{{ loginTime }}</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">系统状态</span>
-                            <span class="info-value" style="color: #52c41a;">运行中</span>
+                <!-- 首页内容 -->
+                <div v-if="currentTabKey === 'home' && !currentTabContent">
+                    <!-- 欢迎区域 -->
+                    <div class="welcome-section">
+                        <h1 class="welcome-title">欢迎使用实验管理系统</h1>
+                        <p class="welcome-subtitle">Experiment Management System - 高效、便捷的实验管理平台</p>
+
+                        <div class="welcome-info">
+                            <div class="info-item">
+                                <span class="info-label">登录时间</span>
+                                <span class="info-value">{{ loginTime }}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">系统状态</span>
+                                <span class="info-value" style="color: #52c41a;">运行中</span>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- 功能卡片（菜单目录） -->
-                <div v-if="menuDirectories.length > 0" class="menu-section">
-                    <div v-for="directory in menuDirectories" :key="directory.id" class="menu-directory-card">
-                        <div class="directory-header" @click="toggleDirectory(directory.id)">
-                            <div class="directory-icon">{{ getDirectoryIcon(directory.menuName) }}</div>
-                            <div class="directory-info">
-                                <h3 class="directory-title">{{ directory.menuName }}</h3>
-                                <p class="directory-description">{{ directory.menuName }}相关功能</p>
+                    <!-- 功能卡片（菜单目录） -->
+                    <div v-if="menuDirectories.length > 0" class="menu-section">
+                        <div v-for="directory in menuDirectories" :key="directory.id" class="menu-directory-card">
+                            <div class="directory-header" @click="toggleDirectory(directory.id)">
+                                <div class="directory-icon">{{ getDirectoryIcon(directory.menuName) }}</div>
+                                <div class="directory-info">
+                                    <h3 class="directory-title">{{ directory.menuName }}</h3>
+                                    <p class="directory-description">{{ directory.menuName }}相关功能</p>
+                                </div>
+                                <div class="toggle-icon" :class="{ expanded: expandedDirectories.includes(directory.id) }">
+                                    ▼
+                                </div>
                             </div>
-                            <div class="toggle-icon" :class="{ expanded: expandedDirectories.includes(directory.id) }">
-                                ▼
-                            </div>
-                        </div>
-                        <div class="menu-items" :class="{ expanded: expandedDirectories.includes(directory.id) }">
-                            <div
-                                v-for="menu in getMenusByDirectory(directory.id)"
-                                :key="menu.id"
-                                class="menu-item-card"
-                                @click="navigateToMenu(menu)"
-                            >
-                                <div class="menu-icon">{{ getMenuIcon(menu.menuName) }}</div>
-                                <div class="menu-info">
-                                    <h4 class="menu-title">{{ menu.menuName }}</h4>
+                            <div class="menu-items" :class="{ expanded: expandedDirectories.includes(directory.id) }">
+                                <div
+                                    v-for="menu in getMenusByDirectory(directory.id)"
+                                    :key="menu.id"
+                                    class="menu-item-card"
+                                    @click="navigateToMenu(menu)"
+                                >
+                                    <div class="menu-icon">{{ getMenuIcon(menu.menuName) }}</div>
+                                    <div class="menu-info">
+                                        <h4 class="menu-title">{{ menu.menuName }}</h4>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+
+                    <!-- 如果没有菜单，显示默认提示 -->
+                    <div v-else class="no-menu-hint">
+                        <p>暂无可用菜单，请联系管理员分配权限</p>
+                    </div>
+
+                    <!-- 统计卡片 -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-number">12</div>
+                            <div class="stat-label">总用户数</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">45</div>
+                            <div class="stat-label">实验项目</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">128</div>
+                            <div class="stat-label">实验数据</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">99.9%</div>
+                            <div class="stat-label">系统可用性</div>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- 如果没有菜单，显示默认提示 -->
-                <div v-else class="no-menu-hint">
-                    <p>暂无可用菜单，请联系管理员分配权限</p>
-                </div>
+                <!-- 标签页内容区域 -->
+                <div v-else id="tab-content-area" class="tab-content-area">
+                    <!-- 加载状态 -->
+                    <div v-if="loadingTab" class="loading">
+                        <div class="loading-spinner"></div>
+                        <p>加载中...</p>
+                    </div>
 
-                <!-- 统计卡片 -->
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-number">12</div>
-                        <div class="stat-label">总用户数</div>
+                    <!-- 错误状态 -->
+                    <div v-else-if="tabError" class="tab-page-error">
+                        <div class="error-icon">⚠️</div>
+                        <h2>页面加载失败</h2>
+                        <p>{{ tabError }}</p>
+                        <button class="btn btn-primary" @click="reloadCurrentTab">重新加载</button>
+                        <button class="btn btn-secondary" @click="currentTabKey='home';tabError=null">返回首页</button>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-number">45</div>
-                        <div class="stat-label">实验项目</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number">128</div>
-                        <div class="stat-label">实验数据</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number">99.9%</div>
-                        <div class="stat-label">系统可用性</div>
-                    </div>
+
+                    <!-- 内容显示 -->
+                    <div v-else-if="currentTabContent" class="tab-content-embed" v-html="currentTabContent" :key="currentTabKey"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 全局页面错误提示 -->
+        <div class="global-page-error" v-if="showGlobalError">
+            <div class="global-error-content">
+                <div class="global-error-icon">⚠️</div>
+                <h2 class="global-error-title">页面加载失败</h2>
+                <p class="global-error-message">{{ globalErrorMessage || '抱歉，页面加载失败。请检查网络连接或刷新页面重试。' }}</p>
+                <div class="global-error-actions">
+                    <button class="btn btn-primary" @click="retryPage">🔄 刷新页面</button>
+                    <button class="btn btn-secondary" @click="goHome">🏠 返回首页</button>
                 </div>
             </div>
         </div>
@@ -104,3 +141,4 @@
     <script src="/ems/js/home.js"></script>
 </body>
 </html>
+

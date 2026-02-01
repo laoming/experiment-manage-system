@@ -152,10 +152,22 @@ const HeaderComponent = {
         };
     },
     mounted() {
-        this.initUsername();
-        TabsManager.init();
-        this.initTabs();
-        document.addEventListener('click', this.hideContextMenu);
+        // 使用 try-catch 确保导航栏组件始终能正常初始化
+        try {
+            this.initUsername();
+            TabsManager.init();
+            this.initTabs();
+            document.addEventListener('click', this.hideContextMenu);
+            // 监听标签页切换事件
+            window.addEventListener('tab-switch', this.handleTabSwitchEvent);
+        } catch (error) {
+            console.error('导航栏初始化失败:', error);
+        }
+    },
+
+    beforeUnmount() {
+        document.removeEventListener('click', this.hideContextMenu);
+        window.removeEventListener('tab-switch', this.handleTabSwitchEvent);
     },
 
     beforeUnmount() {
@@ -166,14 +178,22 @@ const HeaderComponent = {
          * 初始化用户名
          */
         initUsername() {
-            const displayName = Auth.getDisplayName();
-            if (displayName) {
-                this.username = displayName;
-            } else {
-                const userInfo = Auth.getUserInfo();
-                if (userInfo && userInfo.username) {
-                    this.username = userInfo.username;
+            try {
+                const displayName = Auth.getDisplayName();
+                if (displayName) {
+                    this.username = displayName;
+                } else {
+                    const userInfo = Auth.getUserInfo();
+                    if (userInfo && userInfo.username) {
+                        this.username = userInfo.username;
+                    } else {
+                        // 如果无法获取用户信息，使用默认值
+                        this.username = '用户';
+                    }
                 }
+            } catch (error) {
+                console.error('[Header] 初始化用户名失败:', error);
+                this.username = '用户';
             }
         },
 
@@ -181,15 +201,27 @@ const HeaderComponent = {
          * 打开个人信息弹窗
          */
         openProfile() {
-            const userInfo = Auth.getUserInfo();
-            this.profileForm = {
-                username: userInfo.username || '',
-                displayName: userInfo.displayName || '',
-                oldPassword: '',
-                newPassword: '',
-                confirmPassword: ''
-            };
-            this.showProfileModal = true;
+            try {
+                const userInfo = Auth.getUserInfo();
+                this.profileForm = {
+                    username: (userInfo && userInfo.username) ? userInfo.username : '',
+                    displayName: (userInfo && userInfo.displayName) ? userInfo.displayName : '',
+                    oldPassword: '',
+                    newPassword: '',
+                    confirmPassword: ''
+                };
+                this.showProfileModal = true;
+            } catch (error) {
+                console.error('[Header] 打开个人信息弹窗失败:', error);
+                this.profileForm = {
+                    username: '',
+                    displayName: '',
+                    oldPassword: '',
+                    newPassword: '',
+                    confirmPassword: ''
+                };
+                this.showProfileModal = true;
+            }
         },
 
         /**
@@ -300,40 +332,63 @@ const HeaderComponent = {
         },
 
         /**
+         * 处理标签页切换事件
+         */
+        handleTabSwitchEvent(event) {
+            const { tabKey } = event.detail;
+            console.log('📌 [Header] 收到标签页切换事件:', tabKey);
+
+            // 更新当前标签页
+            this.currentTab = tabKey;
+
+            // 更新标签页列表（同步最新状态）
+            this.tabs = TabsManager.getTabs();
+        },
+
+        /**
          * 初始化标签页
          */
         initTabs() {
-            const currentPath = window.location.pathname;
-            console.log('📌 [Header] initTabs - 当前路径:', currentPath);
+            try {
+                const currentPath = window.location.pathname;
+                console.log('📌 [Header] initTabs - 当前路径:', currentPath);
 
-            this.tabs = TabsManager.getTabs();
-            console.log('📌 [Header] initTabs - 读取的标签页:', this.tabs.map(t => ({ key: t.key, title: t.title })));
+                // 确保获取到的标签页是数组
+                const tabsFromManager = TabsManager.getTabs();
+                this.tabs = Array.isArray(tabsFromManager) ? tabsFromManager : [];
+                console.log('📌 [Header] initTabs - 读取的标签页:', this.tabs.map(t => ({ key: t.key, title: t.title })));
 
-            this.currentTab = TabsManager.getCurrentTab();
-            console.log('📌 [Header] initTabs - 当前标签页key:', this.currentTab);
+                this.currentTab = TabsManager.getCurrentTab() || 'home';
+                console.log('📌 [Header] initTabs - 当前标签页key:', this.currentTab);
 
-            // 检查当前页面是否在标签页中
-            const currentPageTabs = this.tabs.filter(tab => tab.path.includes(currentPath));
-            console.log('📌 [Header] initTabs - 匹配的标签页:', currentPageTabs.map(t => ({ key: t.key, title: t.title, path: t.path })));
+                // 检查当前页面是否在标签页中
+                const currentPageTabs = this.tabs.filter(tab => tab.path && tab.path.includes(currentPath));
+                console.log('📌 [Header] initTabs - 匹配的标签页:', currentPageTabs.map(t => ({ key: t.key, title: t.title, path: t.path })));
 
-            if (currentPageTabs.length > 0) {
-                // 当前页面在标签页中，更新 currentTab 为匹配的标签页
-                const matchedTab = currentPageTabs[0];
-                console.log('📌 [Header] 当前页面匹配标签页:', matchedTab.key, matchedTab.title);
-                this.currentTab = matchedTab.key;
-                TabsManager.saveCurrentTab(matchedTab.key);
-            } else {
-                // 检查是否是首页
-                if (currentPath.includes('home.html')) {
-                    console.log('📌 [Header] 当前页面是首页');
-                    this.currentTab = 'home';
-                    TabsManager.saveCurrentTab('home');
-                    return;
+                if (currentPageTabs.length > 0) {
+                    // 当前页面在标签页中，更新 currentTab 为匹配的标签页
+                    const matchedTab = currentPageTabs[0];
+                    console.log('📌 [Header] 当前页面匹配标签页:', matchedTab.key, matchedTab.title);
+                    this.currentTab = matchedTab.key;
+                    TabsManager.saveCurrentTab(matchedTab.key);
+                } else {
+                    // 检查是否是首页
+                    if (currentPath.includes('home.html')) {
+                        console.log('📌 [Header] 当前页面是首页');
+                        this.currentTab = 'home';
+                        TabsManager.saveCurrentTab('home');
+                        return;
+                    }
+
+                    // 当前页面不在标签页中，需要添加
+                    const pageTitle = document.title ? document.title.replace('实验管理系统 - ', '') : '页面';
+                    this.addTabForCurrentPage(pageTitle, currentPath);
                 }
-
-                // 当前页面不在标签页中，需要添加
-                const pageTitle = document.title.replace('实验管理系统 - ', '');
-                this.addTabForCurrentPage(pageTitle, currentPath);
+            } catch (error) {
+                console.error('[Header] 初始化标签页失败:', error);
+                // 发生错误时，使用默认值
+                this.tabs = TabsManager.getTabs();
+                this.currentTab = 'home';
             }
         },
 
@@ -341,41 +396,58 @@ const HeaderComponent = {
          * 为当前页面添加标签页
          */
         addTabForCurrentPage(title, path) {
-            const tabKey = 'page_' + Date.now();
-            const newTab = {
-                key: tabKey,
-                title: title,
-                path: path,
-                icon: TabsManager.getMenuIcon(title),
-                closable: true
-            };
-            this.tabs.push(newTab);
-            TabsManager.saveTabs(this.tabs);
-            TabsManager.saveCurrentTab(tabKey);
-            this.currentTab = tabKey;
+            try {
+                const tabKey = 'page_' + Date.now();
+                const newTab = {
+                    key: tabKey,
+                    title: title || '页面',
+                    path: path || window.location.pathname,
+                    icon: TabsManager.getMenuIcon(title),
+                    closable: true
+                };
+                
+                // 确保tabs是数组
+                if (!Array.isArray(this.tabs)) {
+                    this.tabs = [];
+                }
+                
+                this.tabs.push(newTab);
+                TabsManager.saveTabs(this.tabs);
+                TabsManager.saveCurrentTab(tabKey);
+                this.currentTab = tabKey;
+            } catch (error) {
+                console.error('[Header] 添加标签页失败:', error);
+            }
         },
 
         /**
          * 切换标签页
          */
         switchTab(tabKey) {
-            // 如果点击的是当前标签页，不执行跳转
-            if (this.currentTab === tabKey) {
-                console.log('📌 [Header] 点击的是当前标签页，不跳转');
-                return;
-            }
+            try {
+                // 如果点击的是当前标签页，不执行跳转
+                if (this.currentTab === tabKey) {
+                    console.log('📌 [Header] 点击的是当前标签页，不跳转');
+                    return;
+                }
 
-            this.currentTab = tabKey;
-            TabsManager.switchTab(tabKey);
+                this.currentTab = tabKey;
+                TabsManager.switchTab(tabKey);
+            } catch (error) {
+                console.error('[Header] 切换标签页失败:', error);
+            }
         },
 
         /**
          * 关闭标签页
          */
         closeTab(tabKey) {
-            // 不在 callback 中更新状态，因为页面跳转后会重新加载组件
-            // 让新页面加载时自己从 localStorage 读取状态
+            // 关闭标签页
             TabsManager.closeTab(tabKey, null);
+            // 更新标签页列表（同步最新状态）
+            this.tabs = TabsManager.getTabs();
+            // 注意：不要更新 currentTab，让 TabsManager 来决定切换到哪个标签页
+            // 事件会由 TabsManager 触发，handleTabSwitchEvent 会接收
         },
 
         /**
@@ -384,7 +456,8 @@ const HeaderComponent = {
         closeOtherTabs(tabKey) {
             this.hideContextMenu();
             TabsManager.closeOtherTabs(tabKey);
-            this.tabs = TabsManager.getTabs();
+            // 触发标签页更新事件
+            window.dispatchEvent(new CustomEvent('tab-switch', { detail: { tabKey } }));
         },
 
         /**
@@ -393,8 +466,8 @@ const HeaderComponent = {
         closeAllTabs() {
             this.hideContextMenu();
             TabsManager.closeAllTabs();
-            this.tabs = [];
             this.currentTab = '';
+            this.tabs = TabsManager.getTabs();
         },
 
         /**
