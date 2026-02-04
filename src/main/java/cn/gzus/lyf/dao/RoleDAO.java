@@ -12,6 +12,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -21,6 +22,13 @@ import java.util.Objects;
 
 @Service
 public class RoleDAO extends ServiceImpl<RoleMapper, RoleEntity> {
+
+    private UserDAO userDAO;
+
+    @Autowired
+    public void setUserDAO(UserDAO userDAO) {
+        this.userDAO = userDAO;
+    }
 
     /**
      * 根据ID列表查询角色列表
@@ -80,4 +88,13 @@ public class RoleDAO extends ServiceImpl<RoleMapper, RoleEntity> {
         return BeanCopyUtils.copy(roleEntityIPage, PageDto.class);
     }
 
+    /**
+     * 检查角色是否被用户使用
+     * @param roleId 角色ID
+     * @return 是否被使用
+     */
+    public boolean isRoleUsed(String roleId) {
+        Objects.requireNonNull(roleId, "角色ID不能为空");
+        return userDAO.isRoleUsed(roleId);
+    }
 }

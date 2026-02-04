@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 /**
  * 角色管理
  */
@@ -42,10 +44,42 @@ public class RoleController {
     }
 
     /**
+     * 更新角色
+     */
+    @PostMapping("/update")
+    public Result<Boolean> updateRole(@RequestBody RoleEntity roleEntity) {
+        return Result.success(roleService.updateRole(roleEntity));
+    }
+
+    /**
      * 删除角色(硬删除，删除数据库记录数据，同时删除角色关联的用户和菜单)
      */
     @PostMapping("/delete")
     public Result<Boolean> deleteRole(@RequestBody RoleEntity roleEntity) {
         return Result.success(roleService.deleteRole(roleEntity.getId()));
+    }
+
+    /**
+     * 获取所有角色列表
+     */
+    @PostMapping("/list")
+    public Result<List<RoleEntity>> getRoleList() {
+        return Result.success(roleService.getAllRoles());
+    }
+
+    /**
+     * 分配菜单给角色
+     */
+    @PostMapping("/assignMenu")
+    public Result<Boolean> assignMenu(String roleId, String menuIds) {
+        return Result.success(roleService.assignMenu(roleId, menuIds));
+    }
+
+    /**
+     * 获取角色关联的菜单ID列表
+     */
+    @PostMapping("/getMenuIds")
+    public Result<List<String>> getMenuIds(String roleId) {
+        return Result.success(roleService.getMenuIds(roleId));
     }
 }

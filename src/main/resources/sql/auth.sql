@@ -54,14 +54,19 @@ CREATE TABLE menu
     update_time TIMESTAMP   DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL COMMENT '更新时间'
 ) COMMENT '系统菜单表';
 
--- 更新菜单表，添加组织管理菜单
+-- 更新菜单表，添加组织管理、角色管理、菜单管理菜单
 INSERT INTO menu(id, parent_id, menu_name, menu_code, path, menu_type, sort)
 VALUES ('100', '0', '身份管理', 'auth_management', '', 'D', 1),
        ('101', '100', '用户管理', 'user_management', '/ems/pages/user.html', 'M', 1),
        ('102', '100', '组织管理', 'organization_management', '/ems/pages/organization.html', 'M', 2),
+       ('103', '100', '角色管理', 'role_management', '/ems/pages/role.html', 'M', 3),
+       ('104', '100', '菜单管理', 'menu_management', '/ems/pages/menu.html', 'M', 4),
        ('200', '0', '系统管理', 'system_management', '', 'D', 2),
        ('300', '0', '课堂管理', 'class_management', '', 'D', 3),
-       ('400', '0', '实验管理', 'experiment_management', '', 'D', 4);
+       ('301', '300', '课程管理', 'course_management', '/ems/pages/course-list.html', 'M', 1),
+       ('400', '0', '实验管理', 'experiment_management', '', 'D', 4),
+       ('401', '400', '实验模板管理', 'experiment_template_management', '/ems/pages/experiment-template-list.html', 'M', 1),
+       ('402', '400', '实验报告管理', 'experiment_report_management', '/ems/pages/experiment-report.html', 'M', 2);
 
 
 -- 4. 角色-菜单关联表
@@ -75,13 +80,29 @@ CREATE TABLE role_menu_relation
 
 -- 为管理员角色分配所有菜单权限
 INSERT INTO role_menu_relation(id, role_id, menu_id)
-VALUES ('1', '1', '100'), -- 系统管理（管理员）
-       ('2', '1', '101'), -- 用户管理
-       ('3', '1', '102'), -- 角色管理
-       ('4', '1', '200'),
-       ('5', '1', '300'),
-       ('6', '1', '400');
--- 组织管理
+VALUES ('1', '1', '100'),   -- 身份管理（管理员）
+       ('2', '1', '101'),   -- 用户管理
+       ('3', '1', '102'),   -- 组织管理
+       ('4', '1', '103'),   -- 角色管理
+       ('5', '1', '104'),   -- 菜单管理
+       ('6', '1', '200'),   -- 系统管理
+       ('7', '1', '300'),   -- 课堂管理
+       ('8', '1', '400'),   -- 实验管理
+       ('301', '1', '301'), -- 课程管理
+       ('401', '1', '401'), -- 实验模板管理
+       ('402', '1', '402'), -- 实验报告管理
+       ('403', '1', '403'); -- 模板编辑器
+
+-- 为老师分配权限
+INSERT INTO role_menu_relation(id, role_id, menu_id)
+VALUES ('302', '2', '301'), -- 课程管理
+       ('404', '2', '401'), -- 实验模板管理
+       ('405', '2', '402'), -- 实验报告管理
+       ('406', '2', '403'); -- 模板编辑器
+
+-- 为学生分配权限
+INSERT INTO role_menu_relation(id, role_id, menu_id)
+VALUES ('407', '3', '402'); -- 实验报告管理
 
 -- 5. 组织表
 CREATE TABLE organization

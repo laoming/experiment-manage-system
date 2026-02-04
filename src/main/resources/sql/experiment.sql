@@ -28,23 +28,3 @@ CREATE TABLE experiment_report
     INDEX idx_student (student_id)
 ) COMMENT '实验报告表';
 
--- 插入菜单数据
-INSERT INTO menu(id, parent_id, menu_name, menu_code, path, menu_type, sort)
-VALUES ('401', '400', '实验模板管理', 'experiment_template_management', '/ems/pages/experiment-template-list.html', 'M', 1),
-       ('402', '400', '实验报告管理', 'experiment_report_management', '/ems/pages/experiment-report.html', 'M', 2);
-
--- 为管理员分配权限
-INSERT INTO role_menu_relation(id, role_id, menu_id)
-VALUES ('401', '1', '401'), -- 实验模板管理
-       ('402', '1', '402'), -- 实验报告管理
-       ('403', '1', '403'); -- 模板编辑器
-
--- 为老师分配权限
-INSERT INTO role_menu_relation(id, role_id, menu_id)
-VALUES ('404', '2', '401'), -- 实验模板管理
-       ('405', '2', '402'), -- 实验报告管理
-       ('406', '2', '403'); -- 模板编辑器
-
--- 为学生分配权限
-INSERT INTO role_menu_relation(id, role_id, menu_id)
-VALUES ('407', '3', '402'); -- 实验报告管理

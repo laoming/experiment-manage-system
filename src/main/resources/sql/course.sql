@@ -30,14 +30,3 @@ CREATE TABLE course_template_relation
     UNIQUE KEY (course_id, template_id)
 ) COMMENT '课程-实验模板关联表';
 
--- 插入课程管理菜单
-INSERT INTO menu(id, parent_id, menu_name, menu_code, path, menu_type, sort)
-VALUES ('301', '300', '课程管理', 'course_management', '/ems/pages/course-list.html', 'M', 1);
-
--- 为管理员分配课程管理权限
-INSERT INTO role_menu_relation(id, role_id, menu_id)
-VALUES ('301', '1', '301');
-
--- 为老师分配课程管理权限
-INSERT INTO role_menu_relation(id, role_id, menu_id)
-VALUES ('302', '2', '301');

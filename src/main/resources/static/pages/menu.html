@@ -1,0 +1,194 @@
+<link rel="stylesheet" href="/ems/css/menu.css">
+
+<div class="main-content">
+    <!-- 页面标题 -->
+    <div class="page-header" v-if="!pageError">
+        <h1 class="page-title">菜单管理</h1>
+        <p class="page-subtitle">管理系统菜单，包括菜单添加、编辑、删除</p>
+    </div>
+
+    <!-- 搜索和操作栏 -->
+    <div class="toolbar">
+        <div class="search-box">
+            <input
+                v-model="queryForm.menuName"
+                type="text"
+                class="search-input"
+                placeholder="输入菜单名称搜索"
+            >
+            <select v-model="queryForm.menuType" class="search-select">
+                <option :value="null">全部类型</option>
+                <option value="M">菜单</option>
+                <option value="D">目录</option>
+            </select>
+            <button class="btn btn-primary" @click="handleSearch">
+                <span>🔍</span>
+                <span>搜索</span>
+            </button>
+            <button class="btn btn-secondary" @click="handleReset">
+                <span>↺</span>
+                <span>重置</span>
+            </button>
+        </div>
+        <button class="btn btn-success" @click="openAddModal">
+            <span>+</span>
+            <span>新增菜单</span>
+        </button>
+    </div>
+
+    <!-- 菜单列表 -->
+    <div class="table-container">
+        <div v-if="loading" class="loading">
+            <div class="loading-spinner"></div>
+            <p>加载中...</p>
+        </div>
+        <table v-else class="menu-table">
+            <thead>
+                <tr>
+                    <th>序号</th>
+                    <th>菜单名称</th>
+                    <th>菜单编码</th>
+                    <th>菜单路径</th>
+                    <th>类型</th>
+                    <th>排序</th>
+                    <th>创建时间</th>
+                    <th>更新时间</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-if="menuList.length === 0">
+                    <td colspan="9" class="empty-cell">
+                        <div class="empty-content">
+                            <div class="empty-icon">📭</div>
+                            <p>暂无数据</p>
+                        </div>
+                    </td>
+                </tr>
+                <tr v-for="(menu, index) in menuList" :key="menu.id">
+                    <td>{{ (pagination.current - 1) * pagination.size + index + 1 }}</td>
+                    <td>{{ menu.menuName }}</td>
+                    <td>{{ menu.menuCode }}</td>
+                    <td>{{ menu.path || '-' }}</td>
+                    <td>
+                        <span class="type-badge" :class="getTypeClass(menu.menuType)">
+                            {{ getTypeText(menu.menuType) }}
+                        </span>
+                    </td>
+                    <td>{{ menu.sort }}</td>
+                    <td>{{ formatDateTime(menu.createTime) }}</td>
+                    <td>{{ formatDateTime(menu.updateTime) }}</td>
+                    <td class="actions">
+                        <button class="action-btn btn-edit" @click="openEditModal(menu)">
+                            <span>✏️</span>
+                            编辑
+                        </button>
+                        <button class="action-btn btn-delete" @click="handleDelete(menu)">
+                            <span>🗑️</span>
+                            删除
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 分页 -->
+    <div class="pagination" v-if="menuList.length > 0">
+        <button
+            class="pagination-btn"
+            :disabled="pagination.current === 1"
+            @click="handlePageChange(pagination.current - 1)"
+        >
+            上一页
+        </button>
+        <span class="pagination-info">
+            第 {{ pagination.current }} / {{ pagination.pages }} 页
+            <span class="pagination-total">共 {{ pagination.total }} 条记录</span>
+        </span>
+        <button
+            class="pagination-btn"
+            :disabled="pagination.current >= pagination.pages"
+            @click="handlePageChange(pagination.current + 1)"
+        >
+            下一页
+        </button>
+    </div>
+</div>
+
+<script src="/ems/js/menu.js"></script>
+
+<!-- 菜单编辑弹窗 -->
+<div class="modal-overlay" v-if="showMenuModal" @click.self="closeMenuModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>{{ menuModalMode === 'add' ? '新增菜单' : '编辑菜单' }}</h2>
+            <button class="modal-close" @click="closeMenuModal">✕</button>
+        </div>
+        <div class="modal-body">
+            <form @submit.prevent="handleMenuSubmit">
+                <div class="form-group">
+                    <label class="form-label">父菜单</label>
+                    <select v-model="menuForm.parentId" class="form-input">
+                        <option value="0">顶级菜单</option>
+                        <option v-for="parent in parentMenus" :key="parent.id" :value="parent.id">
+                            {{ parent.menuName }}
+                        </option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">菜单名称 <span class="required">*</span></label>
+                    <input
+                        v-model="menuForm.menuName"
+                        type="text"
+                        class="form-input"
+                        placeholder="请输入菜单名称"
+                    >
+                </div>
+                <div class="form-group">
+                    <label class="form-label">菜单编码 <span class="required">*</span></label>
+                    <input
+                        v-model="menuForm.menuCode"
+                        type="text"
+                        class="form-input"
+                        placeholder="请输入菜单编码"
+                    >
+                </div>
+                <div class="form-group">
+                    <label class="form-label">菜单路径</label>
+                    <input
+                        v-model="menuForm.path"
+                        type="text"
+                        class="form-input"
+                        placeholder="请输入菜单路径"
+                    >
+                </div>
+                <div class="form-group">
+                    <label class="form-label">菜单类型 <span class="required">*</span></label>
+                    <select v-model="menuForm.menuType" class="form-input">
+                        <option value="D">目录</option>
+                        <option value="M">菜单</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">排序</label>
+                    <input
+                        v-model.number="menuForm.sort"
+                        type="number"
+                        class="form-input"
+                        placeholder="请输入排序号"
+                        min="0"
+                    >
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @click="closeMenuModal">
+                        取消
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        确定
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

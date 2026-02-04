@@ -99,8 +99,28 @@ const app = createApp({
                 this.tabError = null;
                 this.previousTabKey = tabKey;
 
-                // 不重新执行脚本，保持Vue实例状态
-                console.log('📌 [HOME] 使用缓存的Vue实例，不重新执行脚本');
+                // 等待Vue渲染完成后检查是否需要重新执行脚本
+                this.$nextTick(() => {
+                    setTimeout(() => {
+                        const contentArea = document.getElementById('tab-content-area');
+                        if (contentArea) {
+                            const appElements = contentArea.querySelectorAll('[id^="tab-app-"]');
+                            if (appElements.length > 0) {
+                                const appEl = appElements[0];
+                                if (!appEl.__vue_app__) {
+                                    console.log('📌 [HOME] Vue实例已销毁，重新执行脚本');
+                                    // 重新执行脚本
+                                    this.executeTabScripts(tabKey);
+                                } else {
+                                    console.log('📌 [HOME] Vue实例存在，保持状态');
+                                }
+                            } else {
+                                console.log('📌 [HOME] 未找到app元素，重新执行脚本');
+                                this.executeTabScripts(tabKey);
+                            }
+                        }
+                    }, 300); // 给Vue渲染留出时间
+                });
                 return;
             }
 
@@ -380,8 +400,7 @@ const app = createApp({
                         // 对于业务逻辑脚本（如 user.js），我们需要获取内容并作为内联脚本执行
                         // 这样才能动态修改挂载目标
                         if (src.includes('.js') && !src.includes('vue') && !src.includes('api') && 
-                            (src.includes('user') || src.includes('organization') || src.includes('course') || 
-                             src.includes('experiment') || src.includes('login') || src.includes('org'))) {
+                            (src.includes('/ems/'))) {
                             console.log('📌 [HOME] 获取脚本内容进行动态执行:', src);
                             
                             try {

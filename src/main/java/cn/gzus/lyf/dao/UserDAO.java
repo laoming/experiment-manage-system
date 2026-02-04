@@ -92,4 +92,16 @@ public class UserDAO extends ServiceImpl<UserMapper, UserEntity> {
         );
         return BeanCopyUtils.copy(userEntityIPage, PageDto.class);
     }
+
+    /**
+     * 检查角色是否被用户使用
+     * @param roleId 角色ID
+     * @return 是否被使用
+     */
+    public boolean isRoleUsed(String roleId) {
+        Objects.requireNonNull(roleId, "角色ID不能为空");
+        Long count = this.count(new LambdaQueryWrapper<UserEntity>()
+                .eq(UserEntity::getRoleId, roleId));
+        return count > 0;
+    }
 }
