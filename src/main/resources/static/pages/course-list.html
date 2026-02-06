@@ -1,328 +1,326 @@
 <link rel="stylesheet" href="/ems/css/course-list.css">
 
 <div class="main-content">
-                <!-- 页面错误提示 -->
-                <div v-if="pageError" class="page-error">
-                    <div class="error-icon">⚠️</div>
-                    <h2>页面加载出错</h2>
-                    <p>{{ pageError }}</p>
-                    <button class="btn btn-primary" @click="loadData">重新加载</button>
-                </div>
+    <!-- 页面错误提示 -->
+    <div v-if="pageError" class="page-error">
+        <div class="error-icon">⚠️</div>
+        <h2>页面加载出错</h2>
+        <p>{{ pageError }}</p>
+        <button class="btn btn-primary" @click="loadData">重新加载</button>
+    </div>
 
-                <!-- 页面标题 -->
-                <div class="page-header" v-else>
-                    <h1 class="page-title">课程管理</h1>
-                    <p class="page-subtitle">管理系统课程信息，包括课程的创建、编辑、查看和删除</p>
-                </div>
+    <!-- 页面标题 -->
+    <div class="page-header" v-else>
+        <h1 class="page-title">课程管理</h1>
+        <p class="page-subtitle">管理系统课程信息，包括课程的创建、编辑、查看和删除</p>
+    </div>
 
-                <!-- 搜索和操作栏 -->
-                <div class="toolbar" v-if="!pageError">
-                    <div class="search-box">
-                        <input
-                            v-model="queryForm.courseName"
-                            type="text"
-                            class="search-input"
-                            placeholder="输入课程名称搜索"
-                        >
-                        <button class="btn btn-primary" @click="handleSearch">
-                            <span>🔍</span>
-                            <span>搜索</span>
-                        </button>
-                        <button class="btn btn-secondary" @click="handleReset">
-                            <span>↺</span>
-                            <span>重置</span>
-                        </button>
-                    </div>
-                    <button class="btn btn-success" @click="openAddModal">
-                        <span>+</span>
-                        <span>新增课程</span>
-                    </button>
-                </div>
-
-                <!-- 课程列表 -->
-                <div class="table-container" v-if="!pageError">
-                    <div v-if="loading" class="loading">
-                        <div class="loading-spinner"></div>
-                        <p>加载中...</p>
-                    </div>
-                    <table v-else class="course-table">
-                        <thead>
-                            <tr>
-                                <th>序号</th>
-                                <th>课程名称</th>
-                                <th>简介</th>
-                                <th>创建者</th>
-                                <th>学生人数</th>
-                                <th>实验模板数</th>
-                                <th>创建时间</th>
-                                <th>更新时间</th>
-                                <th>操作</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-if="courseList.length === 0">
-                                <td colspan="9" class="empty-cell">
-                                    <div class="empty-content">
-                                        <div class="empty-icon">📚</div>
-                                        <p>暂无数据</p>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr v-for="(course, index) in courseList" :key="course.id">
-                                <td>{{ (pagination.current - 1) * pagination.size + index + 1 }}</td>
-                                <td>{{ course.courseName }}</td>
-                                <td>
-                                    <div class="description-preview">
-                                        {{ course.description || '-' }}
-                                    </div>
-                                </td>
-                                <td>{{ getCreatorName(course.creatorId) }}</td>
-                                <td>
-                                    <span class="badge">{{ getStudentCount(course.id) }} 人</span>
-                                </td>
-                                <td>
-                                    <span class="badge">{{ getTemplateCount(course.id) }} 个</span>
-                                </td>
-                                <td>{{ formatDateTime(course.createTime) }}</td>
-                                <td>{{ formatDateTime(course.updateTime) }}</td>
-                                <td class="actions">
-                                    <button class="action-btn btn-view" @click="openViewModal(course)">
-                                        <span>👁️</span>
-                                        查看
-                                    </button>
-                                    <button class="action-btn btn-edit" @click="openEditModal(course)">
-                                        <span>✏️</span>
-                                        编辑
-                                    </button>
-                                    <button class="action-btn btn-bind" @click="openBindModal(course)">
-                                        <span>🔗</span>
-                                        绑定
-                                    </button>
-                                    <button class="action-btn btn-delete" @click="handleDelete(course)">
-                                        <span>🗑️</span>
-                                        删除
-                                    </button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- 分页 -->
-                <div class="pagination" v-if="courseList.length > 0 && !pageError">
-                    <button
-                        class="pagination-btn"
-                        :disabled="pagination.current === 1"
-                        @click="handlePageChange(pagination.current - 1)"
-                    >
-                        上一页
-                    </button>
-                    <span class="pagination-info">
-                        第 {{ pagination.current }} / {{ pagination.pages }} 页
-                        <span class="pagination-total">共 {{ pagination.total }} 条记录</span>
-                    </span>
-                    <button
-                        class="pagination-btn"
-                        :disabled="pagination.current >= pagination.pages"
-                        @click="handlePageChange(pagination.current + 1)"
-                    >
-                        下一页
-                    </button>
-                </div>
-                </div>
+    <!-- 搜索和操作栏 -->
+    <div class="toolbar" v-if="!pageError">
+        <div class="search-box">
+            <input
+                v-model="queryForm.courseName"
+                type="text"
+                class="search-input"
+                placeholder="输入课程名称搜索"
+            >
+            <button class="btn btn-primary" @click="handleSearch">
+                <span>🔍</span>
+                <span>搜索</span>
+            </button>
+            <button class="btn btn-secondary" @click="handleReset">
+                <span>↺</span>
+                <span>重置</span>
+            </button>
         </div>
+        <button class="btn btn-success" @click="openAddModal">
+            <span>+</span>
+            <span>新增课程</span>
+        </button>
+    </div>
 
-        <!-- 新增/编辑课程弹窗 -->
-        <div class="modal-overlay" v-if="showFormModal && !pageError" @click.self="closeFormModal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2>{{ isEditMode ? '编辑课程' : '新增课程' }}</h2>
-                    <button class="modal-close" @click="closeFormModal">✕</button>
-                </div>
-                <div class="modal-body">
-                    <form @submit.prevent="handleSubmit">
-                        <div class="form-group">
-                            <label for="courseName">课程名称 <span class="required">*</span></label>
-                            <input
-                                id="courseName"
-                                v-model="formData.courseName"
-                                type="text"
-                                class="form-control"
-                                placeholder="请输入课程名称"
-                                required
-                            >
+    <!-- 课程列表 -->
+    <div class="table-container" v-if="!pageError">
+        <div v-if="loading" class="loading">
+            <div class="loading-spinner"></div>
+            <p>加载中...</p>
+        </div>
+        <table v-else class="course-table">
+            <thead>
+                <tr>
+                    <th>序号</th>
+                    <th>课程名称</th>
+                    <th>简介</th>
+                    <th>创建者</th>
+                    <th>学生人数</th>
+                    <th>实验模板数</th>
+                    <th>创建时间</th>
+                    <th>更新时间</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-if="courseList.length === 0">
+                    <td colspan="9" class="empty-cell">
+                        <div class="empty-content">
+                            <div class="empty-icon">📚</div>
+                            <p>暂无数据</p>
                         </div>
-                        <div class="form-group">
-                            <label for="description">课程简介</label>
-                            <textarea
-                                id="description"
-                                v-model="formData.description"
-                                class="form-control"
-                                rows="4"
-                                placeholder="请输入课程简介"
-                            ></textarea>
+                    </td>
+                </tr>
+                <tr v-for="(course, index) in courseList" :key="course.id">
+                    <td>{{ (pagination.current - 1) * pagination.size + index + 1 }}</td>
+                    <td>{{ course.courseName }}</td>
+                    <td>
+                        <div class="description-preview">
+                            {{ course.description || '-' }}
                         </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" @click="closeFormModal">
-                                取消
-                            </button>
-                            <button type="submit" class="btn btn-primary">
-                                {{ isEditMode ? '保存' : '新增' }}
-                            </button>
-                        </div>
-                    </form>
-                </div>
+                    </td>
+                    <td>{{ getCreatorName(course.creatorId) }}</td>
+                    <td>
+                        <span class="badge">{{ getStudentCount(course.id) }} 人</span>
+                    </td>
+                    <td>
+                        <span class="badge">{{ getTemplateCount(course.id) }} 个</span>
+                    </td>
+                    <td>{{ formatDateTime(course.createTime) }}</td>
+                    <td>{{ formatDateTime(course.updateTime) }}</td>
+                    <td class="actions">
+                        <button class="action-btn btn-view" @click="openViewModal(course)">
+                            <span>👁️</span>
+                            查看
+                        </button>
+                        <button class="action-btn btn-edit" @click="openEditModal(course)">
+                            <span>✏️</span>
+                            编辑
+                        </button>
+                        <button class="action-btn btn-bind" @click="openBindModal(course)">
+                            <span>🔗</span>
+                            绑定
+                        </button>
+                        <button class="action-btn btn-delete" @click="handleDelete(course)">
+                            <span>🗑️</span>
+                            删除
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 分页 -->
+    <div class="pagination" v-if="courseList.length > 0 && !pageError">
+        <button
+            class="pagination-btn"
+            :disabled="pagination.current === 1"
+            @click="handlePageChange(pagination.current - 1)"
+        >
+            上一页
+        </button>
+        <span class="pagination-info">
+            第 {{ pagination.current }} / {{ pagination.pages }} 页
+            <span class="pagination-total">共 {{ pagination.total }} 条记录</span>
+        </span>
+        <button
+            class="pagination-btn"
+            :disabled="pagination.current >= pagination.pages"
+            @click="handlePageChange(pagination.current + 1)"
+        >
+            下一页
+        </button>
+    </div>
+
+    <!-- 新增/编辑课程弹窗 -->
+    <div class="modal-overlay" v-show="showFormModal && !pageError" @click.self="closeFormModal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>{{ isEditMode ? '编辑课程' : '新增课程' }}</h2>
+                <button class="modal-close" @click="closeFormModal">✕</button>
             </div>
-        </div>
-
-        <!-- 查看课程弹窗 -->
-        <div class="modal-overlay" v-if="showViewModal && !pageError" @click.self="closeViewModal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2>查看课程</h2>
-                    <button class="modal-close" @click="closeViewModal">✕</button>
-                </div>
-                <div class="modal-body">
-                    <div class="view-item">
-                        <label class="view-label">课程名称：</label>
-                        <span class="view-value">{{ currentCourse.courseName }}</span>
+            <div class="modal-body">
+                <form @submit.prevent="handleSubmit">
+                    <div class="form-group">
+                        <label for="courseName">课程名称 <span class="required">*</span></label>
+                        <input
+                            id="courseName"
+                            v-model="formData.courseName"
+                            type="text"
+                            class="form-control"
+                            placeholder="请输入课程名称"
+                            required
+                        >
                     </div>
-                    <div class="view-item">
-                        <label class="view-label">创建者：</label>
-                        <span class="view-value">{{ getCreatorName(currentCourse.creatorId) }}</span>
-                    </div>
-                    <div class="view-item">
-                        <label class="view-label">学生人数：</label>
-                        <span class="view-value">{{ getStudentCount(currentCourse.id) }} 人</span>
-                    </div>
-                    <div class="view-item">
-                        <label class="view-label">实验模板数：</label>
-                        <span class="view-value">{{ getTemplateCount(currentCourse.id) }} 个</span>
-                    </div>
-                    <div class="view-item">
-                        <label class="view-label">创建时间：</label>
-                        <span class="view-value">{{ formatDateTime(currentCourse.createTime) }}</span>
-                    </div>
-                    <div class="view-item">
-                        <label class="view-label">更新时间：</label>
-                        <span class="view-value">{{ formatDateTime(currentCourse.updateTime) }}</span>
-                    </div>
-                    <div class="view-item">
-                        <label class="view-label">课程简介：</label>
-                        <p class="view-description">{{ currentCourse.description || '无' }}</p>
+                    <div class="form-group">
+                        <label for="description">课程简介</label>
+                        <textarea
+                            id="description"
+                            v-model="formData.description"
+                            class="form-control"
+                            rows="4"
+                            placeholder="请输入课程简介"
+                        ></textarea>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-primary" @click="closeViewModal">
-                            关闭
+                        <button type="button" class="btn btn-secondary" @click="closeFormModal">
+                            取消
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            {{ isEditMode ? '保存' : '新增' }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 查看课程弹窗 -->
+    <div class="modal-overlay" v-show="showViewModal && !pageError" @click.self="closeViewModal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>查看课程</h2>
+                <button class="modal-close" @click="closeViewModal">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="view-item">
+                    <label class="view-label">课程名称：</label>
+                    <span class="view-value">{{ currentCourse.courseName }}</span>
+                </div>
+                <div class="view-item">
+                    <label class="view-label">创建者：</label>
+                    <span class="view-value">{{ getCreatorName(currentCourse.creatorId) }}</span>
+                </div>
+                <div class="view-item">
+                    <label class="view-label">学生人数：</label>
+                    <span class="view-value">{{ getStudentCount(currentCourse.id) }} 人</span>
+                </div>
+                <div class="view-item">
+                    <label class="view-label">实验模板数：</label>
+                    <span class="view-value">{{ getTemplateCount(currentCourse.id) }} 个</span>
+                </div>
+                <div class="view-item">
+                    <label class="view-label">创建时间：</label>
+                    <span class="view-value">{{ formatDateTime(currentCourse.createTime) }}</span>
+                </div>
+                <div class="view-item">
+                    <label class="view-label">更新时间：</label>
+                    <span class="view-value">{{ formatDateTime(currentCourse.updateTime) }}</span>
+                </div>
+                <div class="view-item">
+                    <label class="view-label">课程简介：</label>
+                    <p class="view-description">{{ currentCourse.description || '无' }}</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" @click="closeViewModal">
+                        关闭
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 绑定管理弹窗 -->
+    <div class="modal-overlay" v-show="showBindModal && !pageError" @click.self="closeBindModal" style="display: none;">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2>绑定管理</h2>
+                <button class="modal-close" @click="closeBindModal">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="bind-tabs">
+                    <button
+                        class="bind-tab"
+                        :class="{ active: bindTab === 'user' }"
+                        @click="bindTab = 'user'"
+                    >
+                        绑定学生
+                    </button>
+                    <button
+                        class="bind-tab"
+                        :class="{ active: bindTab === 'template' }"
+                        @click="bindTab = 'template'"
+                    >
+                        绑定实验模板
+                    </button>
+                </div>
+
+                <!-- 绑定学生 -->
+                <div v-if="bindTab === 'user'" class="bind-content">
+                    <div class="bind-section">
+                        <h3>可绑定的学生</h3>
+                        <div class="select-list">
+                            <div
+                                v-for="user in availableUsers"
+                                :key="user.id"
+                                class="select-item"
+                                :class="{ selected: selectedUserIds.includes(user.id) }"
+                                @click="toggleUserSelection(user.id)"
+                            >
+                                <span class="checkbox" :class="{ checked: selectedUserIds.includes(user.id) }"></span>
+                                <span>{{ user.displayName }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bind-section">
+                        <h3>已绑定的学生 ({{ boundUserIds.length }})</h3>
+                        <div class="selected-list" v-if="boundUserIds.length > 0">
+                            <div
+                                v-for="userId in boundUserIds"
+                                :key="userId"
+                                class="selected-item"
+                            >
+                                <span>{{ getUserName(userId) }}</span>
+                                <button class="btn-remove" @click="removeUser(userId)">✕</button>
+                            </div>
+                        </div>
+                        <div v-else class="empty-text">暂无绑定的学生</div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" @click="saveUserBindings">
+                            保存学生绑定
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 绑定实验模板 -->
+                <div v-if="bindTab === 'template'" class="bind-content">
+                    <div class="bind-section">
+                        <h3>可绑定的实验模板</h3>
+                        <div class="select-list">
+                            <div
+                                v-for="template in availableTemplates"
+                                :key="template.id"
+                                class="select-item"
+                                :class="{ selected: selectedTemplateIds.includes(template.id) }"
+                                @click="toggleTemplateSelection(template.id)"
+                            >
+                                <span class="checkbox" :class="{ checked: selectedTemplateIds.includes(template.id) }"></span>
+                                <span>{{ template.templateName }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bind-section">
+                        <h3>已绑定的实验模板 ({{ boundTemplateIds.length }})</h3>
+                        <div class="selected-list" v-if="boundTemplateIds.length > 0">
+                            <div
+                                v-for="templateId in boundTemplateIds"
+                                :key="templateId"
+                                class="selected-item"
+                            >
+                                <span>{{ getTemplateName(templateId) }}</span>
+                                <button class="btn-remove" @click="removeTemplate(templateId)">✕</button>
+                            </div>
+                        </div>
+                        <div v-else class="empty-text">暂无绑定的实验模板</div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" @click="saveTemplateBindings">
+                            保存实验模板绑定
                         </button>
                     </div>
                 </div>
             </div>
         </div>
-
-        <!-- 查看课程弹窗 -->
-        <div class="modal-overlay" v-if="showBindModal && !pageError" @click.self="closeBindModal">
-            <div class="modal-content modal-large">
-                <div class="modal-header">
-                    <h2>绑定管理</h2>
-                    <button class="modal-close" @click="closeBindModal">✕</button>
-                </div>
-                <div class="modal-body">
-                    <div class="bind-tabs">
-                        <button
-                            class="bind-tab"
-                            :class="{ active: bindTab === 'user' }"
-                            @click="bindTab = 'user'"
-                        >
-                            绑定学生
-                        </button>
-                        <button
-                            class="bind-tab"
-                            :class="{ active: bindTab === 'template' }"
-                            @click="bindTab = 'template'"
-                        >
-                            绑定实验模板
-                        </button>
-                    </div>
-
-                    <!-- 绑定学生 -->
-                    <div v-if="bindTab === 'user'" class="bind-content">
-                        <div class="bind-section">
-                            <h3>可绑定的学生</h3>
-                            <div class="select-list">
-                                <div
-                                    v-for="user in availableUsers"
-                                    :key="user.id"
-                                    class="select-item"
-                                    :class="{ selected: selectedUserIds.includes(user.id) }"
-                                    @click="toggleUserSelection(user.id)"
-                                >
-                                    <span class="checkbox" :class="{ checked: selectedUserIds.includes(user.id) }"></span>
-                                    <span>{{ user.displayName }}</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="bind-section">
-                            <h3>已绑定的学生 ({{ boundUserIds.length }})</h3>
-                            <div class="selected-list" v-if="boundUserIds.length > 0">
-                                <div
-                                    v-for="userId in boundUserIds"
-                                    :key="userId"
-                                    class="selected-item"
-                                >
-                                    <span>{{ getUserName(userId) }}</span>
-                                    <button class="btn-remove" @click="removeUser(userId)">✕</button>
-                                </div>
-                            </div>
-                            <div v-else class="empty-text">暂无绑定的学生</div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-primary" @click="saveUserBindings">
-                                保存学生绑定
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- 绑定实验模板 -->
-                    <div v-if="bindTab === 'template'" class="bind-content">
-                        <div class="bind-section">
-                            <h3>可绑定的实验模板</h3>
-                            <div class="select-list">
-                                <div
-                                    v-for="template in availableTemplates"
-                                    :key="template.id"
-                                    class="select-item"
-                                    :class="{ selected: selectedTemplateIds.includes(template.id) }"
-                                    @click="toggleTemplateSelection(template.id)"
-                                >
-                                    <span class="checkbox" :class="{ checked: selectedTemplateIds.includes(template.id) }"></span>
-                                    <span>{{ template.templateName }}</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="bind-section">
-                            <h3>已绑定的实验模板 ({{ boundTemplateIds.length }})</h3>
-                            <div class="selected-list" v-if="boundTemplateIds.length > 0">
-                                <div
-                                    v-for="templateId in boundTemplateIds"
-                                    :key="templateId"
-                                    class="selected-item"
-                                >
-                                    <span>{{ getTemplateName(templateId) }}</span>
-                                    <button class="btn-remove" @click="removeTemplate(templateId)">✕</button>
-                                </div>
-                            </div>
-                            <div v-else class="empty-text">暂无绑定的实验模板</div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-primary" @click="saveTemplateBindings">
-                                保存实验模板绑定
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+    </div>
 </div>
 
 <script src="/ems/js/course-list.js"></script>

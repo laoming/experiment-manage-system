@@ -445,10 +445,14 @@
     right: 0;
     bottom: 0;
     background: rgba(0, 0, 0, 0.5);
-    display: flex;
+    display: none;
     align-items: center;
     justify-content: center;
     z-index: 2000;
+}
+
+/* 当v-show为true时，Vue会设置display，同时添加动画 */
+.modal-overlay[style*="display: flex"] {
     animation: fadeIn 0.3s ease-out;
 }
 

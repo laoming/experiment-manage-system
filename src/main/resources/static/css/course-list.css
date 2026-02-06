@@ -339,10 +339,15 @@
     right: 0;
     bottom: 0;
     background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
+    display: none;
     align-items: center;
     justify-content: center;
     z-index: 1000;
+}
+
+/* 当v-show为true时，Vue会设置display */
+.modal-overlay[style*="display: flex"] {
+    /* 弹窗显示时的样式可以在这里添加 */
 }
 
 .modal-content {
