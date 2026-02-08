@@ -1,0 +1,262 @@
+<link rel="stylesheet" href="/ems/common/css/common.css">
+<link rel="stylesheet" href="/ems/common/css/user.css">
+
+
+<div class="main-content">
+    <!-- 页面标题 -->
+    <div class="page-header" v-if="!pageError">
+        <h1 class="page-title">用户管理</h1>
+        <p class="page-subtitle">管理系统用户，包括用户添加、编辑、删除以及密码重置</p>
+    </div>
+
+    <!-- 搜索和操作栏 -->
+    <div class="toolbar">
+        <div class="search-box">
+            <input
+                v-model="queryForm.username"
+                type="text"
+                class="search-input"
+                placeholder="输入账号搜索"
+            >
+            <input
+                v-model="queryForm.displayName"
+                type="text"
+                class="search-input"
+                placeholder="输入用户名称搜索"
+            >
+            <select v-model="queryForm.roleId" class="search-select">
+                <option :value="null">全部角色</option>
+                <option v-for="role in roleList" :key="role.id" :value="role.id">
+                    {{ role.roleName }}
+                </option>
+            </select>
+            <select v-model="queryForm.status" class="search-select">
+                <option :value="null">全部状态</option>
+                <option :value="1">激活</option>
+                <option :value="2">禁用</option>
+            </select>
+            <button class="btn btn-primary" @click="handleSearch">
+                <span>🔍</span>
+                <span>搜索</span>
+            </button>
+            <button class="btn btn-secondary" @click="handleReset">
+                <span>↺</span>
+                <span>重置</span>
+            </button>
+        </div>
+        <button class="btn btn-success" @click="openAddModal">
+            <span>+</span>
+            <span>新增用户</span>
+        </button>
+    </div>
+
+    <!-- 用户列表 -->
+    <div class="table-container">
+        <div v-if="loading" class="loading">
+            <div class="loading-spinner"></div>
+            <p>加载中...</p>
+        </div>
+        <table v-else class="user-table">
+            <thead>
+                <tr>
+                    <th>序号</th>
+                    <th>账号</th>
+                    <th>用户名称</th>
+                    <th>角色</th>
+                    <th>组织</th>
+                    <th>状态</th>
+                    <th>创建时间</th>
+                    <th>更新时间</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-if="userList.length === 0">
+                    <td colspan="9" class="empty-cell">
+                        <div class="empty-content">
+                            <div class="empty-icon">📭</div>
+                            <p>暂无数据</p>
+                        </div>
+                    </td>
+                </tr>
+                <tr v-for="(user, index) in userList" :key="user.id">
+                    <td>{{ (pagination.current - 1) * pagination.size + index + 1 }}</td>
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.displayName }}</td>
+                    <td>{{ getRoleName(user.roleId) }}</td>
+                    <td>{{ getOrgName(user.orgId) }}</td>
+                    <td>
+                        <span class="status-badge" :class="getStatusClass(user.status)">
+                            {{ getStatusText(user.status) }}
+                        </span>
+                    </td>
+                    <td>{{ formatDateTime(user.createTime) }}</td>
+                    <td>{{ formatDateTime(user.updateTime) }}</td>
+                    <td class="actions">
+                        <button class="action-btn btn-edit" @click="openEditModal(user)">
+                            <span>✏️</span>
+                            编辑
+                        </button>
+                        <button class="action-btn btn-reset" @click="openResetPasswordModal(user)">
+                            <span>🔑</span>
+                            重置密码
+                        </button>
+                        <button class="action-btn btn-delete" @click="handleDelete(user)">
+                            <span>🗑️</span>
+                            删除
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 分页 -->
+    <div class="pagination" v-if="userList.length > 0">
+        <button
+            class="pagination-btn"
+            :disabled="pagination.current === 1"
+            @click="handlePageChange(pagination.current - 1)"
+        >
+            上一页
+        </button>
+        <span class="pagination-info">
+            第 {{ pagination.current }} / {{ pagination.pages }} 页
+            <span class="pagination-total">共 {{ pagination.total }} 条记录</span>
+        </span>
+        <button
+            class="pagination-btn"
+            :disabled="pagination.current >= pagination.pages"
+            @click="handlePageChange(pagination.current + 1)"
+        >
+            下一页
+        </button>
+    </div>
+
+    <!-- 用户编辑弹窗 -->
+    <div class="modal-overlay" v-show="showUserModal" style="display: none;" @click.self="closeUserModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>{{ userModalMode === 'add' ? '新增用户' : '编辑用户' }}</h2>
+                <button class="modal-close" @click="closeUserModal">✕</button>
+            </div>
+            <div class="modal-body">
+                <form @submit.prevent="handleUserSubmit">
+                    <div class="form-group">
+                        <label class="form-label">账号 <span class="required">*</span></label>
+                        <input
+                            v-model="userForm.username"
+                            type="text"
+                            class="form-input"
+                            placeholder="请输入账号"
+                            :disabled="userModalMode === 'edit'"
+                        >
+                    </div>
+                    <div class="form-group" v-if="userModalMode === 'add'">
+                        <label class="form-label">密码 <span class="required">*</span></label>
+                        <input
+                            v-model="userForm.password"
+                            type="password"
+                            class="form-input"
+                            placeholder="请输入密码"
+                        >
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">用户名称 <span class="required">*</span></label>
+                        <input
+                            v-model="userForm.displayName"
+                            type="text"
+                            class="form-input"
+                            placeholder="请输入用户名称"
+                        >
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">用户角色 <span class="required">*</span></label>
+                        <select v-model="userForm.roleId" class="form-input">
+                            <option value="">请选择角色</option>
+                            <option v-for="role in roleList" :key="role.id" :value="role.id">
+                                {{ role.roleName }}
+                            </option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">所属组织 <span class="required">*</span></label>
+                        <select v-model="userForm.orgId" class="form-input">
+                            <option value="">请选择组织</option>
+                            <option v-for="org in orgList" :key="org.id" :value="org.id">
+                                {{ org.fullPath }}
+                            </option>
+                        </select>
+                    </div>
+                    <div class="form-group" v-if="userModalMode === 'edit'">
+                        <label class="form-label">状态</label>
+                        <select v-model="userForm.status" class="form-input">
+                            <option :value="1">激活</option>
+                            <option :value="2">禁用</option>
+                        </select>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" @click="closeUserModal">
+                            取消
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            确定
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 重置密码弹窗 -->
+    <div class="modal-overlay" v-show="showPasswordModal" style="display: none;" @click.self="closePasswordModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>重置密码</h2>
+                <button class="modal-close" @click="closePasswordModal">✕</button>
+            </div>
+            <div class="modal-body">
+                <form @submit.prevent="handlePasswordSubmit">
+                    <div class="form-group">
+                        <label class="form-label">账号</label>
+                        <input
+                            :value="passwordForm.username"
+                            type="text"
+                            class="form-input"
+                            disabled
+                        >
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">新密码 <span class="required">*</span></label>
+                        <input
+                            v-model="passwordForm.password"
+                            type="password"
+                            class="form-input"
+                            placeholder="请输入新密码"
+                        >
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">确认密码 <span class="required">*</span></label>
+                        <input
+                            v-model="passwordForm.confirmPassword"
+                            type="password"
+                            class="form-input"
+                            placeholder="请再次输入新密码"
+                        >
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" @click="closePasswordModal">
+                            取消
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            确定
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/ems/modules/js/user.js"></script>
+

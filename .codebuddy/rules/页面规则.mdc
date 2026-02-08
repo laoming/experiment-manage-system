@@ -2,9 +2,14 @@
 description: 
 alwaysApply: true
 enabled: true
-updatedAt: 2026-02-01T13:29:17.763Z
+updatedAt: 2026-02-08T16:51:20.794Z
 provider: 
 ---
 
+前端编码规范：
 1. 前端采用单页架构，导航栏和标签页栏常驻展示。
 2. 前端页面风格保持一致。
+
+前端代码结构：
+1. common 文件夹存储全项目通用、无业务关联的公共代码。
+2. modules 文件夹存储业务代码。

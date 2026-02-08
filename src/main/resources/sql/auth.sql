@@ -57,16 +57,16 @@ CREATE TABLE menu
 -- 更新菜单表，添加组织管理、角色管理、菜单管理菜单
 INSERT INTO menu(id, parent_id, menu_name, menu_code, path, menu_type, sort)
 VALUES ('100', '0', '身份管理', 'auth_management', '', 'D', 1),
-       ('101', '100', '用户管理', 'user_management', '/ems/pages/user.html', 'M', 1),
-       ('102', '100', '组织管理', 'organization_management', '/ems/pages/organization.html', 'M', 2),
-       ('103', '100', '角色管理', 'role_management', '/ems/pages/role.html', 'M', 3),
-       ('104', '100', '菜单管理', 'menu_management', '/ems/pages/menu.html', 'M', 4),
+       ('101', '100', '用户管理', 'user_management', '/ems/modules/pages/user.html', 'M', 1),
+       ('102', '100', '组织管理', 'organization_management', '/ems/modules/pages/organization.html', 'M', 2),
+       ('103', '100', '角色管理', 'role_management', '/ems/modules/pages/role.html', 'M', 3),
+       ('104', '100', '菜单管理', 'menu_management', '/ems/modules/pages/menu.html', 'M', 4),
        ('200', '0', '系统管理', 'system_management', '', 'D', 2),
        ('300', '0', '课堂管理', 'class_management', '', 'D', 3),
-       ('301', '300', '课程管理', 'course_management', '/ems/pages/course-list.html', 'M', 1),
+       ('301', '300', '课程管理', 'course_management', '/ems/modules/pages/course-list.html', 'M', 1),
        ('400', '0', '实验管理', 'experiment_management', '', 'D', 4),
-       ('401', '400', '实验模板管理', 'experiment_template_management', '/ems/pages/experiment-template-list.html', 'M', 1),
-       ('402', '400', '实验报告管理', 'experiment_report_management', '/ems/pages/experiment-report.html', 'M', 2);
+       ('401', '400', '实验模板管理', 'experiment_template_management', '/ems/modules/pages/experiment-template-list.html', 'M', 1),
+       ('402', '400', '实验报告管理', 'experiment_report_management', '/ems/modules/pages/experiment-report.html', 'M', 2);
 
 
 -- 4. 角色-菜单关联表

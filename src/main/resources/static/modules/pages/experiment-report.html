@@ -1,0 +1,73 @@
+<link rel="stylesheet" href="/ems/modules/css/experiment-report.css">
+
+<div class="main-content">
+            <!-- 模板选择区域 -->
+            <div class="template-selector" id="templateSelector">
+                <div class="selector-header">
+                    <div class="selector-title">选择实验模板</div>
+                    <button class="btn btn-primary" onclick="loadTemplates()">刷新模板</button>
+                </div>
+                <div class="template-grid" id="templateGrid">
+                    <!-- 模板卡片将通过JS动态生成 -->
+                </div>
+            </div>
+
+            <!-- 报告编辑区域 -->
+            <div class="report-editor" id="reportEditor" style="display: none;">
+                <div class="editor-header">
+                    <div class="header-left">
+                        <button class="btn btn-secondary" onclick="backToTemplates()">
+                            <span class="btn-icon">←</span>
+                            返回
+                        </button>
+                        <div class="report-title">
+                            <input type="text" id="reportName" placeholder="请输入报告名称" value="我的实验报告">
+                        </div>
+                    </div>
+                    <div class="header-right">
+                        <button class="btn btn-secondary" onclick="saveDraft()">保存草稿</button>
+                        <button class="btn btn-success" onclick="previewReport()">预览</button>
+                        <button class="btn btn-primary" onclick="submitReport()">提交报告</button>
+                    </div>
+                </div>
+
+                <div class="report-content" id="reportContent">
+                    <!-- 报告内容将通过JS动态生成 -->
+                </div>
+            </div>
+
+            <!-- 报告预览区域 -->
+            <div class="report-preview" id="reportPreview" style="display: none;">
+                <div class="preview-header">
+                    <button class="btn btn-secondary" onclick="closePreview()">
+                        <span class="btn-icon">×</span>
+                        关闭
+                    </button>
+                    <button class="btn btn-success" onclick="exportMarkdown()">导出Markdown</button>
+                    <button class="btn btn-primary" onclick="printReport()">打印</button>
+                </div>
+                <div class="preview-content" id="previewContent">
+                    <!-- 预览内容将通过JS动态生成 -->
+                </div>
+            </div>
+
+            <!-- 报告列表区域 -->
+            <div class="report-list-container" id="reportListContainer" style="display: none;">
+                <div class="list-header">
+                    <div class="list-title">我的实验报告</div>
+                    <button class="btn btn-primary" onclick="createNewReport()">
+                        <span class="btn-icon">+</span>
+                        新建报告
+                    </button>
+                </div>
+                <div class="report-list" id="reportList">
+                    <!-- 报告列表将通过JS动态生成 -->
+                </div>
+                <div class="pagination" id="reportPagination">
+                    <!-- 分页将通过JS动态生成 -->
+                </div>
+            </div>
+        </div>
+</div>
+
+<script src="/ems/modules/js/experiment-report.js"></script>
