@@ -1,10 +1,8 @@
 /**
  * 菜单管理逻辑
  */
-// 避免在动态加载时重复声明 createApp
-const { createApp: createMenuApp } = Vue;
 
-const app = createMenuApp({
+const app = Vue.createApp({
     data() {
         return {
             loading: false,

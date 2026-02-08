@@ -1,7 +1,6 @@
 /**
  * 组织管理逻辑
  */
-const { createApp } = Vue;
 
 // 树形组织项组件
 const TreeItem = {
@@ -71,7 +70,7 @@ const TreeItem = {
     }
 };
 
-const app = createApp({
+const app = Vue.createApp({
     data() {
         return {
             loading: false,
@@ -303,9 +302,27 @@ const app = createApp({
             };
 
             console.log('➕ [ORG] 新增组织表单数据:', this.orgForm);
+            console.log('➕ [ORG] this.$el:', this.$el);
+            console.log('➕ [ORG] this.$el.__vue_app__:', this.$el.__vue_app__);
 
             this.orgModalMode = 'add';
             this.showOrgModal = true;
+
+            console.log('➕ [ORG] showOrgModal 已设置为 true');
+
+            // 检查弹窗元素
+            this.$nextTick(() => {
+                const modal = this.$el.querySelector('.modal-overlay');
+                if (modal) {
+                    console.log('➕ [ORG] 找到弹窗元素:', modal);
+                    console.log('➕ [ORG] 弹窗元素 computed display:', window.getComputedStyle(modal).display);
+                    console.log('➕ [ORG] 弹窗元素 style.display:', modal.style.display);
+                    console.log('➕ [ORG] 弹窗元素 classList:', modal.classList);
+                    console.log('➕ [ORG] 弹窗元素 offsetHeight:', modal.offsetHeight);
+                } else {
+                    console.error('➕ [ORG] 未找到弹窗元素！');
+                }
+            });
 
             console.log('➕ [ORG] 弹窗已显示');
         },

@@ -1,10 +1,8 @@
 /**
  * 角色管理逻辑
  */
-// 避免在动态加载时重复声明 createApp
-const { createApp: createRoleApp } = Vue;
 
-const app = createRoleApp({
+const app = Vue.createApp({
     data() {
         return {
             loading: false,

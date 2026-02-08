@@ -3,9 +3,7 @@ let components = [];
 let selectedComponentIndex = -1;
 let currentTemplateId = null;
 
-const { createApp } = Vue;
-
-const app = createApp({
+const app = Vue.createApp({
     mounted() {
         this.checkLogin();
         initDragDrop();

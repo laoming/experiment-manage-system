@@ -1,3 +1,4 @@
+<link rel="stylesheet" href="/ems/css/common.css">
 <link rel="stylesheet" href="/ems/css/role.css">
 
 <div class="main-content">
@@ -122,7 +123,7 @@
     </div>
 
     <!-- 角色编辑弹窗 -->
-    <div class="modal-overlay" v-show="showRoleModal" @click.self="closeRoleModal" style="display: none;">
+    <div class="modal-overlay" v-show="showRoleModal" style="display: none;" @click.self="closeRoleModal">
         <div class="modal-content">
             <div class="modal-header">
                 <h2>{{ roleModalMode === 'add' ? '新增角色' : '编辑角色' }}</h2>
@@ -170,7 +171,7 @@
     </div>
 
     <!-- 菜单分配弹窗 -->
-    <div class="modal-overlay" v-show="showAssignModal" @click.self="closeAssignModal" style="display: none;">
+    <div class="modal-overlay" v-show="showAssignModal" style="display: none;" @click.self="closeAssignModal">
         <div class="modal-content modal-large">
             <div class="modal-header">
                 <h2>分配权限 - {{ currentRole?.roleName }}</h2>

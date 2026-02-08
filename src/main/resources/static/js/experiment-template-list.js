@@ -1,9 +1,8 @@
 /**
  * 实验模板管理列表逻辑
  */
-const { createApp } = Vue;
 
-const app = createApp({
+const app = Vue.createApp({
     data() {
         return {
             loading: false,

@@ -3,6 +3,10 @@
  */
 const { createApp } = Vue;
 
+// 在全局创建 tabVueInstances 对象
+window.homeTabVueInstances = {};
+console.log('📌 [HOME] 已初始化全局 window.homeTabVueInstances');
+
 const app = createApp({
     data() {
         return {
@@ -14,7 +18,8 @@ const app = createApp({
             showGlobalError: false,
             globalErrorMessage: '',
             currentTabKey: 'home',
-            tabContents: {},
+            tabContents: {},  // 保存每个标签页的内容（包括HTML、CSS、脚本等）
+            tabVueInstances: {},  // 保存每个标签页的Vue实例
             currentTabContent: null,
             currentTabScripts: null,  // 保存当前标签页的脚本HTML（v-html不会执行脚本，所以需要单独处理）
             loadingTab: false,
@@ -33,11 +38,19 @@ const app = createApp({
 
         // 监听标签页切换事件
         window.addEventListener('tab-switch', this.handleTabSwitch);
+        // 监听标签页关闭事件
+        window.addEventListener('tab-close', this.handleTabClose);
+
+        // 同步全局对象和组件内的响应式对象
+        this.$watch('tabVueInstances', (newVal) => {
+            Object.assign(window.homeTabVueInstances, newVal);
+        }, { deep: true });
     },
 
     beforeUnmount() {
         // 移除事件监听
         window.removeEventListener('tab-switch', this.handleTabSwitch);
+        window.removeEventListener('tab-close', this.handleTabClose);
     },
 
     errorCaptured(err, vm, info) {
@@ -63,16 +76,16 @@ const app = createApp({
             const { tabKey } = event.detail;
             console.log('📌 [HOME] 标签页切换事件:', tabKey);
 
-            // 清理之前的标签页
+            // 隐藏之前的标签页
             if (this.previousTabKey && this.previousTabKey !== tabKey) {
-                this.cleanupPreviousTab();
+                this.hidePreviousTab();
             }
 
             this.currentTabKey = tabKey;
 
             if (tabKey === 'home') {
-                // 首页，清空内容区域
-                this.currentTabContent = null;
+                // 首页，仅隐藏内容区域，保留缓存DOM
+                this.hidePreviousTab();
                 this.tabError = null;
                 this.previousTabKey = 'home';
                 return;
@@ -84,42 +97,141 @@ const app = createApp({
 
             if (!tab) {
                 console.warn('[HOME] 标签页不存在:', tabKey);
-                this.currentTabContent = null;
+                if (this.$refs.tabContentEmbed) {
+                    this.$refs.tabContentEmbed.innerHTML = '';
+                }
                 this.tabError = '标签页不存在';
                 this.previousTabKey = tabKey;
                 return;
             }
 
-            // 检查是否已缓存
-            if (this.tabContents[tabKey]) {
-                console.log('📌 [HOME] 标签页内容已缓存:', tabKey);
-                const cachedData = this.tabContents[tabKey];
-                this.currentTabContent = cachedData.html;
-                this.currentTabScripts = cachedData.scripts;
+            // 检查是否已缓存Vue实例（使用全局变量）
+            console.log('📌 [HOME] 检查缓存，window.homeTabVueInstances:', window.homeTabVueInstances);
+            console.log('📌 [HOME] 检查缓存，tabKey:', tabKey);
+            const globalVueInstances = window.homeTabVueInstances || {};
+            console.log('📌 [HOME] 检查缓存，globalVueInstances:', globalVueInstances);
+            if (globalVueInstances[tabKey]) {
+                console.log('📌 [HOME] 标签页Vue实例已缓存:', tabKey);
+                const cachedContent = this.tabContents[tabKey];
+                if (!cachedContent) {
+                    console.warn('[HOME] 缓存内容不存在，重新加载标签页:', tabKey);
+                    delete globalVueInstances[tabKey];
+                    await this.loadTabContent(tab);
+                    this.previousTabKey = tabKey;
+                    return;
+                }
+                this.currentTabScripts = cachedContent.scripts;
                 this.tabError = null;
                 this.previousTabKey = tabKey;
 
-                // 等待Vue渲染完成后检查是否需要重新执行脚本
+                // 直接显示已缓存的DOM（从embedArea中找到并显示）
                 this.$nextTick(() => {
-                    setTimeout(() => {
-                        const contentArea = document.getElementById('tab-content-area');
-                        if (contentArea) {
-                            const appElements = contentArea.querySelectorAll('[id^="tab-app-"]');
-                            if (appElements.length > 0) {
-                                const appEl = appElements[0];
-                                if (!appEl.__vue_app__) {
-                                    console.log('📌 [HOME] Vue实例已销毁，重新执行脚本');
-                                    // 重新执行脚本
-                                    this.executeTabScripts(tabKey);
-                                } else {
-                                    console.log('📌 [HOME] Vue实例存在，保持状态');
+                    const embedArea = this.$refs.tabContentEmbed;
+                    if (embedArea) {
+                        const appId = cachedContent.appId;
+                        console.log('📌 [HOME] 尝试显示已缓存的DOM元素，appId:', appId);
+
+                        // 在embedArea中查找缓存的DOM元素
+                        const cachedAppElement = appId ? embedArea.querySelector(`#${appId}`) : null;
+
+                        if (cachedAppElement) {
+                            console.log('📌 [HOME] 找到缓存的DOM元素:', cachedAppElement.id);
+                            console.log('📌 [HOME] 缓存元素的 __vue_app__:', cachedAppElement.__vue_app__);
+                            console.log('📌 [HOME] 全局Vue实例:', globalVueInstances[tabKey]);
+
+                            // 确保弹窗状态被重置
+                            this.resetTabModals(tabKey, cachedAppElement);
+
+                            // 显示该元素，同时隐藏其他所有元素
+                            const allChildren = Array.from(embedArea.children);
+                            allChildren.forEach(child => {
+                                if (child.id && child.id.startsWith('tab-app-')) {
+                                    if (child.id === appId) {
+                                        child.style.display = 'block';
+                                        console.log('📌 [HOME] 显示元素:', child.id);
+                                    } else {
+                                        child.style.display = 'none';
+                                        console.log('📌 [HOME] 隐藏元素:', child.id);
+                                    }
                                 }
-                            } else {
-                                console.log('📌 [HOME] 未找到app元素，重新执行脚本');
-                                this.executeTabScripts(tabKey);
+                            });
+
+                            // 验证 Vue 实例是否有效
+                            if (!cachedAppElement.__vue_app__ && globalVueInstances[tabKey]) {
+                                console.log('📌 [HOME] DOM 元素上没有 Vue 实例，尝试重新挂载');
+                                try {
+                                    globalVueInstances[tabKey].mount(cachedAppElement);
+                                    console.log('📌 [HOME] Vue 实例重新挂载成功');
+                                } catch (e) {
+                                    console.error('[HOME] 重新挂载失败，重新执行脚本:', e);
+                                    // 如果重新挂载失败，重新执行脚本
+                                    this.currentTabScripts = cachedContent.scripts;
+                                    setTimeout(() => {
+                                        this.executeTabScripts(tabKey);
+                                    }, 50);
+                                    return;
+                                }
                             }
+
+                            // 检查弹窗元素
+                            setTimeout(() => {
+                                const modalOverlay = cachedAppElement.querySelector('.modal-overlay');
+                                if (modalOverlay) {
+                                    console.log('📌 [HOME] 找到弹窗元素:', modalOverlay);
+                                    console.log('📌 [HOME] 弹窗元素的样式:', window.getComputedStyle(modalOverlay).display);
+                                } else {
+                                    console.warn('[HOME] 未找到弹窗元素');
+                                }
+                            }, 100);
+
+                            console.log('📌 [HOME] 已缓存的DOM元素已显示');
+                        } else {
+                            console.warn('[HOME] 未找到缓存DOM，尝试使用缓存内容重新渲染，appId:', appId);
+
+                            // 清空并重新插入缓存的CSS和HTML
+                            embedArea.innerHTML = '';
+
+                            const styleLinks = cachedContent.styleLinks || [];
+                            const styleTags = cachedContent.styleTags || [];
+
+                            if (styleLinks.length > 0) {
+                                const cssContainer = document.createElement('div');
+                                cssContainer.innerHTML = styleLinks.join('\n');
+                                while (cssContainer.firstChild) {
+                                    embedArea.appendChild(cssContainer.firstChild);
+                                }
+                            }
+
+                            if (styleTags.length > 0) {
+                                const styleContainer = document.createElement('div');
+                                styleContainer.innerHTML = styleTags.join('\n');
+                                while (styleContainer.firstChild) {
+                                    embedArea.appendChild(styleContainer.firstChild);
+                                }
+                            }
+
+                            const htmlContainer = document.createElement('div');
+                            htmlContainer.innerHTML = cachedContent.html || '';
+                            while (htmlContainer.firstChild) {
+                                embedArea.appendChild(htmlContainer.firstChild);
+                            }
+
+                            // 隐藏可能残留的弹窗
+                            this.resetTabModals(tabKey, embedArea);
+
+                            // 清理旧的实例缓存并重新执行脚本
+                            if (window.homeTabVueInstances && window.homeTabVueInstances[tabKey]) {
+                                delete window.homeTabVueInstances[tabKey];
+                            }
+
+                            this.currentTabScripts = cachedContent.scripts;
+                            setTimeout(() => {
+                                this.executeTabScripts(tabKey);
+                            }, 50);
                         }
-                    }, 300); // 给Vue渲染留出时间
+                    } else {
+                        console.error('[HOME] tabContentEmbed ref 未找到');
+                    }
                 });
                 return;
             }
@@ -130,27 +242,105 @@ const app = createApp({
         },
 
         /**
-         * 清理之前的标签页
+         * 隐藏之前的标签页
          */
-        cleanupPreviousTab() {
-            console.log('📌 [HOME] 清理之前的标签页:', this.previousTabKey);
+        hidePreviousTab() {
+            console.log('📌 [HOME] 隐藏之前的标签页:', this.previousTabKey);
 
-            const contentArea = document.getElementById('tab-content-area');
-            if (contentArea) {
-                // 移除之前的Vue应用实例
-                const oldApps = contentArea.querySelectorAll('[id^="tab-app-"]');
+            const embedArea = this.$refs.tabContentEmbed;
+            if (embedArea) {
+                // 不移除DOM元素，只隐藏它们
+                const oldApps = embedArea.querySelectorAll('[id^="tab-app-"]');
                 oldApps.forEach(oldApp => {
-                    try {
-                        // 尝试获取Vue实例并销毁
-                        const appInstance = oldApp.__vue_app__;
-                        if (appInstance && typeof appInstance.unmount === 'function') {
-                            appInstance.unmount();
+                    console.log('📌 [HOME] 隐藏Vue实例:', oldApp.id);
+                    // 只隐藏，不从DOM中移除
+                    oldApp.style.display = 'none';
+                });
+
+                // 也要隐藏其他内容（如CSS等）
+                const allChildren = Array.from(embedArea.children);
+                allChildren.forEach(child => {
+                    if (child.id && child.id.startsWith('tab-app-')) {
+                        child.style.display = 'none';
+                    }
+                });
+
+                // 同步隐藏所有弹窗遮罩
+                const modalOverlays = embedArea.querySelectorAll('.modal-overlay');
+                modalOverlays.forEach(overlay => {
+                    overlay.style.display = 'none';
+                });
+
+                console.log('📌 [HOME] 已隐藏', oldApps.length, '个标签页元素');
+            }
+        },
+
+        /**
+         * 重置指定标签页的弹窗状态
+         */
+        resetTabModals(tabKey, targetElement) {
+            const embedArea = this.$refs.tabContentEmbed;
+            const scope = targetElement || embedArea;
+
+            if (scope) {
+                const modalOverlays = scope.querySelectorAll('.modal-overlay');
+                modalOverlays.forEach(overlay => {
+                    overlay.style.display = 'none';
+                });
+            }
+
+            const globalVueInstances = window.homeTabVueInstances || {};
+            const vueApp = globalVueInstances[tabKey];
+            const proxy = vueApp && vueApp._instance && vueApp._instance.proxy ? vueApp._instance.proxy : null;
+            if (proxy && proxy.$data) {
+                Object.keys(proxy.$data).forEach((key) => {
+                    if (key.startsWith('show') && /(Modal|Dialog|Overlay|Popup)/i.test(key)) {
+                        if (typeof proxy[key] === 'boolean') {
+                            proxy[key] = false;
                         }
-                    } catch (error) {
-                        console.warn('[HOME] 清理Vue实例失败:', error);
                     }
                 });
             }
+        },
+
+        /**
+         * 处理标签页关闭事件，清理缓存
+         */
+        handleTabClose(event) {
+            const { closedKeys } = event.detail || {};
+            if (!Array.isArray(closedKeys) || closedKeys.length === 0) {
+                return;
+            }
+
+            const embedArea = this.$refs.tabContentEmbed;
+            closedKeys.forEach((tabKey) => {
+                if (!tabKey || tabKey === 'home') {
+                    return;
+                }
+
+                const cached = this.tabContents[tabKey];
+
+                // 移除对应 DOM
+                if (embedArea && cached && cached.appId) {
+                    const cachedEl = embedArea.querySelector(`#${cached.appId}`);
+                    if (cachedEl && cachedEl.parentNode) {
+                        cachedEl.parentNode.removeChild(cachedEl);
+                    }
+                }
+
+                // 清理缓存内容
+                if (this.tabContents[tabKey]) {
+                    delete this.tabContents[tabKey];
+                }
+
+                // 清理 Vue 实例缓存
+                if (this.tabVueInstances[tabKey]) {
+                    delete this.tabVueInstances[tabKey];
+                }
+                if (window.homeTabVueInstances && window.homeTabVueInstances[tabKey]) {
+                    delete window.homeTabVueInstances[tabKey];
+                }
+            });
         },
 
         /**
@@ -185,19 +375,68 @@ const app = createApp({
                 const mainContent = this.extractMainContent(html);
                 console.log('✅ [HOME] 提取主体内容成功');
 
-                // 缓存内容（包括HTML和脚本，分开存储）
-                const { html: mainContentHtml, scripts: scriptsHtml } = mainContent;
-                this.tabContents[tab.key] = { html: mainContentHtml, scripts: scriptsHtml };
+                // 缓存内容（包括HTML、CSS链接、脚本等）
+                const { html: mainContentHtml, scripts: scriptsHtml, appId, styleLinks, styleTags } = mainContent;
+                this.tabContents[tab.key] = {
+                    html: mainContentHtml,
+                    scripts: scriptsHtml,
+                    appId,
+                    styleLinks,  // 保存CSS链接
+                    styleTags    // 保存内联样式
+                };
+                console.log('📌 [HOME] 已缓存样式，styleLinks:', styleLinks.length, 'styleTags:', styleTags.length);
 
-                // 设置当前内容
-                this.currentTabContent = mainContentHtml;
+                // 将CSS和HTML插入到DOM中
+                this.$nextTick(() => {
+                    if (this.$refs.tabContentEmbed) {
+                        // 隐藏所有已存在的标签页元素
+                        const allApps = this.$refs.tabContentEmbed.querySelectorAll('[id^="tab-app-"]');
+                        allApps.forEach(app => {
+                            app.style.display = 'none';
+                        });
+                        console.log('📌 [HOME] 已隐藏', allApps.length, '个已存在的标签页元素');
+
+                        // 创建一个临时容器来插入CSS和HTML
+                        const tempDiv = document.createElement('div');
+
+                        // 插入CSS样式（只插入新的）
+                        if (styleLinks.length > 0) {
+                            const cssContainer = document.createElement('div');
+                            cssContainer.innerHTML = styleLinks.join('\n');
+                            while (cssContainer.firstChild) {
+                                this.$refs.tabContentEmbed.appendChild(cssContainer.firstChild);
+                            }
+                        }
+
+                        if (styleTags.length > 0) {
+                            const styleContainer = document.createElement('div');
+                            styleContainer.innerHTML = styleTags.join('\n');
+                            while (styleContainer.firstChild) {
+                                this.$refs.tabContentEmbed.appendChild(styleContainer.firstChild);
+                            }
+                        }
+
+                        // 插入HTML内容
+                        const htmlContainer = document.createElement('div');
+                        htmlContainer.innerHTML = mainContentHtml;
+                        while (htmlContainer.firstChild) {
+                            this.$refs.tabContentEmbed.appendChild(htmlContainer.firstChild);
+                        }
+
+                        console.log('📌 [HOME] CSS和HTML已插入到DOM');
+                    } else {
+                        console.error('[HOME] tabContentEmbed ref 未找到');
+                    }
+                });
 
                 // 将脚本HTML字符串保存到临时存储，供executeTabScripts使用
                 this.currentTabScripts = scriptsHtml;
 
-                // 执行页面脚本
+                // 执行页面脚本 - 增加延迟确保DOM完全渲染
                 this.$nextTick(() => {
-                    this.executeTabScripts(tab.key);
+                    setTimeout(() => {
+                        this.executeTabScripts(tab.key);
+                    }, 100);
                 });
             } catch (error) {
                 console.error('❌ [HOME] 加载标签页内容失败:', error);
@@ -245,6 +484,15 @@ const app = createApp({
             const uniqueId = `tab-app-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
             console.log('📌 [HOME] 生成app ID:', uniqueId);
 
+            // 先插入CSS到文档头部（确保样式在内容之前加载）
+            let stylesHtml = '';
+            if (styleLinks.length > 0) {
+                stylesHtml += styleLinks.join('\n');
+            }
+            if (styleTags.length > 0) {
+                stylesHtml += styleTags.join('\n');
+            }
+
             // 查找main-content容器
             const mainContent = body.querySelector('.main-content');
             if (mainContent) {
@@ -267,11 +515,13 @@ const app = createApp({
                 });
                 console.log('📌 [HOME] 收集到', scripts.length, '个脚本');
 
-                // 返回对象：HTML和脚本分开（v-html不会执行脚本，所以脚本需要单独处理）
+                // 返回对象：HTML、样式、脚本分开存储
                 return {
-                    html: [...styleLinks, ...styleTags, '', mainContentClone.outerHTML].join('\n'),
+                    html: mainContentClone.outerHTML,
                     scripts: scripts,
-                    appId: uniqueId
+                    appId: uniqueId,
+                    styleLinks: styleLinks,
+                    styleTags: styleTags
                 };
             }
 
@@ -306,7 +556,9 @@ const app = createApp({
             return {
                 html: body.innerHTML,
                 scripts: scripts,
-                appId: null
+                appId: null,
+                styleLinks: [],
+                styleTags: []
             };
         },
 
@@ -316,20 +568,34 @@ const app = createApp({
         executeTabScripts(tabKey) {
             console.log('📌 [HOME] 执行标签页脚本:', tabKey);
 
-            const contentArea = document.getElementById('tab-content-area');
-            if (!contentArea) {
-                console.warn('[HOME] 内容区域不存在');
+            const embedArea = this.$refs.tabContentEmbed;
+            if (!embedArea) {
+                console.warn('[HOME] tabContentEmbed ref 不存在');
                 return;
             }
 
-            // 检查是否已经存在Vue应用实例，如果存在则不重新执行
-            const appElements = contentArea.querySelectorAll('[id^="tab-app-"]');
-            if (appElements.length > 0) {
-                const appEl = appElements[0];
-                if (appEl.__vue_app__) {
-                    console.log('📌 [HOME] Vue应用实例已存在，跳过脚本执行:', appEl.id);
-                    return;
+            // 检查是否已经存在Vue应用实例（仅检查当前tab对应的挂载点）
+            const globalVueInstances = window.homeTabVueInstances || {};
+            const cachedContent = this.tabContents[tabKey];
+            const targetAppId = cachedContent && cachedContent.appId ? cachedContent.appId : null;
+            const targetEl = targetAppId ? embedArea.querySelector(`#${targetAppId}`) : null;
+
+            if (targetEl && (targetEl.__vue_app__ || globalVueInstances[tabKey])) {
+                console.log('📌 [HOME] Vue应用实例已存在，跳过脚本执行:', targetEl.id);
+                console.log('📌 [HOME] targetEl.__vue_app__:', targetEl.__vue_app__);
+                console.log('📌 [HOME] globalVueInstances[tabKey]:', globalVueInstances[tabKey]);
+
+                // 确保全局变量中的 Vue 实例仍然有效
+                if (!targetEl.__vue_app__ && globalVueInstances[tabKey]) {
+                    console.log('📌 [HOME] DOM 元素上没有 Vue 实例，但全局变量中有，尝试重新挂载');
+                    try {
+                        globalVueInstances[tabKey].mount(targetEl);
+                        console.log('📌 [HOME] Vue 实例重新挂载成功');
+                    } catch (e) {
+                        console.error('[HOME] 重新挂载 Vue 实例失败:', e);
+                    }
                 }
+                return;
             }
 
             // 使用保存的脚本HTML字符串（因为v-html不会执行脚本）
@@ -343,6 +609,42 @@ const app = createApp({
 
             // 延迟执行，确保DOM已经渲染
             setTimeout(() => {
+                // 首先确保挂载目标存在
+                const embedArea = this.$refs.tabContentEmbed;
+                if (!embedArea) {
+                    console.error('[HOME] tabContentEmbed ref 不存在');
+                    return;
+                }
+
+                const cachedContent = this.tabContents[tabKey];
+                const expectedAppId = cachedContent && cachedContent.appId ? cachedContent.appId : null;
+                const appElements = embedArea.querySelectorAll('[id^="tab-app-"]');
+                if (appElements.length === 0) {
+                    console.warn('[HOME] 未找到挂载目标元素，延迟执行');
+                    console.log('[HOME] embedArea 内容:', embedArea.innerHTML.substring(0, 500));
+                    setTimeout(() => this.executeTabScripts(tabKey), 200);
+                    return;
+                }
+
+                let targetElement = expectedAppId ? embedArea.querySelector(`#${expectedAppId}`) : null;
+                if (!targetElement) {
+                    targetElement = appElements[0];
+                }
+
+                const targetAppId = targetElement.id;
+                console.log('📌 [HOME] 找到挂载目标:', targetAppId);
+                console.log('📌 [HOME] 挂载目标元素:', targetElement);
+                console.log('📌 [HOME] 挂载目标__vue_app__:', targetElement.__vue_app__);
+
+                // 检查是否有按钮元素
+                const buttons = targetElement.querySelectorAll('button');
+                console.log('📌 [HOME] 按钮数量:', buttons.length);
+                if (buttons.length > 0) {
+                    console.log('📌 [HOME] 第一个按钮:', buttons[0]);
+                    console.log('📌 [HOME] 第一个按钮onclick:', buttons[0].onclick);
+                    console.log('📌 [HOME] 第一个按钮__vueEventHanlder:', buttons[0].__vnode);
+                }
+
                 // 解析脚本HTML字符串
                 const tempDiv = document.createElement('div');
                 tempDiv.innerHTML = scriptsHtml.join('\n');
@@ -425,12 +727,28 @@ const app = createApp({
                                     let scriptContent = scriptText;
 
                                     // 更新挂载代码
-                                    const appElements = contentArea.querySelectorAll('[id^="tab-app-"]');
-                                    if (appElements.length > 0) {
-                                        const targetAppId = appElements[0].id;
+                                    const appElements = embedArea.querySelectorAll('[id^="tab-app-"]');
+                                    const cachedContent = this.tabContents[tabKey];
+                                    const expectedAppId = cachedContent && cachedContent.appId ? cachedContent.appId : null;
+                                    const targetAppId = expectedAppId || (appElements.length > 0 ? appElements[0].id : null);
+
+                                    if (targetAppId) {
                                         console.log('📌 [HOME] 为外部脚本更新挂载目标:', targetAppId);
 
-                                        // 替换各种形式的挂载代码（包括 #app 和 #main-app）
+                                        // 优先替换 Vue.createApp(...).mount('#app') 形式
+                                        scriptContent = scriptContent.replace(
+                                            /Vue\.createApp\s*\(([^)]*)\)\s*\.mount\s*\(\s*['"](#app|#main-app)['"]\s*\)/g,
+                                            `Vue.createApp($1).mount('#${targetAppId}')`
+                                        );
+
+
+                                        // 替换单独的 app.mount('#app') 或 app.mount('#main-app')
+                                        scriptContent = scriptContent.replace(
+                                            /app\.mount\s*\(\s*['"](#app|#main-app)['"]\s*\)/g,
+                                            `app.mount('#${targetAppId}')`
+                                        );
+
+                                        // 替换 .mount('#app') 或 .mount('#main-app') 形式（catch-all）
                                         scriptContent = scriptContent.replace(
                                             /\.mount\s*\(\s*['"](#app|#main-app)['"]\s*\)/g,
                                             `.mount('#${targetAppId}')`
@@ -471,6 +789,7 @@ const app = createApp({
                                 console.error('[HOME] 脚本加载失败:', src, err);
                                 resolve();
                             };
+                            // 同步执行，确保脚本加载完成后再继续
                             document.head.appendChild(newScript);
                         });
                     }
@@ -479,16 +798,18 @@ const app = createApp({
                 // 执行内联脚本
                 const executeInlineScripts = () => {
                     // 找到内容区域中的 app 元素（我们创建的包装div）
-                    const appElements = contentArea.querySelectorAll('[id^="tab-app-"]');
-                    let targetAppId = null;
-                    
-                    if (appElements.length > 0) {
+                    const appElements = embedArea.querySelectorAll('[id^="tab-app-"]');
+                    const cachedContent = this.tabContents[tabKey];
+                    const expectedAppId = cachedContent && cachedContent.appId ? cachedContent.appId : null;
+                    let targetAppId = expectedAppId;
+
+                    if (!targetAppId && appElements.length > 0) {
                         targetAppId = appElements[0].id;
                         console.log('📌 [HOME] 找到挂载目标:', targetAppId);
-                    } else {
+                    } else if (!targetAppId) {
                         console.warn('[HOME] 未找到挂载目标元素，使用默认选择器');
                         // 如果没有找到，尝试使用内容区域的第一个子元素
-                        const firstChild = contentArea.querySelector('.tab-content-embed > div');
+                        const firstChild = embedArea.querySelector('.tab-content-embed > div');
                         if (firstChild && firstChild.id) {
                             targetAppId = firstChild.id;
                             console.log('📌 [HOME] 使用备用挂载目标:', targetAppId);
@@ -523,22 +844,24 @@ const app = createApp({
                             if (scriptContent.includes('.mount')) {
                                 console.log('📌 [HOME] 更新挂载目标为:', targetAppId);
 
-                                // 替换各种形式的挂载代码（包括 #app 和 #main-app）
+                                // 优先替换 Vue.createApp(...).mount('#app') 形式
+                                scriptContent = scriptContent.replace(
+                                    /Vue\.createApp\s*\(([^)]*)\)\s*\.mount\s*\(\s*['"](#app|#main-app)['"]\s*\)/g,
+                                    `Vue.createApp($1).mount('#${targetAppId}')`
+                                );
+
+                                // 替换单独的 app.mount('#app') 或 app.mount('#main-app')
+                                scriptContent = scriptContent.replace(
+                                    /app\.mount\s*\(\s*['"](#app|#main-app)['"]\s*\)/g,
+                                    `app.mount('#${targetAppId}')`
+                                );
+
+                                // 替换 .mount('#app') 或 .mount('#main-app') 形式（catch-all）
                                 scriptContent = scriptContent.replace(
                                     /\.mount\s*\(\s*['"](#app|#main-app)['"]\s*\)/g,
                                     `.mount('#${targetAppId}')`
                                 );
-                                scriptContent = scriptContent.replace(
-                                    /mount\s*\(\s*['"](#app|#main-app)['"]\s*\)/g,
-                                    `mount('#${targetAppId}')`
-                                );
                             }
-
-                            // 替换 document.getElementById('main-app') 或 document.getElementById('app')
-                            scriptContent = scriptContent.replace(
-                                /document\.getElementById\(['"](main-app|app)['"]\)/g,
-                                `document.getElementById('${targetAppId}')`
-                            );
 
                             combinedScriptContent += '\n' + scriptContent;
                         } catch (error) {
@@ -554,12 +877,81 @@ const app = createApp({
                         try {
                             // 将脚本内容包装在 try-catch 中，避免错误影响其他脚本
                             // 使用 IIFE 创建独立作用域，避免变量名冲突
-                            const wrappedContent = `
-(function() {
+                            const wrappedContent = `(function() {
+    const targetId = ${JSON.stringify(targetAppId)};
+    const tabKey = ${JSON.stringify(tabKey)};
+    let createdVueApp = null;
+
+    console.log('📌 [HOME] 开始执行脚本');
+    console.log('📌 [HOME] 挂载目标ID:', targetId);
+    console.log('📌 [HOME] 标签页key:', tabKey);
+    console.log('📌 [HOME] 全局tabVueInstances:', typeof window.homeTabVueInstances);
+
+    // 检查目标元素是否存在
+    const targetElement = document.getElementById(targetId);
+    console.log('📌 [HOME] 目标元素是否存在:', !!targetElement);
+    if (!targetElement) {
+        console.error('[HOME] 目标元素不存在:', targetId);
+        return;
+    }
+
+    // 修改 Vue.createApp 函数以捕获创建的实例
+    const originalCreateApp = Vue.createApp;
+    Vue.createApp = function(...args) {
+        createdVueApp = originalCreateApp.apply(Vue, args);
+
+        // 保存原始的 mount 方法
+        const originalMount = createdVueApp.mount;
+
+        // 重写 mount 方法以捕获挂载后的实例
+        createdVueApp.mount = function(...mountArgs) {
+            const result = originalMount.apply(createdVueApp, mountArgs);
+            console.log('📌 [HOME] Vue实例已挂载:', targetId);
+
+            // 保存Vue实例到全局变量
+            setTimeout(() => {
+                console.log('📌 [HOME] 开始保存Vue实例...');
+                console.log('📌 [HOME] window.homeTabVueInstances 类型:', typeof window.homeTabVueInstances);
+                console.log('📌 [HOME] window.homeTabVueInstances:', window.homeTabVueInstances);
+
+                if (window.homeTabVueInstances) {
+                    console.log('📌 [HOME] 保存Vue实例，tabKey:', tabKey);
+                    window.homeTabVueInstances[tabKey] = createdVueApp;
+                    console.log('📌 [HOME] Vue实例已保存到window.homeTabVueInstances');
+                    console.log('📌 [HOME] 保存后的 window.homeTabVueInstances:', window.homeTabVueInstances);
+                } else {
+                    console.error('[HOME] window.homeTabVueInstances 不存在');
+                }
+            }, 50);
+
+            return result;
+        };
+
+        return createdVueApp;
+    };
+
     try {
 ${combinedScriptContent}
+        console.log('📌 [HOME] 脚本执行完成');
     } catch (e) {
         console.error('[HOME] 脚本执行错误:', e);
+        console.error('[HOME] 错误堆栈:', e.stack);
+    }
+
+    // 恢复原始的 createApp
+    Vue.createApp = originalCreateApp;
+
+    // 如果脚本执行后没有创建Vue实例，尝试从DOM获取
+    if (!createdVueApp) {
+        setTimeout(() => {
+            const appElement = document.getElementById(targetId);
+            if (appElement && appElement.__vue_app__) {
+                console.log('📌 [HOME] 从DOM获取Vue实例:', targetId);
+                if (window.homeTabVueInstances) {
+                    window.homeTabVueInstances[tabKey] = appElement.__vue_app__;
+                }
+            }
+        }, 100);
     }
 })();`;
 
@@ -572,9 +964,10 @@ ${combinedScriptContent}
 
                             // 检查 Vue 实例是否创建成功
                             setTimeout(() => {
-                                const appElements = contentArea.querySelectorAll('[id^="tab-app-"]');
-                                if (appElements.length > 0) {
-                                    const appEl = appElements[0];
+                                const cachedContent = this.tabContents[tabKey];
+                                const expectedAppId = cachedContent && cachedContent.appId ? cachedContent.appId : null;
+                                const appEl = expectedAppId ? embedArea.querySelector(`#${expectedAppId}`) : null;
+                                if (appEl) {
                                     console.log('📌 [HOME] 检查 Vue 实例状态:', appEl.id);
                                     console.log('📌 [HOME] appEl.__vue_app__:', appEl.__vue_app__);
                                 }
@@ -598,7 +991,7 @@ ${combinedScriptContent}
                 loadExternalScripts().then(() => {
                     console.log('📌 [HOME] 外部脚本加载完成');
                     console.log('📌 [HOME] 合并脚本长度:', combinedScriptContent.length);
-                    
+
                     // 确保 Vue 已加载
                     if (typeof Vue === 'undefined') {
                         console.error('[HOME] Vue 未加载，等待...');
@@ -614,6 +1007,8 @@ ${combinedScriptContent}
                         console.log('📌 [HOME] Vue 已就绪，执行脚本');
                         executeInlineScripts();
                     }
+                }).catch(error => {
+                    console.error('[HOME] 加载外部脚本失败:', error);
                 });
             }, 200);
         },

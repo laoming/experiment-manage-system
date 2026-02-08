@@ -1,3 +1,4 @@
+<link rel="stylesheet" href="/ems/css/common.css">
 <link rel="stylesheet" href="/ems/css/menu.css">
 
 <div class="main-content">
@@ -116,7 +117,7 @@
     </div>
 
     <!-- 菜单编辑弹窗 -->
-    <div class="modal-overlay" v-show="showMenuModal" @click.self="closeMenuModal" style="display: none;">
+    <div class="modal-overlay" v-show="showMenuModal" style="display: none;" @click.self="closeMenuModal">
         <div class="modal-content">
             <div class="modal-header">
                 <h2>{{ menuModalMode === 'add' ? '新增菜单' : '编辑菜单' }}</h2>

@@ -1,8 +1,9 @@
+<link rel="stylesheet" href="/ems/css/common.css">
 <link rel="stylesheet" href="/ems/css/course-list.css">
 
 <div class="main-content">
     <!-- 页面错误提示 -->
-    <div v-if="pageError" class="page-error">
+    <div v-if="pageError && !loading" class="page-error">
         <div class="error-icon">⚠️</div>
         <h2>页面加载出错</h2>
         <p>{{ pageError }}</p>
@@ -131,7 +132,7 @@
     </div>
 
     <!-- 新增/编辑课程弹窗 -->
-    <div class="modal-overlay" v-show="showFormModal && !pageError" @click.self="closeFormModal" style="display: none;">
+    <div class="modal-overlay" v-show="showFormModal && !pageError" style="display: none;" @click.self="closeFormModal">
         <div class="modal-content">
             <div class="modal-header">
                 <h2>{{ isEditMode ? '编辑课程' : '新增课程' }}</h2>
@@ -174,7 +175,7 @@
     </div>
 
     <!-- 查看课程弹窗 -->
-    <div class="modal-overlay" v-show="showViewModal && !pageError" @click.self="closeViewModal" style="display: none;">
+    <div class="modal-overlay" v-show="showViewModal && !pageError" style="display: none;" @click.self="closeViewModal">
         <div class="modal-content">
             <div class="modal-header">
                 <h2>查看课程</h2>
@@ -219,7 +220,7 @@
     </div>
 
     <!-- 绑定管理弹窗 -->
-    <div class="modal-overlay" v-show="showBindModal && !pageError" @click.self="closeBindModal" style="display: none;">
+    <div class="modal-overlay" v-show="showBindModal && !pageError" style="display: none;" @click.self="closeBindModal">
         <div class="modal-content modal-large">
             <div class="modal-header">
                 <h2>绑定管理</h2>

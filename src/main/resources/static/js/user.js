@@ -1,9 +1,7 @@
 /**
  * 用户管理逻辑
  */
-const { createApp } = Vue;
-
-const app = createApp({
+const app = Vue.createApp({
     data() {
         return {
             loading: false,

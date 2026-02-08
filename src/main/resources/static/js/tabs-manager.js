@@ -310,6 +310,8 @@ const TabsManager = {
             tabs.splice(index, 1);
             this.saveTabs(tabs);
             console.log('📌 [TabsManager] closeTab - 删除后的标签页:', tabs.map(t => ({ key: t.key, title: t.title })));
+            window.dispatchEvent(new CustomEvent('tab-close', { detail: { closedKeys: [tabKey] } }));
+
 
             // 如果关闭的是当前标签页，需要切换到其他标签页
             if (currentTab === tabKey) {
@@ -379,6 +381,10 @@ const TabsManager = {
             const targetTab = tabs.find(tab => tab.key === tabKey);
 
             if (targetTab) {
+                const closedKeys = tabs
+                    .filter(tab => tab.key !== 'home' && tab.key !== tabKey)
+                    .map(tab => tab.key);
+
                 // 保留首页和目标标签页
                 const tabsToKeep = [this.homeTab];
                 if (tabKey !== 'home') {
@@ -386,6 +392,9 @@ const TabsManager = {
                 }
                 this.saveTabs(tabsToKeep);
                 this.saveCurrentTab(tabKey);
+                if (closedKeys.length > 0) {
+                    window.dispatchEvent(new CustomEvent('tab-close', { detail: { closedKeys } }));
+                }
                 // 触发切换事件（SPA模式下不跳转）
                 window.dispatchEvent(new CustomEvent('tab-switch', { detail: { tabKey } }));
             }
@@ -402,9 +411,15 @@ const TabsManager = {
      * 关闭所有可关闭的标签页
      */
     closeAllTabs() {
+        const tabs = this.getTabs();
+        const closedKeys = tabs.filter(tab => tab.key !== 'home').map(tab => tab.key);
+
         // 只保留首页
         this.saveTabs([this.homeTab]);
         this.saveCurrentTab('home');
+        if (closedKeys.length > 0) {
+            window.dispatchEvent(new CustomEvent('tab-close', { detail: { closedKeys } }));
+        }
         // 触发切换事件（SPA模式下不跳转）
         window.dispatchEvent(new CustomEvent('tab-switch', { detail: { tabKey: 'home' } }));
     },

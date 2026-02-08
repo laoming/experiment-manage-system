@@ -1,9 +1,8 @@
 /**
  * 课程管理列表逻辑
  */
-const { createApp } = Vue;
 
-const app = createApp({
+const app = Vue.createApp({
     data() {
         return {
             loading: false,
@@ -47,6 +46,22 @@ const app = createApp({
         };
     },
 
+    computed: {
+        /**
+         * 获取可用用户列表
+         */
+        availableUsers() {
+            return (this.userList || []).filter(user => !this.boundUserIds.includes(user.id));
+        },
+
+        /**
+         * 获取可用模板列表
+         */
+        availableTemplates() {
+            return (this.templateList || []).filter(template => !this.boundTemplateIds.includes(template.id));
+        }
+    },
+
     mounted() {
         // 先确保应用挂载成功，再执行数据加载
         this.$nextTick(() => {
@@ -66,12 +81,14 @@ const app = createApp({
          * 加载数据
          */
         async loadData() {
+            this.pageError = null;
             // 检查登录状态
             const token = Auth.getToken();
             if (!token) {
                 console.warn('未登录，不执行数据加载');
                 return;
             }
+
 
             try {
                 // 并行加载所有基础数据
@@ -543,19 +560,7 @@ const app = createApp({
             this.selectedTemplateIds.push(templateId);
         },
 
-        /**
-         * 获取可用用户列表
-         */
-        get availableUsers() {
-            return (this.userList || []).filter(user => !this.boundUserIds.includes(user.id));
-        },
 
-        /**
-         * 获取可用模板列表
-         */
-        get availableTemplates() {
-            return (this.templateList || []).filter(template => !this.boundTemplateIds.includes(template.id));
-        },
 
         /**
          * 根据创建者ID获取创建者名称

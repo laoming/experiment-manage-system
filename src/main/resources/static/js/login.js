@@ -1,9 +1,9 @@
 /**
  * 登录页面逻辑
  */
-const { createApp } = Vue;
+const { createApp: createLoginApp } = Vue;
 
-createApp({
+createLoginApp({
     data() {
         return {
             username: '',

@@ -19,7 +19,8 @@
         <div class="main-content">
             <div class="container">
                 <!-- 首页内容 -->
-                <div v-if="currentTabKey === 'home' && !currentTabContent">
+                <div v-show="currentTabKey === 'home' && !currentTabContent">
+
                     <!-- 欢迎区域 -->
                     <div class="welcome-section">
                         <h1 class="welcome-title">欢迎使用实验管理系统</h1>
@@ -93,7 +94,8 @@
                 </div>
 
                 <!-- 标签页内容区域 -->
-                <div v-else id="tab-content-area" class="tab-content-area">
+                <div v-show="currentTabKey !== 'home' || currentTabContent" id="tab-content-area" class="tab-content-area">
+
                     <!-- 加载状态 -->
                     <div v-if="loadingTab" class="loading">
                         <div class="loading-spinner"></div>
@@ -110,7 +112,7 @@
                     </div>
 
                     <!-- 内容显示 -->
-                    <div v-else-if="currentTabContent" class="tab-content-embed" v-html="currentTabContent" :key="currentTabKey"></div>
+                    <div v-show="!loadingTab && !tabError" ref="tabContentEmbed" class="tab-content-embed"></div>
                 </div>
             </div>
         </div>

@@ -4,9 +4,7 @@ let currentReport = null;
 let reportComponents = [];
 let currentTemplateId = null;
 
-const { createApp } = Vue;
-
-const app = createApp({
+const app = Vue.createApp({
     data() {
         return {
             showUserProfileModal: false,
