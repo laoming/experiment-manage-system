@@ -1,6 +1,5 @@
 -- 创建数据库
-CREATE
-DATABASE ems;
+CREATE DATABASE ems;
 -- 使用数据库
 USE ems;
 
