@@ -1,3 +1,8 @@
+/* Vue v-cloak 防止模板闪烁 */
+[v-cloak] {
+    display: none !important;
+}
+
 /* 公共样式 - 导航栏 */
 .header {
     background: white;
