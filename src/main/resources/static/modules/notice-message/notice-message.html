@@ -1,0 +1,68 @@
+<link rel="stylesheet" href="/ems/modules/notice-message/notice-message.css">
+
+<div class="main-content">
+    <!-- 页面标题 -->
+    <div class="page-header" v-if="!pageError">
+        <h1 class="page-title">公告与消息</h1>
+        <p class="page-subtitle">查看系统公告与我的待办消息</p>
+    </div>
+
+    <div class="message-grid">
+        <!-- 公告列表 -->
+        <div class="message-card">
+            <div class="card-header">
+                <h2>最新公告</h2>
+                <button class="refresh-btn" @click="fetchNotices">刷新</button>
+            </div>
+            <div v-if="noticeLoading" class="loading">
+                <div class="loading-spinner"></div>
+                <p>加载中...</p>
+            </div>
+            <div v-else class="message-list">
+                <div v-if="noticeList.length === 0" class="empty-state">
+                    <div class="empty-icon">📭</div>
+                    <p>暂无公告</p>
+                </div>
+                <div v-for="notice in noticeList" :key="notice.id" class="message-item">
+                    <div class="message-title">{{ notice.title }}</div>
+                    <div class="message-content">{{ notice.content }}</div>
+                    <div class="message-meta">
+                        <span>{{ notice.creatorName || '系统' }}</span>
+                        <span>{{ formatDateTime(notice.createTime) }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 待办列表 -->
+        <div class="message-card">
+            <div class="card-header">
+                <h2>我的待办</h2>
+                <button class="refresh-btn" @click="fetchTodos">刷新</button>
+            </div>
+            <div v-if="todoLoading" class="loading">
+                <div class="loading-spinner"></div>
+                <p>加载中...</p>
+            </div>
+            <div v-else class="message-list">
+                <div v-if="todoList.length === 0" class="empty-state">
+                    <div class="empty-icon">✅</div>
+                    <p>暂无待办</p>
+                </div>
+                <div v-for="todo in todoList" :key="todo.id" class="message-item">
+                    <div class="message-title">{{ todo.title }}</div>
+                    <div class="message-content">{{ todo.content }}</div>
+                    <div class="message-meta">
+                        <span>创建人：{{ todo.creatorName || '-' }}</span>
+                        <span>{{ formatDateTime(todo.createTime) }}</span>
+                    </div>
+                    <div class="todo-actions">
+                        <button class="btn-complete" @click="completeTodo(todo)">完成</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/ems/modules/notice-message/notice-message.js"></script>

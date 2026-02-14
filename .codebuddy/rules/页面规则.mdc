@@ -2,7 +2,7 @@
 description: 
 alwaysApply: true
 enabled: true
-updatedAt: 2026-02-08T16:51:20.794Z
+updatedAt: 2026-02-13T17:44:58.748Z
 provider: 
 ---
 
@@ -12,4 +12,4 @@ provider:
 
 前端代码结构：
 1. common 文件夹存储全项目通用、无业务关联的公共代码。
-2. modules 文件夹存储业务代码。
+2. modules 文件夹存储业务代码，一个页面菜单一个子文件夹。

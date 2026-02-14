@@ -1,0 +1,136 @@
+<link rel="stylesheet" href="/ems/modules/organization/organization.css">
+
+<div class="main-content">
+    <!-- 页面标题 -->
+    <div class="page-header">
+        <h1 class="page-title">组织管理</h1>
+        <p class="page-subtitle">管理系统组织，包括组织添加、编辑、删除</p>
+    </div>
+
+    <!-- 搜索和操作栏 -->
+    <div class="toolbar">
+        <div class="search-box">
+            <input
+                v-model="queryForm.orgName"
+                type="text"
+                class="search-input"
+                placeholder="输入组织名称搜索"
+            >
+            <input
+                v-model="queryForm.orgCode"
+                type="text"
+                class="search-input"
+                placeholder="输入组织编码搜索"
+            >
+            <button class="btn btn-primary" @click="handleSearch">
+                <span>🔍</span>
+                <span>搜索</span>
+            </button>
+            <button class="btn btn-secondary" @click="handleReset">
+                <span>↺</span>
+                <span>重置</span>
+            </button>
+        </div>
+        <div class="action-box">
+            <button class="btn btn-success" @click="openAddModal">
+                <span>+</span>
+                <span>新增组织</span>
+            </button>
+            <button class="btn btn-info" @click="openEditModal" :disabled="!selectedOrg">
+                <span>✏️</span>
+                <span>编辑组织</span>
+            </button>
+            <button class="btn btn-danger" @click="handleDelete" :disabled="!selectedOrg">
+                <span>🗑️</span>
+                <span>删除组织</span>
+            </button>
+            <button class="btn btn-primary" @click="expandAll">
+                <span>📂</span>
+                <span>展开全部</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- 组织树列表 -->
+    <div class="tree-container">
+        <div v-if="loading" class="loading">
+            <div class="loading-spinner"></div>
+            <p>加载中...</p>
+        </div>
+        <div v-else-if="orgTree.length === 0" class="empty-content">
+            <div class="empty-icon">📭</div>
+            <p>暂无数据</p>
+        </div>
+        <div v-else class="org-tree">
+            <tree-item
+                v-for="node in orgTree"
+                :key="node.id"
+                :node="node"
+                :selected-org="selectedOrg"
+                :expanded-all="expandedAll"
+                @select="selectOrg"
+            ></tree-item>
+        </div>
+    </div>
+
+    <!-- 组织编辑弹窗 -->
+    <div class="modal-overlay" v-show="showOrgModal" style="display: none;" @click.self="closeOrgModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>{{ orgModalMode === 'add' ? '新增组织' : '编辑组织' }}</h2>
+                <button class="modal-close" @click="closeOrgModal">✕</button>
+            </div>
+            <div class="modal-body">
+                <form @submit.prevent="handleOrgSubmit">
+                    <div class="form-group">
+                        <label class="form-label">上级组织</label>
+                        <select v-model="orgForm.parentId" class="form-input" :disabled="orgModalMode === 'edit'">
+                            <option value="">请选择上级组织（不选则创建根组织）</option>
+                            <option v-for="org in parentOrgList" :key="org.id" :value="org.id">
+                                {{ org.fullPath }}
+                            </option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">组织名称 <span class="required">*</span></label>
+                        <input
+                            v-model="orgForm.orgName"
+                            type="text"
+                            class="form-input"
+                            placeholder="请输入组织名称"
+                        >
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">组织编码 <span class="required">*</span></label>
+                        <input
+                            v-model="orgForm.orgCode"
+                            type="text"
+                            class="form-input"
+                            placeholder="请输入组织编码"
+                            :disabled="orgModalMode === 'edit'"
+                        >
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">组织描述</label>
+                        <textarea
+                            v-model="orgForm.description"
+                            class="form-input"
+                            placeholder="请输入组织描述"
+                            rows="4"
+                        ></textarea>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" @click="closeOrgModal">
+                            取消
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            确定
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/ems/modules/organization/organization.js"></script>

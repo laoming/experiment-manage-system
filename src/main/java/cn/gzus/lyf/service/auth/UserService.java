@@ -2,10 +2,12 @@ package cn.gzus.lyf.service.auth;
 
 import cn.gzus.lyf.common.constant.UserStatusEnum;
 import cn.gzus.lyf.common.dto.PageDto;
+import cn.gzus.lyf.common.dto.SimpleUserDto;
 import cn.gzus.lyf.common.dto.UserDto;
 import cn.gzus.lyf.common.dto.UserQueryDto;
 import cn.gzus.lyf.dao.*;
 import cn.gzus.lyf.dao.entity.*;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -161,5 +163,21 @@ public class UserService implements UserDetailsService {
      */
     public PageDto<UserEntity> getUserPage(int current, int size, UserQueryDto userQueryDto) {
         return userDAO.getUserPage(current, size, userQueryDto);
+    }
+
+    /**
+     * 获取简单用户列表（仅包含ID、用户名、显示名称）
+     */
+    public List<SimpleUserDto> getSimpleUserList() {
+        List<UserEntity> userList = userDAO.list(Wrappers.<UserEntity>lambdaQuery()
+                .select(UserEntity::getId, UserEntity::getUsername, UserEntity::getDisplayName)
+                .orderByAsc(UserEntity::getUsername));
+        return userList.stream().map(user -> {
+            SimpleUserDto dto = new SimpleUserDto();
+            dto.setId(user.getId());
+            dto.setUsername(user.getUsername());
+            dto.setDisplayName(user.getDisplayName());
+            return dto;
+        }).collect(Collectors.toList());
     }
 }

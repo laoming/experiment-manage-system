@@ -1,0 +1,305 @@
+<link rel="stylesheet" href="/ems/modules/notice-manage/notice-manage.css">
+
+<div class="main-content">
+    <!-- 页面标题 -->
+    <div class="page-header" v-if="!pageError">
+        <h1 class="page-title">通知与公告管理</h1>
+        <p class="page-subtitle">发布系统公告与指定用户待办</p>
+    </div>
+
+    <!-- 标签切换 -->
+    <div class="tab-bar">
+        <button class="tab-btn" :class="{ active: activeTab === 'notice' }" @click="switchTab('notice')">
+            公告管理
+        </button>
+        <button class="tab-btn" :class="{ active: activeTab === 'todo' }" @click="switchTab('todo')">
+            待办管理
+        </button>
+    </div>
+
+    <!-- 公告管理 -->
+    <div v-show="activeTab === 'notice'">
+        <div class="toolbar">
+            <div class="search-box">
+                <input
+                    v-model="noticeQueryForm.title"
+                    type="text"
+                    class="search-input"
+                    placeholder="输入公告标题搜索"
+                >
+                <button class="btn btn-primary" @click="handleNoticeSearch">
+                    <span>🔍</span>
+                    <span>搜索</span>
+                </button>
+                <button class="btn btn-secondary" @click="handleNoticeReset">
+                    <span>↺</span>
+                    <span>重置</span>
+                </button>
+            </div>
+            <button class="btn btn-success" @click="openNoticeModal">
+                <span>+</span>
+                <span>发布公告</span>
+            </button>
+        </div>
+
+        <div class="table-container">
+            <div v-if="noticeLoading" class="loading">
+                <div class="loading-spinner"></div>
+                <p>加载中...</p>
+            </div>
+            <table v-else class="notice-table">
+                <thead>
+                    <tr>
+                        <th>序号</th>
+                        <th>标题</th>
+                        <th>内容</th>
+                        <th>发布人</th>
+                        <th>创建时间</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-if="noticeList.length === 0">
+                        <td colspan="6" class="empty-cell">
+                            <div class="empty-content">
+                                <div class="empty-icon">📭</div>
+                                <p>暂无数据</p>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr v-for="(notice, index) in noticeList" :key="notice.id">
+                        <td>{{ (noticePagination.current - 1) * noticePagination.size + index + 1 }}</td>
+                        <td class="text-strong">{{ notice.title }}</td>
+                        <td class="text-muted">{{ notice.content }}</td>
+                        <td>{{ notice.creatorName }}</td>
+                        <td>{{ formatDateTime(notice.createTime) }}</td>
+                        <td class="actions">
+                            <button class="action-btn btn-delete" @click="handleDeleteNotice(notice)">
+                                <span>🗑️</span>
+                                删除
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pagination" v-if="noticeList.length > 0">
+            <button
+                class="pagination-btn"
+                :disabled="noticePagination.current === 1"
+                @click="handleNoticePageChange(noticePagination.current - 1)"
+            >
+                上一页
+            </button>
+            <span class="pagination-info">
+                第 {{ noticePagination.current }} / {{ noticePagination.pages }} 页
+                <span class="pagination-total">共 {{ noticePagination.total }} 条记录</span>
+            </span>
+            <button
+                class="pagination-btn"
+                :disabled="noticePagination.current >= noticePagination.pages"
+                @click="handleNoticePageChange(noticePagination.current + 1)"
+            >
+                下一页
+            </button>
+        </div>
+    </div>
+
+    <!-- 待办管理 -->
+    <div v-show="activeTab === 'todo'">
+        <div class="toolbar">
+            <div class="search-box">
+                <input
+                    v-model="todoQueryForm.title"
+                    type="text"
+                    class="search-input"
+                    placeholder="输入待办标题搜索"
+                >
+                <select v-model="todoQueryForm.receiverId" class="search-select">
+                    <option value="">全部用户</option>
+                    <option v-for="user in userOptions" :key="user.id" :value="user.id">
+                        {{ user.displayName || user.username }}
+                    </option>
+                </select>
+                <select v-model="todoQueryForm.status" class="search-select">
+                    <option :value="null">全部状态</option>
+                    <option :value="0">未完成</option>
+                    <option :value="1">已完成</option>
+                </select>
+                <button class="btn btn-primary" @click="handleTodoSearch">
+                    <span>🔍</span>
+                    <span>搜索</span>
+                </button>
+                <button class="btn btn-secondary" @click="handleTodoReset">
+                    <span>↺</span>
+                    <span>重置</span>
+                </button>
+            </div>
+            <button class="btn btn-success" @click="openTodoModal">
+                <span>+</span>
+                <span>创建待办</span>
+            </button>
+        </div>
+
+        <div class="table-container">
+            <div v-if="todoLoading" class="loading">
+                <div class="loading-spinner"></div>
+                <p>加载中...</p>
+            </div>
+            <table v-else class="todo-table">
+                <thead>
+                    <tr>
+                        <th>序号</th>
+                        <th>标题</th>
+                        <th>内容</th>
+                        <th>接收人</th>
+                        <th>状态</th>
+                        <th>创建时间</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-if="todoList.length === 0">
+                        <td colspan="7" class="empty-cell">
+                            <div class="empty-content">
+                                <div class="empty-icon">📭</div>
+                                <p>暂无数据</p>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr v-for="(todo, index) in todoList" :key="todo.id">
+                        <td>{{ (todoPagination.current - 1) * todoPagination.size + index + 1 }}</td>
+                        <td class="text-strong">{{ todo.title }}</td>
+                        <td class="text-muted">{{ todo.content }}</td>
+                        <td>{{ todo.receiverName }}</td>
+                        <td>
+                            <span class="status-badge" :class="getTodoStatusClass(todo.status)">
+                                {{ getTodoStatusText(todo.status) }}
+                            </span>
+                        </td>
+                        <td>{{ formatDateTime(todo.createTime) }}</td>
+                        <td class="actions">
+                            <button class="action-btn btn-delete" @click="handleDeleteTodo(todo)">
+                                <span>🗑️</span>
+                                删除
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pagination" v-if="todoList.length > 0">
+            <button
+                class="pagination-btn"
+                :disabled="todoPagination.current === 1"
+                @click="handleTodoPageChange(todoPagination.current - 1)"
+            >
+                上一页
+            </button>
+            <span class="pagination-info">
+                第 {{ todoPagination.current }} / {{ todoPagination.pages }} 页
+                <span class="pagination-total">共 {{ todoPagination.total }} 条记录</span>
+            </span>
+            <button
+                class="pagination-btn"
+                :disabled="todoPagination.current >= todoPagination.pages"
+                @click="handleTodoPageChange(todoPagination.current + 1)"
+            >
+                下一页
+            </button>
+        </div>
+    </div>
+
+    <!-- 发布公告弹窗 -->
+    <div class="modal-overlay" v-show="showNoticeModal" style="display: none;" @click.self="closeNoticeModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>发布公告</h2>
+                <button class="modal-close" @click="closeNoticeModal">✕</button>
+            </div>
+            <div class="modal-body">
+                <form @submit.prevent="handleNoticeSubmit">
+                    <div class="form-group">
+                        <label class="form-label">公告标题 <span class="required">*</span></label>
+                        <input
+                            v-model="noticeForm.title"
+                            type="text"
+                            class="form-input"
+                            placeholder="请输入公告标题"
+                        >
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">公告内容 <span class="required">*</span></label>
+                        <textarea
+                            v-model="noticeForm.content"
+                            class="form-textarea"
+                            placeholder="请输入公告内容"
+                            rows="5"
+                        ></textarea>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" @click="closeNoticeModal">
+                            取消
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            发布
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 创建待办弹窗 -->
+    <div class="modal-overlay" v-show="showTodoModal" style="display: none;" @click.self="closeTodoModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>创建待办</h2>
+                <button class="modal-close" @click="closeTodoModal">✕</button>
+            </div>
+            <div class="modal-body">
+                <form @submit.prevent="handleTodoSubmit">
+                    <div class="form-group">
+                        <label class="form-label">待办标题 <span class="required">*</span></label>
+                        <input
+                            v-model="todoForm.title"
+                            type="text"
+                            class="form-input"
+                            placeholder="请输入待办标题"
+                        >
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">接收人 <span class="required">*</span></label>
+                        <select v-model="todoForm.receiverId" class="form-input">
+                            <option value="">请选择用户</option>
+                            <option v-for="user in userOptions" :key="user.id" :value="user.id">
+                                {{ user.displayName || user.username }}
+                            </option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">待办内容 <span class="required">*</span></label>
+                        <textarea
+                            v-model="todoForm.content"
+                            class="form-textarea"
+                            placeholder="请输入待办内容"
+                            rows="5"
+                        ></textarea>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" @click="closeTodoModal">
+                            取消
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            创建
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/ems/modules/notice-manage/notice-manage.js"></script>
