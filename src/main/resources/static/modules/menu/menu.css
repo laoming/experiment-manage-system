@@ -115,7 +115,7 @@
     background: white;
     border-radius: 12px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
+    overflow-x: auto;
     margin-bottom: 24px;
 }
 
@@ -142,6 +142,7 @@
 
 .menu-table {
     width: 100%;
+    min-width: 1000px;
     border-collapse: collapse;
 }
 
@@ -156,6 +157,54 @@
     font-weight: 600;
     color: #333;
     font-size: 14px;
+}
+
+.menu-table th:nth-child(1),
+.menu-table td:nth-child(1) {
+    width: 60px;
+    text-align: center;
+}
+
+.menu-table th:nth-child(2),
+.menu-table td:nth-child(2) {
+    min-width: 120px;
+    white-space: nowrap;
+}
+
+.menu-table th:nth-child(3),
+.menu-table td:nth-child(3) {
+    min-width: 100px;
+    white-space: nowrap;
+}
+
+.menu-table th:nth-child(4),
+.menu-table td:nth-child(4) {
+    min-width: 150px;
+}
+
+.menu-table th:nth-child(5),
+.menu-table td:nth-child(5) {
+    width: 80px;
+    text-align: center;
+}
+
+.menu-table th:nth-child(6),
+.menu-table td:nth-child(6) {
+    width: 60px;
+    text-align: center;
+}
+
+.menu-table th:nth-child(7),
+.menu-table td:nth-child(7),
+.menu-table th:nth-child(8),
+.menu-table td:nth-child(8) {
+    width: 150px;
+    white-space: nowrap;
+}
+
+.menu-table th:nth-child(9),
+.menu-table td:nth-child(9) {
+    width: 160px;
 }
 
 .menu-table td {
