@@ -18,14 +18,16 @@ CREATE TABLE course_user_relation
     id        VARCHAR(64) PRIMARY KEY COMMENT '主键ID',
     course_id VARCHAR(64) NOT NULL COMMENT '课程ID',
     user_id   VARCHAR(64) NOT NULL COMMENT '用户ID',
-    UNIQUE KEY (course_id, user_id)
+    user_type INT DEFAULT 2 NOT NULL COMMENT '用户类型：1-管理者，2-普通用户（学生）',
+    UNIQUE KEY (course_id, user_id),
+    INDEX idx_user_type (user_type)
 ) COMMENT '课程-用户关联表';
 
 -- 课程-实验模板关联表
 CREATE TABLE course_template_relation
 (
-    id         VARCHAR(64) PRIMARY KEY COMMENT '主键ID',
-    course_id  VARCHAR(64) NOT NULL COMMENT '课程ID',
+    id          VARCHAR(64) PRIMARY KEY COMMENT '主键ID',
+    course_id   VARCHAR(64) NOT NULL COMMENT '课程ID',
     template_id VARCHAR(64) NOT NULL COMMENT '实验模板ID',
     UNIQUE KEY (course_id, template_id)
 ) COMMENT '课程-实验模板关联表';

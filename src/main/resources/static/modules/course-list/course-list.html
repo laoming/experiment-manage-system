@@ -1,14 +1,22 @@
 <link rel="stylesheet" href="/ems/modules/course-list/course-list.css">
 
 <div class="main-content" v-cloak>
+    <!-- 页面错误提示 -->
+    <div v-if="pageError && !loading" class="page-error">
+        <div class="error-icon">⚠️</div>
+        <h2>页面加载出错</h2>
+        <p>{{ pageError }}</p>
+        <button class="btn btn-primary" @click="loadData">重新加载</button>
+    </div>
+
     <!-- 页面标题 -->
-    <div class="page-header">
+    <div class="page-header" v-else>
         <h1 class="page-title">课程管理</h1>
-        <p class="page-subtitle">管理系统课程信息，包括课程的创建、编辑、查看和删除</p>
+        <p class="page-subtitle">管理系统课程信息，包括课程的创建、编辑、查看和删除。管理者可以管理课程，但只有创建者可以删除课程。</p>
     </div>
 
     <!-- 搜索和操作栏 -->
-    <div class="toolbar">
+    <div class="toolbar" v-if="!pageError">
         <div class="search-box">
             <input
                 v-model="queryForm.courseName"
@@ -32,7 +40,7 @@
     </div>
 
     <!-- 课程列表 -->
-    <div class="table-container">
+    <div class="table-container" v-if="!pageError">
         <div v-if="loading" class="loading">
             <div class="loading-spinner"></div>
             <p>加载中...</p>
@@ -44,10 +52,10 @@
                     <th>课程名称</th>
                     <th>简介</th>
                     <th>创建者</th>
+                    <th>管理者</th>
                     <th>学生人数</th>
                     <th>实验模板数</th>
                     <th>创建时间</th>
-                    <th>更新时间</th>
                     <th>操作</th>
                 </tr>
             </thead>
@@ -70,13 +78,15 @@
                     </td>
                     <td>{{ getCreatorName(course.creatorId) }}</td>
                     <td>
+                        <span class="badge badge-admin">{{ getAdminCount(course.id) }} 人</span>
+                    </td>
+                    <td>
                         <span class="badge">{{ getStudentCount(course.id) }} 人</span>
                     </td>
                     <td>
                         <span class="badge">{{ getTemplateCount(course.id) }} 个</span>
                     </td>
                     <td>{{ formatDateTime(course.createTime) }}</td>
-                    <td>{{ formatDateTime(course.updateTime) }}</td>
                     <td class="actions">
                         <button class="action-btn btn-view" @click="openViewModal(course)">
                             <span>👁️</span>
@@ -101,7 +111,7 @@
     </div>
 
     <!-- 分页 -->
-    <div class="pagination" v-if="courseList.length > 0">
+    <div class="pagination" v-if="courseList.length > 0 && !pageError">
         <button
             class="pagination-btn"
             :disabled="pagination.current === 1"
@@ -123,7 +133,7 @@
     </div>
 
     <!-- 新增/编辑课程弹窗 -->
-    <div class="modal-overlay" v-show="showFormModal" style="display: none;" @click.self="closeFormModal">
+    <div class="modal-overlay" v-show="showFormModal && !pageError" style="display: none;" @click.self="closeFormModal">
         <div class="modal-content">
             <div class="modal-header">
                 <h2>{{ isEditMode ? '编辑课程' : '新增课程' }}</h2>
@@ -166,7 +176,7 @@
     </div>
 
     <!-- 查看课程弹窗 -->
-    <div class="modal-overlay" v-show="showViewModal" style="display: none;" @click.self="closeViewModal">
+    <div class="modal-overlay" v-show="showViewModal && !pageError" style="display: none;" @click.self="closeViewModal">
         <div class="modal-content">
             <div class="modal-header">
                 <h2>查看课程</h2>
@@ -180,6 +190,10 @@
                 <div class="view-item">
                     <label class="view-label">创建者：</label>
                     <span class="view-value">{{ getCreatorName(currentCourse.creatorId) }}</span>
+                </div>
+                <div class="view-item">
+                    <label class="view-label">管理者人数：</label>
+                    <span class="view-value">{{ getAdminCount(currentCourse.id) }} 人</span>
                 </div>
                 <div class="view-item">
                     <label class="view-label">学生人数：</label>
@@ -211,20 +225,27 @@
     </div>
 
     <!-- 绑定管理弹窗 -->
-    <div class="modal-overlay" v-show="showBindModal" style="display: none;" @click.self="closeBindModal">
+    <div class="modal-overlay" v-show="showBindModal && !pageError" style="display: none;" @click.self="closeBindModal">
         <div class="modal-content modal-large">
             <div class="modal-header">
-                <h2>绑定管理</h2>
+                <h2>绑定管理 - {{ currentBindCourse ? currentBindCourse.courseName : '' }}</h2>
                 <button class="modal-close" @click="closeBindModal">✕</button>
             </div>
             <div class="modal-body">
                 <div class="bind-tabs">
                     <button
                         class="bind-tab"
-                        :class="{ active: bindTab === 'user' }"
-                        @click="bindTab = 'user'"
+                        :class="{ active: bindTab === 'admin' }"
+                        @click="bindTab = 'admin'"
                     >
-                        绑定学生
+                        管理管理者
+                    </button>
+                    <button
+                        class="bind-tab"
+                        :class="{ active: bindTab === 'student' }"
+                        @click="bindTab = 'student'"
+                    >
+                        管理学生
                     </button>
                     <button
                         class="bind-tab"
@@ -235,41 +256,95 @@
                     </button>
                 </div>
 
-                <!-- 绑定学生 -->
-                <div v-if="bindTab === 'user'" class="bind-content">
+                <!-- 管理管理者 -->
+                <div v-if="bindTab === 'admin'" class="bind-content">
                     <div class="bind-section">
-                        <h3>可绑定的学生</h3>
+                        <h3>可添加的管理者</h3>
                         <div class="select-list">
                             <div
-                                v-for="user in availableUsers"
+                                v-for="user in availableAdmins"
                                 :key="user.id"
                                 class="select-item"
-                                :class="{ selected: selectedUserIds.includes(user.id) }"
-                                @click="toggleUserSelection(user.id)"
+                                :class="{ selected: selectedAdminIds.includes(user.id) }"
+                                @click="toggleAdminSelection(user.id)"
                             >
-                                <span class="checkbox" :class="{ checked: selectedUserIds.includes(user.id) }"></span>
+                                <span class="checkbox" :class="{ checked: selectedAdminIds.includes(user.id) }"></span>
                                 <span>{{ user.displayName }}</span>
                             </div>
                         </div>
+                        <div class="bind-actions" v-if="selectedAdminIds.length > 0">
+                            <button type="button" class="btn btn-success btn-sm" @click="addAdmins">
+                                添加选中 ({{ selectedAdminIds.length }})
+                            </button>
+                        </div>
                     </div>
                     <div class="bind-section">
-                        <h3>已绑定的学生 ({{ boundUserIds.length }})</h3>
-                        <div class="selected-list" v-if="boundUserIds.length > 0">
+                        <h3>已绑定的管理者 ({{ boundAdminIds.length }})</h3>
+                        <div class="selected-list" v-if="boundAdminIds.length > 0">
                             <div
-                                v-for="userId in boundUserIds"
+                                v-for="userId in boundAdminIds"
                                 :key="userId"
                                 class="selected-item"
+                                :class="{ selected: selectedAdminIds.includes(userId) }"
+                                @click="toggleAdminSelection(userId)"
                             >
+                                <span class="checkbox" :class="{ checked: selectedAdminIds.includes(userId) }"></span>
                                 <span>{{ getUserName(userId) }}</span>
-                                <button class="btn-remove" @click="removeUser(userId)">✕</button>
+                                <button class="btn-remove" @click.stop="toggleAdminSelection(userId)">✕</button>
+                            </div>
+                        </div>
+                        <div v-else class="empty-text">暂无绑定的管理者</div>
+                        <div class="bind-actions" v-if="selectedAdminIds.length > 0">
+                            <button type="button" class="btn btn-danger btn-sm" @click="removeAdmins">
+                                移除选中 ({{ selectedAdminIds.length }})
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 管理学生 -->
+                <div v-if="bindTab === 'student'" class="bind-content">
+                    <div class="bind-section">
+                        <h3>可添加的学生</h3>
+                        <div class="select-list">
+                            <div
+                                v-for="user in availableStudents"
+                                :key="user.id"
+                                class="select-item"
+                                :class="{ selected: selectedStudentIds.includes(user.id) }"
+                                @click="toggleStudentSelection(user.id)"
+                            >
+                                <span class="checkbox" :class="{ checked: selectedStudentIds.includes(user.id) }"></span>
+                                <span>{{ user.displayName }}</span>
+                            </div>
+                        </div>
+                        <div class="bind-actions" v-if="selectedStudentIds.length > 0">
+                            <button type="button" class="btn btn-success btn-sm" @click="addStudents">
+                                添加选中 ({{ selectedStudentIds.length }})
+                            </button>
+                        </div>
+                    </div>
+                    <div class="bind-section">
+                        <h3>已绑定的学生 ({{ boundStudentIds.length }})</h3>
+                        <div class="selected-list" v-if="boundStudentIds.length > 0">
+                            <div
+                                v-for="userId in boundStudentIds"
+                                :key="userId"
+                                class="selected-item"
+                                :class="{ selected: selectedStudentIds.includes(userId) }"
+                                @click="toggleStudentSelection(userId)"
+                            >
+                                <span class="checkbox" :class="{ checked: selectedStudentIds.includes(userId) }"></span>
+                                <span>{{ getUserName(userId) }}</span>
+                                <button class="btn-remove" @click.stop="toggleStudentSelection(userId)">✕</button>
                             </div>
                         </div>
                         <div v-else class="empty-text">暂无绑定的学生</div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-primary" @click="saveUserBindings">
-                            保存学生绑定
-                        </button>
+                        <div class="bind-actions" v-if="selectedStudentIds.length > 0">
+                            <button type="button" class="btn btn-danger btn-sm" @click="removeStudents">
+                                移除选中 ({{ selectedStudentIds.length }})
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -297,17 +372,20 @@
                                 v-for="templateId in boundTemplateIds"
                                 :key="templateId"
                                 class="selected-item"
+                                :class="{ selected: selectedTemplateIds.includes(templateId) }"
+                                @click="toggleTemplateSelection(templateId)"
                             >
+                                <span class="checkbox" :class="{ checked: selectedTemplateIds.includes(templateId) }"></span>
                                 <span>{{ getTemplateName(templateId) }}</span>
-                                <button class="btn-remove" @click="removeTemplate(templateId)">✕</button>
+                                <button class="btn-remove" @click.stop="toggleTemplateSelection(templateId)">✕</button>
                             </div>
                         </div>
                         <div v-else class="empty-text">暂无绑定的实验模板</div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-primary" @click="saveTemplateBindings">
-                            保存实验模板绑定
-                        </button>
+                        <div class="bind-actions" v-if="selectedTemplateIds.length > 0">
+                            <button type="button" class="btn btn-danger btn-sm" @click="saveTemplateBindings">
+                                解除选中 ({{ selectedTemplateIds.length }})
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

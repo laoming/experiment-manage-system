@@ -9,6 +9,16 @@ import com.baomidou.mybatisplus.annotation.TableName;
 public class CourseUserRelationEntity {
 
     /**
+     * 用户类型：管理者
+     */
+    public static final int USER_TYPE_ADMIN = 1;
+
+    /**
+     * 用户类型：普通用户（学生）
+     */
+    public static final int USER_TYPE_STUDENT = 2;
+
+    /**
      * 主键ID
      */
     private String id;
@@ -22,6 +32,11 @@ public class CourseUserRelationEntity {
      * 用户ID
      */
     private String userId;
+
+    /**
+     * 用户类型：1-管理者，2-普通用户
+     */
+    private Integer userType;
 
     public String getId() {
         return id;
@@ -45,5 +60,13 @@ public class CourseUserRelationEntity {
 
     public void setUserId(String userId) {
         this.userId = userId;
+    }
+
+    public Integer getUserType() {
+        return userType;
+    }
+
+    public void setUserType(Integer userType) {
+        this.userType = userType;
     }
 }

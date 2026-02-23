@@ -1,4 +1,4 @@
-/* 课程管理页面样式 */
+/* 我的课程页面样式 */
 
 /* 确保header-app正确显示 */
 #header-app {
@@ -211,11 +211,6 @@
     font-size: 12px;
 }
 
-.badge-admin {
-    background-color: #fff3e0;
-    color: #f57c00;
-}
-
 /* 操作按钮 */
 .actions {
     display: flex;
@@ -241,33 +236,6 @@
 
 .btn-view:hover {
     background-color: #1976d2;
-}
-
-.btn-edit {
-    background-color: #FF9800;
-    color: white;
-}
-
-.btn-edit:hover {
-    background-color: #f57c00;
-}
-
-.btn-bind {
-    background-color: #9C27B0;
-    color: white;
-}
-
-.btn-bind:hover {
-    background-color: #7b1fa2;
-}
-
-.btn-delete {
-    background-color: #f44336;
-    color: white;
-}
-
-.btn-delete:hover {
-    background-color: #d32f2f;
 }
 
 /* 分页 */
@@ -379,10 +347,6 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.modal-large {
-    max-width: 900px;
-}
-
 .modal-header {
     padding: 20px;
     border-bottom: 1px solid #e0e0e0;
@@ -428,41 +392,6 @@
     gap: 10px;
 }
 
-/* 表单 */
-.form-group {
-    margin-bottom: 20px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 500;
-    color: #333;
-}
-
-.form-group .required {
-    color: #f44336;
-}
-
-.form-control {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 14px;
-    outline: none;
-    transition: border-color 0.3s;
-}
-
-.form-control:focus {
-    border-color: #4CAF50;
-}
-
-textarea.form-control {
-    resize: vertical;
-    min-height: 100px;
-}
-
 /* 查看项 */
 .view-item {
     margin-bottom: 16px;
@@ -484,157 +413,4 @@ textarea.form-control {
     margin: 8px 0 0 0;
     white-space: pre-wrap;
     word-break: break-word;
-}
-
-/* 绑定管理 */
-.bind-tabs {
-    display: flex;
-    border-bottom: 2px solid #e0e0e0;
-    margin-bottom: 20px;
-}
-
-.bind-tab {
-    padding: 12px 24px;
-    background: none;
-    border: none;
-    font-size: 14px;
-    cursor: pointer;
-    color: #666;
-    position: relative;
-}
-
-.bind-tab.active {
-    color: #4CAF50;
-    font-weight: 500;
-}
-
-.bind-tab.active::after {
-    content: '';
-    position: absolute;
-    bottom: -2px;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background-color: #4CAF50;
-}
-
-.bind-content {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-.bind-section {
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    padding: 16px;
-}
-
-.bind-section h3 {
-    margin: 0 0 12px 0;
-    font-size: 16px;
-    font-weight: 600;
-    color: #333;
-}
-
-.select-list,
-.selected-list {
-    max-height: 200px;
-    overflow-y: auto;
-    border: 1px solid #e0e0e0;
-    border-radius: 4px;
-}
-
-.select-item,
-.selected-item {
-    padding: 10px 12px;
-    border-bottom: 1px solid #f0f0f0;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.select-item:hover,
-.selected-item:hover {
-    background-color: #f9f9f9;
-}
-
-.select-item.selected {
-    background-color: #e8f5e9;
-}
-
-.checkbox {
-    display: inline-block;
-    width: 18px;
-    height: 18px;
-    border: 2px solid #ddd;
-    border-radius: 3px;
-    margin-right: 10px;
-    position: relative;
-}
-
-.checkbox.checked {
-    background-color: #4CAF50;
-    border-color: #4CAF50;
-}
-
-.checkbox.checked::after {
-    content: '✓';
-    color: white;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 12px;
-}
-
-.btn-remove {
-    background: none;
-    border: none;
-    color: #f44336;
-    cursor: pointer;
-    padding: 4px 8px;
-    font-size: 14px;
-}
-
-.btn-remove:hover {
-    background-color: #ffebee;
-    border-radius: 4px;
-}
-
-.empty-text {
-    color: #999;
-    text-align: center;
-    padding: 20px;
-}
-
-/* 绑定操作按钮 */
-.bind-actions {
-    margin-top: 12px;
-    display: flex;
-    gap: 10px;
-}
-
-.btn-sm {
-    padding: 6px 12px;
-    font-size: 12px;
-}
-
-.btn-success {
-    background-color: #4CAF50;
-    color: white;
-}
-
-.btn-success:hover {
-    background-color: #45a049;
-}
-
-.btn-danger {
-    background-color: #f44336;
-    color: white;
-}
-
-.btn-danger:hover {
-    background-color: #d32f2f;
 }

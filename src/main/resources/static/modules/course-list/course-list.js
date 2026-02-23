@@ -32,42 +32,85 @@ const app = Vue.createApp({
             currentCourse: {},
             // 绑定弹窗
             showBindModal: false,
-            bindTab: 'user',
+            bindTab: 'admin',
             currentBindCourse: null,
-            selectedUserIds: [],
-            boundUserIds: [],
+            // 管理者相关
+            selectedAdminIds: [],
+            boundAdminIds: [],
+            availableAdminIds: [],
+            // 学生相关
+            selectedStudentIds: [],
+            boundStudentIds: [],
+            // 模板相关
             selectedTemplateIds: [],
             boundTemplateIds: [],
             // 缓存数据
-            courseUserCache: {},
-            courseTemplateCache: {}
+            courseAdminCache: {},
+            courseStudentCache: {},
+            courseTemplateCache: {},
+            // 权限缓存
+            courseCreatorCache: {},
+            // 页面加载状态
+            pageError: null
         };
     },
 
     computed: {
         /**
-         * 获取可用用户列表
+         * 获取可添加为管理者的用户列表
          */
-        availableUsers() {
-            return (this.userList || []).filter(user => !this.boundUserIds.includes(user.id));
+        availableAdmins() {
+            var self = this;
+            return (this.userList || []).filter(function(user) {
+                return !self.boundAdminIds.includes(user.id);
+            });
+        },
+
+        /**
+         * 获取可绑定的学生列表
+         */
+        availableStudents() {
+            var self = this;
+            return (this.userList || []).filter(function(user) {
+                return !self.boundStudentIds.includes(user.id) && !self.boundAdminIds.includes(user.id);
+            });
         },
 
         /**
          * 获取可用模板列表
          */
         availableTemplates() {
-            return (this.templateList || []).filter(template => !this.boundTemplateIds.includes(template.id));
+            var self = this;
+            return (this.templateList || []).filter(function(template) {
+                return !self.boundTemplateIds.includes(template.id);
+            });
         }
     },
 
     mounted() {
-        console.log('[COURSE] 课程管理页面开始加载...');
-        this.checkLogin();
-        this.initPage();
+        this.$nextTick(function() {
+            this.loadData();
+        });
+    },
+
+    errorCaptured: function(err, vm, info) {
+        console.error('Vue组件错误:', err, info);
+        this.pageError = err.message || '页面加载失败';
+        return false;
     },
 
     methods: {
-        async initPage() {
+        /**
+         * 加载数据
+         */
+        loadData: async function() {
+            this.pageError = null;
+            var token = Auth.getToken();
+            if (!token) {
+                console.warn('未登录，不执行数据加载');
+                return;
+            }
+
             try {
                 await Promise.all([
                     this.fetchCreatorList(),
@@ -76,26 +119,15 @@ const app = Vue.createApp({
                     this.fetchCourseList()
                 ]);
             } catch (error) {
-                console.error('[COURSE] 初始化页面失败:', error);
-            }
-        },
-
-        checkLogin() {
-            try {
-                var token = Auth.getToken();
-                if (!token) {
-                    window.location.href = '/ems/common/pages/index.html';
-                }
-            } catch (error) {
-                console.error('[COURSE] 检查登录状态失败:', error);
-                window.location.href = '/ems/common/pages/index.html';
+                console.error('加载数据失败:', error);
+                this.pageError = '加载数据失败，请刷新页面重试';
             }
         },
 
         /**
          * 获取创建者列表
          */
-        async fetchCreatorList() {
+        fetchCreatorList: async function() {
             try {
                 console.log('[COURSE-LIST] 开始获取创建者列表...');
                 var result = await fetch('/user/page?current=1&size=1000', {
@@ -118,9 +150,9 @@ const app = Vue.createApp({
         },
 
         /**
-         * 获取用户列表（用于绑定学生）
+         * 获取用户列表
          */
-        async fetchUserList() {
+        fetchUserList: async function() {
             try {
                 console.log('[COURSE-LIST] 开始获取用户列表...');
                 var result = await fetch('/user/page?current=1&size=1000', {
@@ -143,9 +175,9 @@ const app = Vue.createApp({
         },
 
         /**
-         * 获取实验模板列表（用于绑定）
+         * 获取实验模板列表
          */
-        async fetchTemplateList() {
+        fetchTemplateList: async function() {
             try {
                 console.log('[COURSE-LIST] 开始获取实验模板列表...');
                 var result = await fetch('/experimentTemplate/page?current=1&size=1000', {
@@ -170,11 +202,12 @@ const app = Vue.createApp({
         /**
          * 获取课程列表
          */
-        async fetchCourseList() {
+        fetchCourseList: async function() {
             this.loading = true;
             try {
                 console.log('[COURSE-LIST] 开始获取课程列表...', this.queryForm);
-                var result = await fetch('/course/page?current=' + this.pagination.current + '&size=' + this.pagination.size, {
+                // 课程管理菜单传递 userType=1（管理者）
+                var result = await fetch('/course/page?current=' + this.pagination.current + '&size=' + this.pagination.size + '&userType=1', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -188,11 +221,14 @@ const app = Vue.createApp({
                     this.pagination.total = result.data.total || 0;
                     this.pagination.pages = result.data.pages || 0;
                     
-                    // 获取每个课程的用户和模板绑定情况
+                    // 获取每个课程的管理者、学生和模板绑定情况
                     for (var i = 0; i < this.courseList.length; i++) {
                         var course = this.courseList[i];
-                        this.fetchCourseUserIds(course.id);
+                        this.fetchCourseAdminIds(course.id);
+                        this.fetchCourseStudentIds(course.id);
                         this.fetchCourseTemplateIds(course.id);
+                        // 缓存创建者信息
+                        this.courseCreatorCache[course.id] = course.creatorId;
                     }
                 } else {
                     this.showError('获取课程列表失败: ' + (result.message || '未知错误'));
@@ -206,25 +242,41 @@ const app = Vue.createApp({
         },
 
         /**
-         * 获取课程绑定的用户ID列表
+         * 获取课程的管理者ID列表
          */
-        async fetchCourseUserIds(courseId) {
+        fetchCourseAdminIds: async function(courseId) {
             try {
-                var result = await fetch('/course/getUserIds?courseId=' + courseId, {
+                var result = await fetch('/course/getAdminIds?courseId=' + courseId, {
                     method: 'POST'
                 });
                 if (result.code === 200) {
-                    this.courseUserCache[courseId] = result.data || [];
+                    this.courseAdminCache[courseId] = result.data || [];
                 }
             } catch (error) {
-                console.error('获取课程用户ID列表失败:', error);
+                console.error('获取课程管理者ID列表失败:', error);
+            }
+        },
+
+        /**
+         * 获取课程的学生ID列表
+         */
+        fetchCourseStudentIds: async function(courseId) {
+            try {
+                var result = await fetch('/course/getStudentIds?courseId=' + courseId, {
+                    method: 'POST'
+                });
+                if (result.code === 200) {
+                    this.courseStudentCache[courseId] = result.data || [];
+                }
+            } catch (error) {
+                console.error('获取课程学生ID列表失败:', error);
             }
         },
 
         /**
          * 获取课程绑定的实验模板ID列表
          */
-        async fetchCourseTemplateIds(courseId) {
+        fetchCourseTemplateIds: async function(courseId) {
             try {
                 var result = await fetch('/course/getTemplateIds?courseId=' + courseId, {
                     method: 'POST'
@@ -238,9 +290,20 @@ const app = Vue.createApp({
         },
 
         /**
+         * 检查当前用户是否是课程创建者
+         */
+        isCourseCreator: function(course) {
+            // 从缓存中获取创建者ID
+            var creatorId = this.courseCreatorCache[course.id] || course.creatorId;
+            // 这里假设当前用户ID可以从 Auth 模块获取
+            // 由于前端没有直接获取用户ID的方法，我们通过接口来判断
+            return true; // 暂时返回true，实际权限由后端控制
+        },
+
+        /**
          * 搜索
          */
-        handleSearch() {
+        handleSearch: function() {
             this.pagination.current = 1;
             this.fetchCourseList();
         },
@@ -248,7 +311,7 @@ const app = Vue.createApp({
         /**
          * 重置搜索条件
          */
-        handleReset() {
+        handleReset: function() {
             this.queryForm = {
                 courseName: ''
             };
@@ -259,7 +322,7 @@ const app = Vue.createApp({
         /**
          * 分页变化
          */
-        handlePageChange(page) {
+        handlePageChange: function(page) {
             this.pagination.current = page;
             this.fetchCourseList();
         },
@@ -267,7 +330,7 @@ const app = Vue.createApp({
         /**
          * 打开新增课程弹窗
          */
-        openAddModal() {
+        openAddModal: function() {
             this.isEditMode = false;
             this.formData = {
                 id: '',
@@ -280,7 +343,7 @@ const app = Vue.createApp({
         /**
          * 打开编辑课程弹窗
          */
-        async openEditModal(course) {
+        openEditModal: async function(course) {
             try {
                 console.log('[COURSE-LIST] 获取课程详情:', course.id);
                 var result = await fetch('/course/get?courseId=' + course.id, {
@@ -308,7 +371,7 @@ const app = Vue.createApp({
         /**
          * 提交表单
          */
-        async handleSubmit() {
+        handleSubmit: async function() {
             try {
                 var url = this.isEditMode ? '/course/update' : '/course/add';
                 console.log('[COURSE-LIST] ' + (this.isEditMode ? '更新' : '新增') + '课程:', this.formData);
@@ -338,7 +401,7 @@ const app = Vue.createApp({
         /**
          * 关闭表单弹窗
          */
-        closeFormModal() {
+        closeFormModal: function() {
             this.showFormModal = false;
             this.formData = {
                 id: '',
@@ -350,7 +413,7 @@ const app = Vue.createApp({
         /**
          * 打开查看课程弹窗
          */
-        async openViewModal(course) {
+        openViewModal: async function(course) {
             try {
                 console.log('[COURSE-LIST] 获取课程详情:', course.id);
                 var result = await fetch('/course/get?courseId=' + course.id, {
@@ -373,16 +436,16 @@ const app = Vue.createApp({
         /**
          * 关闭查看弹窗
          */
-        closeViewModal() {
+        closeViewModal: function() {
             this.showViewModal = false;
             this.currentCourse = {};
         },
 
         /**
-         * 删除课程
+         * 删除课程（只有创建者可以删除）
          */
-        async handleDelete(course) {
-            if (!confirm('确定要删除课程 "' + course.courseName + '" 吗？')) {
+        handleDelete: async function(course) {
+            if (!confirm('确定要删除课程 "' + course.courseName + '" 吗？\n注意：只有课程创建者可以删除课程。')) {
                 return;
             }
 
@@ -395,7 +458,7 @@ const app = Vue.createApp({
                     },
                     body: JSON.stringify({ id: course.id })
                 });
-                console.log('[COURSE-LIST] 删除课程成功:', result);
+                console.log('[COURSE-LIST] 删除课程结果:', result);
                 
                 if (result.code === 200) {
                     this.showSuccess('删除课程成功');
@@ -412,17 +475,20 @@ const app = Vue.createApp({
         /**
          * 打开绑定管理弹窗
          */
-        async openBindModal(course) {
+        openBindModal: async function(course) {
             this.currentBindCourse = course;
-            this.bindTab = 'user';
+            this.bindTab = 'admin';
             
-            // 获取已绑定的用户和模板
-            await this.fetchCourseUserIds(course.id);
+            // 获取已绑定的管理者、学生和模板
+            await this.fetchCourseAdminIds(course.id);
+            await this.fetchCourseStudentIds(course.id);
             await this.fetchCourseTemplateIds(course.id);
             
-            this.selectedUserIds = [];
+            this.selectedAdminIds = [];
+            this.selectedStudentIds = [];
             this.selectedTemplateIds = [];
-            this.boundUserIds = [].concat(this.courseUserCache[course.id] || []);
+            this.boundAdminIds = [].concat(this.courseAdminCache[course.id] || []);
+            this.boundStudentIds = [].concat(this.courseStudentCache[course.id] || []);
             this.boundTemplateIds = [].concat(this.courseTemplateCache[course.id] || []);
             
             this.showBindModal = true;
@@ -431,31 +497,45 @@ const app = Vue.createApp({
         /**
          * 关闭绑定管理弹窗
          */
-        closeBindModal() {
+        closeBindModal: function() {
             this.showBindModal = false;
             this.currentBindCourse = null;
-            this.selectedUserIds = [];
-            this.boundUserIds = [];
+            this.selectedAdminIds = [];
+            this.selectedStudentIds = [];
             this.selectedTemplateIds = [];
+            this.boundAdminIds = [];
+            this.boundStudentIds = [];
             this.boundTemplateIds = [];
         },
 
         /**
-         * 切换用户选择
+         * 切换管理者选择
          */
-        toggleUserSelection(userId) {
-            var index = this.selectedUserIds.indexOf(userId);
+        toggleAdminSelection: function(userId) {
+            var index = this.selectedAdminIds.indexOf(userId);
             if (index > -1) {
-                this.selectedUserIds.splice(index, 1);
+                this.selectedAdminIds.splice(index, 1);
             } else {
-                this.selectedUserIds.push(userId);
+                this.selectedAdminIds.push(userId);
+            }
+        },
+
+        /**
+         * 切换学生选择
+         */
+        toggleStudentSelection: function(userId) {
+            var index = this.selectedStudentIds.indexOf(userId);
+            if (index > -1) {
+                this.selectedStudentIds.splice(index, 1);
+            } else {
+                this.selectedStudentIds.push(userId);
             }
         },
 
         /**
          * 切换模板选择
          */
-        toggleTemplateSelection(templateId) {
+        toggleTemplateSelection: function(templateId) {
             var index = this.selectedTemplateIds.indexOf(templateId);
             if (index > -1) {
                 this.selectedTemplateIds.splice(index, 1);
@@ -465,49 +545,146 @@ const app = Vue.createApp({
         },
 
         /**
-         * 保存用户绑定
+         * 添加管理者
          */
-        async saveUserBindings() {
+        addAdmins: async function() {
+            if (this.selectedAdminIds.length === 0) {
+                this.showError('请选择要添加的管理者');
+                return;
+            }
             try {
-                // 解除选中的用户
-                if (this.selectedUserIds.length > 0) {
-                    var unbindResult = await fetch('/course/unbindUsers', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            courseId: this.currentBindCourse.id,
-                            userIds: this.selectedUserIds
-                        })
-                    });
-                    if (unbindResult.code !== 200) {
-                        this.showError('解除用户绑定失败: ' + (unbindResult.message || '未知错误'));
-                        return;
-                    }
-                }
-
-                // 从已绑定列表中移除
-                var self = this;
-                this.boundUserIds = this.boundUserIds.filter(function(id) {
-                    return !self.selectedUserIds.includes(id);
+                var result = await fetch('/course/bindAdmins', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        courseId: this.currentBindCourse.id,
+                        userIds: this.selectedAdminIds
+                    })
                 });
-                this.selectedUserIds = [];
-                
-                this.showSuccess('解除用户绑定成功');
-                await this.fetchCourseList();
+                if (result.code === 200) {
+                    this.showSuccess('添加管理者成功');
+                    // 刷新管理者列表
+                    await this.fetchCourseAdminIds(this.currentBindCourse.id);
+                    this.boundAdminIds = [].concat(this.courseAdminCache[this.currentBindCourse.id] || []);
+                    this.selectedAdminIds = [];
+                } else {
+                    this.showError('添加管理者失败: ' + (result.message || '未知错误'));
+                }
             } catch (error) {
-                console.error('[COURSE-LIST] 保存用户绑定失败:', error);
-                this.showError('保存用户绑定失败: ' + error.message);
+                console.error('[COURSE-LIST] 添加管理者失败:', error);
+                this.showError('添加管理者失败: ' + error.message);
+            }
+        },
+
+        /**
+         * 移除管理者
+         */
+        removeAdmins: async function() {
+            if (this.selectedAdminIds.length === 0) {
+                this.showError('请选择要移除的管理者');
+                return;
+            }
+            try {
+                var result = await fetch('/course/unbindUsers', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        courseId: this.currentBindCourse.id,
+                        userIds: this.selectedAdminIds
+                    })
+                });
+                if (result.code === 200) {
+                    this.showSuccess('移除管理者成功');
+                    // 刷新管理者列表
+                    await this.fetchCourseAdminIds(this.currentBindCourse.id);
+                    this.boundAdminIds = [].concat(this.courseAdminCache[this.currentBindCourse.id] || []);
+                    this.selectedAdminIds = [];
+                } else {
+                    this.showError('移除管理者失败: ' + (result.message || '未知错误'));
+                }
+            } catch (error) {
+                console.error('[COURSE-LIST] 移除管理者失败:', error);
+                this.showError('移除管理者失败: ' + error.message);
+            }
+        },
+
+        /**
+         * 添加学生
+         */
+        addStudents: async function() {
+            if (this.selectedStudentIds.length === 0) {
+                this.showError('请选择要添加的学生');
+                return;
+            }
+            try {
+                var result = await fetch('/course/bindUsers', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        courseId: this.currentBindCourse.id,
+                        userIds: this.selectedStudentIds
+                    })
+                });
+                if (result.code === 200) {
+                    this.showSuccess('添加学生成功');
+                    // 刷新学生列表
+                    await this.fetchCourseStudentIds(this.currentBindCourse.id);
+                    this.boundStudentIds = [].concat(this.courseStudentCache[this.currentBindCourse.id] || []);
+                    this.selectedStudentIds = [];
+                } else {
+                    this.showError('添加学生失败: ' + (result.message || '未知错误'));
+                }
+            } catch (error) {
+                console.error('[COURSE-LIST] 添加学生失败:', error);
+                this.showError('添加学生失败: ' + error.message);
+            }
+        },
+
+        /**
+         * 移除学生
+         */
+        removeStudents: async function() {
+            if (this.selectedStudentIds.length === 0) {
+                this.showError('请选择要移除的学生');
+                return;
+            }
+            try {
+                var result = await fetch('/course/unbindUsers', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        courseId: this.currentBindCourse.id,
+                        userIds: this.selectedStudentIds
+                    })
+                });
+                if (result.code === 200) {
+                    this.showSuccess('移除学生成功');
+                    // 刷新学生列表
+                    await this.fetchCourseStudentIds(this.currentBindCourse.id);
+                    this.boundStudentIds = [].concat(this.courseStudentCache[this.currentBindCourse.id] || []);
+                    this.selectedStudentIds = [];
+                } else {
+                    this.showError('移除学生失败: ' + (result.message || '未知错误'));
+                }
+            } catch (error) {
+                console.error('[COURSE-LIST] 移除学生失败:', error);
+                this.showError('移除学生失败: ' + error.message);
             }
         },
 
         /**
          * 保存模板绑定
          */
-        async saveTemplateBindings() {
+        saveTemplateBindings: async function() {
             try {
-                // 解除选中的模板
                 if (this.selectedTemplateIds.length > 0) {
                     var unbindResult = await fetch('/course/unbindTemplates', {
                         method: 'POST',
@@ -525,7 +702,6 @@ const app = Vue.createApp({
                     }
                 }
 
-                // 从已绑定列表中移除
                 var self = this;
                 this.boundTemplateIds = this.boundTemplateIds.filter(function(id) {
                     return !self.selectedTemplateIds.includes(id);
@@ -541,25 +717,16 @@ const app = Vue.createApp({
         },
 
         /**
-         * 移除用户
-         */
-        removeUser(userId) {
-            this.selectedUserIds.push(userId);
-        },
-
-        /**
          * 移除模板
          */
-        removeTemplate(templateId) {
+        removeTemplate: function(templateId) {
             this.selectedTemplateIds.push(templateId);
         },
-
-
 
         /**
          * 根据创建者ID获取创建者名称
          */
-        getCreatorName(creatorId) {
+        getCreatorName: function(creatorId) {
             if (!creatorId) {
                 return '-';
             }
@@ -570,7 +737,7 @@ const app = Vue.createApp({
         /**
          * 根据用户ID获取用户名称
          */
-        getUserName(userId) {
+        getUserName: function(userId) {
             if (!userId) {
                 return '-';
             }
@@ -581,7 +748,7 @@ const app = Vue.createApp({
         /**
          * 根据模板ID获取模板名称
          */
-        getTemplateName(templateId) {
+        getTemplateName: function(templateId) {
             if (!templateId) {
                 return '-';
             }
@@ -590,23 +757,30 @@ const app = Vue.createApp({
         },
 
         /**
+         * 获取管理者人数
+         */
+        getAdminCount: function(courseId) {
+            return (this.courseAdminCache[courseId] || []).length;
+        },
+
+        /**
          * 获取学生人数
          */
-        getStudentCount(courseId) {
-            return (this.courseUserCache[courseId] || []).length;
+        getStudentCount: function(courseId) {
+            return (this.courseStudentCache[courseId] || []).length;
         },
 
         /**
          * 获取模板数量
          */
-        getTemplateCount(courseId) {
+        getTemplateCount: function(courseId) {
             return (this.courseTemplateCache[courseId] || []).length;
         },
 
         /**
          * 格式化日期时间
          */
-        formatDateTime(dateStr) {
+        formatDateTime: function(dateStr) {
             if (!dateStr) return '-';
             try {
                 var date = new Date(dateStr);
@@ -627,14 +801,14 @@ const app = Vue.createApp({
         /**
          * 显示成功消息
          */
-        showSuccess(message) {
+        showSuccess: function(message) {
             alert('成功: ' + message);
         },
 
         /**
          * 显示错误消息
          */
-        showError(message) {
+        showError: function(message) {
             alert('错误: ' + message);
         }
     }

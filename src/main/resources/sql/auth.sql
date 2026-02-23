@@ -65,6 +65,7 @@ VALUES ('100', '0', '身份管理', 'auth_management', '', 'D', 1),
        ('202', '200', '公告与消息', 'notice_message', '/ems/modules/notice-message/notice-message.html', 'M', 2),
        ('300', '0', '课堂管理', 'class_management', '', 'D', 3),
        ('301', '300', '课程管理', 'course_management', '/ems/modules/course-list/course-list.html', 'M', 1),
+       ('302', '300', '我的课程', 'my_course', '/ems/modules/my-course/my-course.html', 'M', 2),
        ('400', '0', '实验管理', 'experiment_management', '', 'D', 4),
        ('401', '400', '实验模板管理', 'experiment_template_management', '/ems/modules/experiment-template-list/experiment-template-list.html', 'M', 1),
        ('402', '400', '实验报告管理', 'experiment_report_management', '/ems/modules/experiment-report/experiment-report.html', 'M', 2);
@@ -92,21 +93,30 @@ VALUES ('1', '1', '100'),   -- 身份管理（管理员）
        ('7', '1', '300'),   -- 课堂管理
        ('8', '1', '400'),   -- 实验管理
        ('301', '1', '301'), -- 课程管理
+       ('302', '1', '302'), -- 我的课程
        ('401', '1', '401'), -- 实验模板管理
        ('402', '1', '402'), -- 实验报告管理
        ('403', '1', '403'); -- 模板编辑器
 
 -- 为老师分配权限
 INSERT INTO role_menu_relation(id, role_id, menu_id)
-VALUES ('903', '2', '202'), -- 公告与消息
-       ('302', '2', '301'), -- 课程管理
+VALUES ('2001', '2', '200'), -- 系统管理（目录）
+       ('2002', '2', '300'), -- 课堂管理（目录）
+       ('2003', '2', '400'), -- 实验管理（目录）
+       ('903', '2', '202'), -- 公告与消息
+       ('303', '2', '301'), -- 课程管理
+       ('304', '2', '302'), -- 我的课程
        ('404', '2', '401'), -- 实验模板管理
        ('405', '2', '402'), -- 实验报告管理
        ('406', '2', '403'); -- 模板编辑器
 
 -- 为学生分配权限
 INSERT INTO role_menu_relation(id, role_id, menu_id)
-VALUES ('904', '3', '202'), -- 公告与消息
+VALUES ('3001', '3', '200'), -- 系统管理（目录）
+       ('3002', '3', '300'), -- 课堂管理（目录）
+       ('3003', '3', '400'), -- 实验管理（目录）
+       ('904', '3', '202'), -- 公告与消息
+       ('305', '3', '302'), -- 我的课程
        ('407', '3', '402'); -- 实验报告管理
 
 -- 5. 组织表
