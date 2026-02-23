@@ -40,9 +40,7 @@ const app = Vue.createApp({
             boundTemplateIds: [],
             // 缓存数据
             courseUserCache: {},
-            courseTemplateCache: {},
-            // 页面加载状态
-            pageError: null
+            courseTemplateCache: {}
         };
     },
 
@@ -63,35 +61,14 @@ const app = Vue.createApp({
     },
 
     mounted() {
-        // 先确保应用挂载成功，再执行数据加载
-        this.$nextTick(() => {
-            this.loadData();
-        });
-    },
-
-    errorCaptured(err, vm, info) {
-        // 捕获组件错误，防止整个应用崩溃
-        console.error('Vue组件错误:', err, info);
-        this.pageError = err.message || '页面加载失败';
-        return false; // 阻止错误继续向上传播
+        console.log('[COURSE] 课程管理页面开始加载...');
+        this.checkLogin();
+        this.initPage();
     },
 
     methods: {
-        /**
-         * 加载数据
-         */
-        async loadData() {
-            this.pageError = null;
-            // 检查登录状态
-            const token = Auth.getToken();
-            if (!token) {
-                console.warn('未登录，不执行数据加载');
-                return;
-            }
-
-
+        async initPage() {
             try {
-                // 并行加载所有基础数据
                 await Promise.all([
                     this.fetchCreatorList(),
                     this.fetchUserList(),
@@ -99,9 +76,19 @@ const app = Vue.createApp({
                     this.fetchCourseList()
                 ]);
             } catch (error) {
-                console.error('加载数据失败:', error);
-                // 不抛出异常，避免影响页面显示
-                this.pageError = '加载数据失败，请刷新页面重试';
+                console.error('[COURSE] 初始化页面失败:', error);
+            }
+        },
+
+        checkLogin() {
+            try {
+                var token = Auth.getToken();
+                if (!token) {
+                    window.location.href = '/ems/common/pages/index.html';
+                }
+            } catch (error) {
+                console.error('[COURSE] 检查登录状态失败:', error);
+                window.location.href = '/ems/common/pages/index.html';
             }
         },
 
@@ -110,15 +97,15 @@ const app = Vue.createApp({
          */
         async fetchCreatorList() {
             try {
-                console.log('📋 [COURSE-LIST] 开始获取创建者列表...');
-                const result = await fetch('/user/page?current=1&size=1000', {
+                console.log('[COURSE-LIST] 开始获取创建者列表...');
+                var result = await fetch('/user/page?current=1&size=1000', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({})
                 });
-                console.log('✅ [COURSE-LIST] 获取创建者列表成功:', result);
+                console.log('[COURSE-LIST] 获取创建者列表成功:', result);
 
                 if (result.code === 200) {
                     this.creatorList = result.data.records || [];
@@ -126,7 +113,7 @@ const app = Vue.createApp({
                     console.warn('获取创建者列表失败');
                 }
             } catch (error) {
-                console.error('❌ [COURSE-LIST] 获取创建者列表失败:', error);
+                console.error('[COURSE-LIST] 获取创建者列表失败:', error);
             }
         },
 
@@ -135,15 +122,15 @@ const app = Vue.createApp({
          */
         async fetchUserList() {
             try {
-                console.log('📋 [COURSE-LIST] 开始获取用户列表...');
-                const result = await fetch('/user/page?current=1&size=1000', {
+                console.log('[COURSE-LIST] 开始获取用户列表...');
+                var result = await fetch('/user/page?current=1&size=1000', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({})
                 });
-                console.log('✅ [COURSE-LIST] 获取用户列表成功:', result);
+                console.log('[COURSE-LIST] 获取用户列表成功:', result);
 
                 if (result.code === 200) {
                     this.userList = result.data.records || [];
@@ -151,7 +138,7 @@ const app = Vue.createApp({
                     console.warn('获取用户列表失败');
                 }
             } catch (error) {
-                console.error('❌ [COURSE-LIST] 获取用户列表失败:', error);
+                console.error('[COURSE-LIST] 获取用户列表失败:', error);
             }
         },
 
@@ -160,15 +147,15 @@ const app = Vue.createApp({
          */
         async fetchTemplateList() {
             try {
-                console.log('📋 [COURSE-LIST] 开始获取实验模板列表...');
-                const result = await fetch('/experimentTemplate/page?current=1&size=1000', {
+                console.log('[COURSE-LIST] 开始获取实验模板列表...');
+                var result = await fetch('/experimentTemplate/page?current=1&size=1000', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({})
                 });
-                console.log('✅ [COURSE-LIST] 获取实验模板列表成功:', result);
+                console.log('[COURSE-LIST] 获取实验模板列表成功:', result);
 
                 if (result.code === 200) {
                     this.templateList = result.data.records || [];
@@ -176,7 +163,7 @@ const app = Vue.createApp({
                     console.warn('获取实验模板列表失败');
                 }
             } catch (error) {
-                console.error('❌ [COURSE-LIST] 获取实验模板列表失败:', error);
+                console.error('[COURSE-LIST] 获取实验模板列表失败:', error);
             }
         },
 
@@ -186,15 +173,15 @@ const app = Vue.createApp({
         async fetchCourseList() {
             this.loading = true;
             try {
-                console.log('📋 [COURSE-LIST] 开始获取课程列表...', this.queryForm);
-                const result = await fetch(`/course/page?current=${this.pagination.current}&size=${this.pagination.size}`, {
+                console.log('[COURSE-LIST] 开始获取课程列表...', this.queryForm);
+                var result = await fetch('/course/page?current=' + this.pagination.current + '&size=' + this.pagination.size, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify(this.queryForm)
                 });
-                console.log('✅ [COURSE-LIST] 获取课程列表成功:', result);
+                console.log('[COURSE-LIST] 获取课程列表成功:', result);
 
                 if (result.code === 200) {
                     this.courseList = result.data.records || [];
@@ -202,7 +189,8 @@ const app = Vue.createApp({
                     this.pagination.pages = result.data.pages || 0;
                     
                     // 获取每个课程的用户和模板绑定情况
-                    for (const course of this.courseList) {
+                    for (var i = 0; i < this.courseList.length; i++) {
+                        var course = this.courseList[i];
                         this.fetchCourseUserIds(course.id);
                         this.fetchCourseTemplateIds(course.id);
                     }
@@ -210,7 +198,7 @@ const app = Vue.createApp({
                     this.showError('获取课程列表失败: ' + (result.message || '未知错误'));
                 }
             } catch (error) {
-                console.error('❌ [COURSE-LIST] 获取课程列表失败:', error);
+                console.error('[COURSE-LIST] 获取课程列表失败:', error);
                 this.showError('获取课程列表失败: ' + error.message);
             } finally {
                 this.loading = false;
@@ -222,7 +210,7 @@ const app = Vue.createApp({
          */
         async fetchCourseUserIds(courseId) {
             try {
-                const result = await fetch(`/course/getUserIds?courseId=${courseId}`, {
+                var result = await fetch('/course/getUserIds?courseId=' + courseId, {
                     method: 'POST'
                 });
                 if (result.code === 200) {
@@ -238,7 +226,7 @@ const app = Vue.createApp({
          */
         async fetchCourseTemplateIds(courseId) {
             try {
-                const result = await fetch(`/course/getTemplateIds?courseId=${courseId}`, {
+                var result = await fetch('/course/getTemplateIds?courseId=' + courseId, {
                     method: 'POST'
                 });
                 if (result.code === 200) {
@@ -294,11 +282,11 @@ const app = Vue.createApp({
          */
         async openEditModal(course) {
             try {
-                console.log('✏️ [COURSE-LIST] 获取课程详情:', course.id);
-                const result = await fetch(`/course/get?courseId=${course.id}`, {
+                console.log('[COURSE-LIST] 获取课程详情:', course.id);
+                var result = await fetch('/course/get?courseId=' + course.id, {
                     method: 'POST'
                 });
-                console.log('✅ [COURSE-LIST] 获取课程详情成功:', result);
+                console.log('[COURSE-LIST] 获取课程详情成功:', result);
 
                 if (result.code === 200) {
                     this.isEditMode = true;
@@ -312,7 +300,7 @@ const app = Vue.createApp({
                     this.showError('获取课程详情失败: ' + (result.message || '未知错误'));
                 }
             } catch (error) {
-                console.error('❌ [COURSE-LIST] 获取课程详情失败:', error);
+                console.error('[COURSE-LIST] 获取课程详情失败:', error);
                 this.showError('获取课程详情失败: ' + error.message);
             }
         },
@@ -322,17 +310,17 @@ const app = Vue.createApp({
          */
         async handleSubmit() {
             try {
-                const url = this.isEditMode ? '/course/update' : '/course/add';
-                console.log('💾 [COURSE-LIST] ' + (this.isEditMode ? '更新' : '新增') + '课程:', this.formData);
+                var url = this.isEditMode ? '/course/update' : '/course/add';
+                console.log('[COURSE-LIST] ' + (this.isEditMode ? '更新' : '新增') + '课程:', this.formData);
                 
-                const result = await fetch(url, {
+                var result = await fetch(url, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify(this.formData)
-                );
-                console.log('✅ [COURSE-LIST] ' + (this.isEditMode ? '更新' : '新增') + '课程成功:', result);
+                });
+                console.log('[COURSE-LIST] ' + (this.isEditMode ? '更新' : '新增') + '课程成功:', result);
                 
                 if (result.code === 200) {
                     this.showSuccess((this.isEditMode ? '更新' : '新增') + '课程成功');
@@ -342,7 +330,7 @@ const app = Vue.createApp({
                     this.showError((this.isEditMode ? '更新' : '新增') + '课程失败: ' + (result.message || '未知错误'));
                 }
             } catch (error) {
-                console.error('❌ [COURSE-LIST] ' + (this.isEditMode ? '更新' : '新增') + '课程失败:', error);
+                console.error('[COURSE-LIST] ' + (this.isEditMode ? '更新' : '新增') + '课程失败:', error);
                 this.showError((this.isEditMode ? '更新' : '新增') + '课程失败: ' + error.message);
             }
         },
@@ -364,11 +352,11 @@ const app = Vue.createApp({
          */
         async openViewModal(course) {
             try {
-                console.log('👁️ [COURSE-LIST] 获取课程详情:', course.id);
-                const result = await fetch(`/course/get?courseId=${course.id}`, {
+                console.log('[COURSE-LIST] 获取课程详情:', course.id);
+                var result = await fetch('/course/get?courseId=' + course.id, {
                     method: 'POST'
                 });
-                console.log('✅ [COURSE-LIST] 获取课程详情成功:', result);
+                console.log('[COURSE-LIST] 获取课程详情成功:', result);
 
                 if (result.code === 200) {
                     this.currentCourse = result.data;
@@ -377,7 +365,7 @@ const app = Vue.createApp({
                     this.showError('获取课程详情失败: ' + (result.message || '未知错误'));
                 }
             } catch (error) {
-                console.error('❌ [COURSE-LIST] 获取课程详情失败:', error);
+                console.error('[COURSE-LIST] 获取课程详情失败:', error);
                 this.showError('获取课程详情失败: ' + error.message);
             }
         },
@@ -394,20 +382,20 @@ const app = Vue.createApp({
          * 删除课程
          */
         async handleDelete(course) {
-            if (!confirm(`确定要删除课程 "${course.courseName}" 吗？`)) {
+            if (!confirm('确定要删除课程 "' + course.courseName + '" 吗？')) {
                 return;
             }
 
             try {
-                console.log('🗑️ [COURSE-LIST] 删除课程:', { id: course.id, courseName: course.courseName });
-                const result = await fetch('/course/delete', {
+                console.log('[COURSE-LIST] 删除课程:', { id: course.id, courseName: course.courseName });
+                var result = await fetch('/course/delete', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({ id: course.id })
-                );
-                console.log('✅ [COURSE-LIST] 删除课程成功:', result);
+                });
+                console.log('[COURSE-LIST] 删除课程成功:', result);
                 
                 if (result.code === 200) {
                     this.showSuccess('删除课程成功');
@@ -416,7 +404,7 @@ const app = Vue.createApp({
                     this.showError('删除课程失败: ' + (result.message || '未知错误'));
                 }
             } catch (error) {
-                console.error('❌ [COURSE-LIST] 删除课程失败:', error);
+                console.error('[COURSE-LIST] 删除课程失败:', error);
                 this.showError('删除课程失败: ' + error.message);
             }
         },
@@ -434,8 +422,8 @@ const app = Vue.createApp({
             
             this.selectedUserIds = [];
             this.selectedTemplateIds = [];
-            this.boundUserIds = [...(this.courseUserCache[course.id] || [])];
-            this.boundTemplateIds = [...(this.courseTemplateCache[course.id] || [])];
+            this.boundUserIds = [].concat(this.courseUserCache[course.id] || []);
+            this.boundTemplateIds = [].concat(this.courseTemplateCache[course.id] || []);
             
             this.showBindModal = true;
         },
@@ -456,7 +444,7 @@ const app = Vue.createApp({
          * 切换用户选择
          */
         toggleUserSelection(userId) {
-            const index = this.selectedUserIds.indexOf(userId);
+            var index = this.selectedUserIds.indexOf(userId);
             if (index > -1) {
                 this.selectedUserIds.splice(index, 1);
             } else {
@@ -468,7 +456,7 @@ const app = Vue.createApp({
          * 切换模板选择
          */
         toggleTemplateSelection(templateId) {
-            const index = this.selectedTemplateIds.indexOf(templateId);
+            var index = this.selectedTemplateIds.indexOf(templateId);
             if (index > -1) {
                 this.selectedTemplateIds.splice(index, 1);
             } else {
@@ -483,7 +471,7 @@ const app = Vue.createApp({
             try {
                 // 解除选中的用户
                 if (this.selectedUserIds.length > 0) {
-                    const unbindResult = await fetch('/course/unbindUsers', {
+                    var unbindResult = await fetch('/course/unbindUsers', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
@@ -492,7 +480,7 @@ const app = Vue.createApp({
                             courseId: this.currentBindCourse.id,
                             userIds: this.selectedUserIds
                         })
-                    );
+                    });
                     if (unbindResult.code !== 200) {
                         this.showError('解除用户绑定失败: ' + (unbindResult.message || '未知错误'));
                         return;
@@ -500,13 +488,16 @@ const app = Vue.createApp({
                 }
 
                 // 从已绑定列表中移除
-                this.boundUserIds = this.boundUserIds.filter(id => !this.selectedUserIds.includes(id));
+                var self = this;
+                this.boundUserIds = this.boundUserIds.filter(function(id) {
+                    return !self.selectedUserIds.includes(id);
+                });
                 this.selectedUserIds = [];
                 
                 this.showSuccess('解除用户绑定成功');
                 await this.fetchCourseList();
             } catch (error) {
-                console.error('❌ [COURSE-LIST] 保存用户绑定失败:', error);
+                console.error('[COURSE-LIST] 保存用户绑定失败:', error);
                 this.showError('保存用户绑定失败: ' + error.message);
             }
         },
@@ -518,7 +509,7 @@ const app = Vue.createApp({
             try {
                 // 解除选中的模板
                 if (this.selectedTemplateIds.length > 0) {
-                    const unbindResult = await fetch('/course/unbindTemplates', {
+                    var unbindResult = await fetch('/course/unbindTemplates', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
@@ -527,7 +518,7 @@ const app = Vue.createApp({
                             courseId: this.currentBindCourse.id,
                             templateIds: this.selectedTemplateIds
                         })
-                    );
+                    });
                     if (unbindResult.code !== 200) {
                         this.showError('解除模板绑定失败: ' + (unbindResult.message || '未知错误'));
                         return;
@@ -535,13 +526,16 @@ const app = Vue.createApp({
                 }
 
                 // 从已绑定列表中移除
-                this.boundTemplateIds = this.boundTemplateIds.filter(id => !this.selectedTemplateIds.includes(id));
+                var self = this;
+                this.boundTemplateIds = this.boundTemplateIds.filter(function(id) {
+                    return !self.selectedTemplateIds.includes(id);
+                });
                 this.selectedTemplateIds = [];
                 
                 this.showSuccess('解除模板绑定成功');
                 await this.fetchCourseList();
             } catch (error) {
-                console.error('❌ [COURSE-LIST] 保存模板绑定失败:', error);
+                console.error('[COURSE-LIST] 保存模板绑定失败:', error);
                 this.showError('保存模板绑定失败: ' + error.message);
             }
         },
@@ -569,7 +563,7 @@ const app = Vue.createApp({
             if (!creatorId) {
                 return '-';
             }
-            const creator = this.creatorList.find(c => c.id === creatorId);
+            var creator = this.creatorList.find(function(c) { return c.id === creatorId; });
             return creator ? creator.displayName : creatorId;
         },
 
@@ -580,7 +574,7 @@ const app = Vue.createApp({
             if (!userId) {
                 return '-';
             }
-            const user = this.userList.find(u => u.id === userId);
+            var user = this.userList.find(function(u) { return u.id === userId; });
             return user ? user.displayName : userId;
         },
 
@@ -591,7 +585,7 @@ const app = Vue.createApp({
             if (!templateId) {
                 return '-';
             }
-            const template = this.templateList.find(t => t.id === templateId);
+            var template = this.templateList.find(function(t) { return t.id === templateId; });
             return template ? template.templateName : templateId;
         },
 
@@ -615,7 +609,7 @@ const app = Vue.createApp({
         formatDateTime(dateStr) {
             if (!dateStr) return '-';
             try {
-                const date = new Date(dateStr);
+                var date = new Date(dateStr);
                 return date.toLocaleString('zh-CN', {
                     year: 'numeric',
                     month: '2-digit',
@@ -634,46 +628,20 @@ const app = Vue.createApp({
          * 显示成功消息
          */
         showSuccess(message) {
-            alert('✅ ' + message);
+            alert('成功: ' + message);
         },
 
         /**
          * 显示错误消息
          */
         showError(message) {
-            alert('❌ ' + message);
+            alert('错误: ' + message);
         }
     }
 });
 
-// 注册顶部导航栏组件（虽然不再使用，但保留以兼容）
+// 注册顶部导航栏组件
 app.component('header-component', HeaderComponent);
 
-// 挂载应用到主内容区域
-const mainAppElement = document.getElementById('main-app');
-
-try {
-    if (mainAppElement) {
-        app.mount('#main-app');
-        console.log('✅ [CourseList] 主内容应用挂载成功');
-    } else {
-        console.error('❌ [CourseList] 未找到 #main-app 元素');
-    }
-} catch (error) {
-    console.error('❌ [CourseList] 主内容应用挂载失败:', error);
-    // 显示备用内容
-    if (mainAppElement) {
-        mainAppElement.innerHTML = `
-            <div style="padding:40px; text-align:center; background:#f5f5f5;">
-                <h2 style="color:#f44336; font-size:28px;">⚠️ 页面加载失败</h2>
-                <p style="color:#666; font-size:16px; margin:20px 0;">错误信息: ${error.message || '未知错误'}</p>
-                <p style="color:#999; font-size:14px;">导航栏仍然可用，可以尝试刷新页面或返回首页。</p>
-                <div style="margin-top:30px;">
-                    <button onclick="window.location.reload()" style="padding:12px 24px; background:#4CAF50; color:white; border:none; border-radius:4px; cursor:pointer; font-size:16px; margin-right:10px;">🔄 刷新页面</button>
-                    <button onclick="window.location.href='/ems/common/pages/home.html'" style="padding:12px 24px; background:#fff; color:#333; border:1px solid #ddd; border-radius:4px; cursor:pointer; font-size:16px;">🏠 返回首页</button>
-
-                </div>
-            </div>
-        `;
-    }
-}
+// 挂载应用
+app.mount('#app');

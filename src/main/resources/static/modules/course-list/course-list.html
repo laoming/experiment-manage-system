@@ -1,22 +1,14 @@
 <link rel="stylesheet" href="/ems/modules/course-list/course-list.css">
 
 <div class="main-content" v-cloak>
-    <!-- 页面错误提示 -->
-    <div v-if="pageError && !loading" class="page-error">
-        <div class="error-icon">⚠️</div>
-        <h2>页面加载出错</h2>
-        <p>{{ pageError }}</p>
-        <button class="btn btn-primary" @click="loadData">重新加载</button>
-    </div>
-
     <!-- 页面标题 -->
-    <div class="page-header" v-else>
+    <div class="page-header">
         <h1 class="page-title">课程管理</h1>
         <p class="page-subtitle">管理系统课程信息，包括课程的创建、编辑、查看和删除</p>
     </div>
 
     <!-- 搜索和操作栏 -->
-    <div class="toolbar" v-if="!pageError">
+    <div class="toolbar">
         <div class="search-box">
             <input
                 v-model="queryForm.courseName"
@@ -40,7 +32,7 @@
     </div>
 
     <!-- 课程列表 -->
-    <div class="table-container" v-if="!pageError">
+    <div class="table-container">
         <div v-if="loading" class="loading">
             <div class="loading-spinner"></div>
             <p>加载中...</p>
@@ -109,7 +101,7 @@
     </div>
 
     <!-- 分页 -->
-    <div class="pagination" v-if="courseList.length > 0 && !pageError">
+    <div class="pagination" v-if="courseList.length > 0">
         <button
             class="pagination-btn"
             :disabled="pagination.current === 1"
@@ -131,7 +123,7 @@
     </div>
 
     <!-- 新增/编辑课程弹窗 -->
-    <div class="modal-overlay" v-show="showFormModal && !pageError" style="display: none;" @click.self="closeFormModal">
+    <div class="modal-overlay" v-show="showFormModal" style="display: none;" @click.self="closeFormModal">
         <div class="modal-content">
             <div class="modal-header">
                 <h2>{{ isEditMode ? '编辑课程' : '新增课程' }}</h2>
@@ -174,7 +166,7 @@
     </div>
 
     <!-- 查看课程弹窗 -->
-    <div class="modal-overlay" v-show="showViewModal && !pageError" style="display: none;" @click.self="closeViewModal">
+    <div class="modal-overlay" v-show="showViewModal" style="display: none;" @click.self="closeViewModal">
         <div class="modal-content">
             <div class="modal-header">
                 <h2>查看课程</h2>
@@ -219,7 +211,7 @@
     </div>
 
     <!-- 绑定管理弹窗 -->
-    <div class="modal-overlay" v-show="showBindModal && !pageError" style="display: none;" @click.self="closeBindModal">
+    <div class="modal-overlay" v-show="showBindModal" style="display: none;" @click.self="closeBindModal">
         <div class="modal-content modal-large">
             <div class="modal-header">
                 <h2>绑定管理</h2>
