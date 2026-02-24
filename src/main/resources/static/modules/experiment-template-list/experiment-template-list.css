@@ -1,58 +1,34 @@
 /**
  * 实验模板管理模块样式
+ * 注意：本模块嵌入到 home.html 的 .tab-content-embed 中
+ * 导航栏遮挡问题已由 common.css 统一处理，无需各模块单独处理
  */
 
-/* 覆盖 common.css 中 .tab-content-embed > div 的 padding */
-.tab-content-embed > .main-content {
-    padding: 0;
-    background: #f5f7fa;
-}
+/* ==================== 页面内容样式 ==================== */
 
-/* 基础样式 */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-/* 主内容区域 */
-.main-content {
-    flex: 1;
-    padding-top: 20px;
-    padding-bottom: 20px;
-    background: #f5f7fa;
-    min-height: calc(100vh - 102px);
-}
-
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 20px;
-}
-
-/* 页面标题 */
-.page-header {
+/* 页面标题 - 覆盖公共样式 */
+.tab-content-embed .page-header {
     background: white;
     border-radius: 12px;
     padding: 24px;
-    margin: 0 20px 20px 20px;
+    margin: 0 0 20px 0;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.page-title {
+.tab-content-embed .page-title {
     font-size: 24px;
     font-weight: 700;
     color: #1a1a1a;
     margin-bottom: 8px;
 }
 
-.page-subtitle {
+.tab-content-embed .page-subtitle {
     font-size: 14px;
     color: #666;
 }
 
 /* 工具栏 */
-.toolbar {
+.tab-content-embed .toolbar {
     background: white;
     border-radius: 12px;
     padding: 16px 20px;
@@ -65,7 +41,7 @@
     flex-wrap: wrap;
 }
 
-.search-box {
+.tab-content-embed .search-box {
     display: flex;
     gap: 12px;
     flex: 1;
@@ -73,7 +49,7 @@
     align-items: center;
 }
 
-.search-input {
+.tab-content-embed .search-input {
     padding: 10px 16px;
     border: 1px solid #e0e0e0;
     border-radius: 6px;
@@ -82,14 +58,14 @@
     transition: all 0.3s;
 }
 
-.search-input:focus {
+.tab-content-embed .search-input:focus {
     outline: none;
     border-color: #667eea;
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
 /* 表格容器 */
-.table-container {
+.tab-content-embed .table-container {
     background: white;
     border-radius: 12px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -98,7 +74,7 @@
 }
 
 /* 加载状态 */
-.loading {
+.tab-content-embed .loading {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -107,7 +83,7 @@
     color: #999;
 }
 
-.loading-spinner {
+.tab-content-embed .loading-spinner {
     width: 40px;
     height: 40px;
     border: 3px solid #f3f3f3;
@@ -122,7 +98,8 @@
     100% { transform: rotate(360deg); }
 }
 
-/* 表格样式 */
+/* ==================== 表格样式 ==================== */
+
 .template-table {
     width: 100%;
     border-collapse: collapse;
@@ -156,18 +133,18 @@
     border-bottom: none;
 }
 
-.empty-cell {
+.tab-content-embed .empty-cell {
     padding: 60px !important;
 }
 
-.empty-content {
+.tab-content-embed .empty-content {
     display: flex;
     flex-direction: column;
     align-items: center;
     color: #999;
 }
 
-.empty-icon {
+.tab-content-embed .empty-icon {
     font-size: 48px;
     margin-bottom: 16px;
 }
@@ -195,12 +172,12 @@
 }
 
 /* 操作按钮 */
-.actions {
+.tab-content-embed .actions {
     display: flex;
     gap: 8px;
 }
 
-.action-btn {
+.tab-content-embed .action-btn {
     padding: 6px 12px;
     border: none;
     border-radius: 4px;
@@ -239,8 +216,9 @@
     background: #ffccc7;
 }
 
-/* 分页 */
-.pagination {
+/* ==================== 分页样式 ==================== */
+
+.tab-content-embed .pagination {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -252,7 +230,7 @@
     margin: 0 20px 20px 20px;
 }
 
-.pagination-btn {
+.tab-content-embed .pagination-btn {
     padding: 8px 16px;
     background: white;
     border: 1px solid #e0e0e0;
@@ -263,33 +241,33 @@
     transition: all 0.3s;
 }
 
-.pagination-btn:hover:not(:disabled) {
+.tab-content-embed .pagination-btn:hover:not(:disabled) {
     background: #f5f5f5;
     border-color: #999;
 }
 
-.pagination-btn:disabled {
+.tab-content-embed .pagination-btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
 }
 
-.pagination-info {
+.tab-content-embed .pagination-info {
     font-size: 14px;
     color: #666;
 }
 
-.pagination-total {
+.tab-content-embed .pagination-total {
     color: #999;
     font-size: 12px;
     margin-left: 8px;
 }
 
-/* 大弹窗 */
+/* ==================== 查看弹窗样式 ==================== */
+
 .modal-large {
     max-width: 800px;
 }
 
-/* 查看弹窗样式 */
 .view-item {
     margin-bottom: 20px;
 }
@@ -334,18 +312,19 @@
     word-break: break-word;
 }
 
-/* 响应式设计 */
+/* ==================== 响应式设计 ==================== */
+
 @media (max-width: 768px) {
-    .toolbar {
+    .tab-content-embed .toolbar {
         flex-direction: column;
         align-items: stretch;
     }
 
-    .search-box {
+    .tab-content-embed .search-box {
         flex-direction: column;
     }
 
-    .search-input {
+    .tab-content-embed .search-input {
         min-width: 100%;
     }
 
@@ -355,11 +334,11 @@
         font-size: 12px;
     }
 
-    .actions {
+    .tab-content-embed .actions {
         flex-direction: column;
     }
 
-    .action-btn {
+    .tab-content-embed .action-btn {
         width: 100%;
         justify-content: center;
     }

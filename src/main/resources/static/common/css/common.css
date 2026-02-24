@@ -686,8 +686,58 @@
     position: relative;
 }
 
-/* 确保嵌入的页面样式正常 */
-.tab-content-embed > div {
+/* ==================== 嵌入页面公共样式 ==================== */
+/* 所有嵌入到标签页的页面都会自动获得正确的布局，无需各模块单独处理 */
+
+/* 嵌入页面主容器 - 移除默认 padding，避免导航栏遮挡 */
+.tab-content-embed > .main-content {
+    padding: 20px;
+    padding-top: 0;
+    background: #f5f7fa;
+    min-height: calc(100vh - 122px);
+}
+
+/* 嵌入页面的容器 */
+.tab-content-embed .container {
+    max-width: 100%;
+    padding: 0;
+}
+
+/* 嵌入页面的页面标题 */
+.tab-content-embed .page-header {
+    margin: 0 0 20px 0;
+    padding: 24px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* 嵌入页面的工具栏 */
+.tab-content-embed .toolbar {
+    margin: 0 0 20px 0;
+    padding: 16px 20px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* 嵌入页面的表格容器 */
+.tab-content-embed .table-container {
+    margin: 0 0 20px 0;
+    background-color: white;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* 嵌入页面的表格样式 */
+.tab-content-embed table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+/* 确保嵌入的页面样式正常（兼容旧页面） */
+.tab-content-embed > div:not(.main-content) {
     padding: 20px;
 }
 

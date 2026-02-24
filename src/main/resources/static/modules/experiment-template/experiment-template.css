@@ -1,4 +1,7 @@
 /* 实验模板编辑器样式 */
+/* 注意：本模块嵌入到 home.html 的 .tab-content-embed 中
+ * 导航栏遮挡问题已由 common.css 统一处理，无需各模块单独处理
+ */
 
 /* ==================== 编辑器主容器样式 ==================== */
 
@@ -8,26 +11,17 @@
         'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
-/* 编辑器主容器样式 - 覆盖 common.css 中的样式 */
-.editor-page.main-content {
+/* 编辑器主容器样式 - 覆盖公共样式 */
+.tab-content-embed > .editor-page.main-content {
     display: flex;
     flex-direction: row;
-    height: calc(100vh - 102px);
-    margin-top: 0;
+    height: calc(100vh - 122px);
+    margin: 0;
     padding: 0;
     overflow: hidden;
     background: #f0f2f5;
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    position: relative;
     z-index: 1;
-}
-
-/* 覆盖 common.css 中 .tab-content-embed > div 的 padding */
-.tab-content-embed > .editor-page.main-content {
-    padding: 0;
 }
 
 .editor-page.main-content .container {
