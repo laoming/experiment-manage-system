@@ -147,9 +147,22 @@ const app = createApp({
                             allChildren.forEach(child => {
                                 if (child.id && child.id.startsWith('tab-app-')) {
                                     if (child.id === appId) {
-                                        child.style.display = 'block';
-                                        console.log('📌 [HOME] 显示元素:', child.id);
+                                        // 恢复原始 display 值，而不是固定设置为 block
+                                        // 对于 flex 容器，需要使用 display: flex
+                                        const computedStyle = window.getComputedStyle(child);
+                                        if (child.dataset.originalDisplay) {
+                                            child.style.display = child.dataset.originalDisplay;
+                                        } else if (computedStyle.display === 'flex' || child.classList.contains('editor-page')) {
+                                            child.style.display = 'flex';
+                                        } else {
+                                            child.style.display = 'block';
+                                        }
+                                        console.log('📌 [HOME] 显示元素:', child.id, 'display:', child.style.display);
                                     } else {
+                                        // 保存原始 display 值（仅在第一次隐藏时保存）
+                                        if (!child.dataset.originalDisplay && child.style.display !== 'none') {
+                                            child.dataset.originalDisplay = child.style.display || 'block';
+                                        }
                                         child.style.display = 'none';
                                         console.log('📌 [HOME] 隐藏元素:', child.id);
                                     }
@@ -253,6 +266,11 @@ const app = createApp({
                 const oldApps = embedArea.querySelectorAll('[id^="tab-app-"]');
                 oldApps.forEach(oldApp => {
                     console.log('📌 [HOME] 隐藏Vue实例:', oldApp.id);
+                    // 保存原始 display 值（仅在第一次隐藏时保存）
+                    if (!oldApp.dataset.originalDisplay && oldApp.style.display !== 'none') {
+                        const computedStyle = window.getComputedStyle(oldApp);
+                        oldApp.dataset.originalDisplay = computedStyle.display || 'block';
+                    }
                     // 只隐藏，不从DOM中移除
                     oldApp.style.display = 'none';
                 });
@@ -261,6 +279,11 @@ const app = createApp({
                 const allChildren = Array.from(embedArea.children);
                 allChildren.forEach(child => {
                     if (child.id && child.id.startsWith('tab-app-')) {
+                        // 保存原始 display 值
+                        if (!child.dataset.originalDisplay && child.style.display !== 'none') {
+                            const computedStyle = window.getComputedStyle(child);
+                            child.dataset.originalDisplay = computedStyle.display || 'block';
+                        }
                         child.style.display = 'none';
                     }
                 });
@@ -396,18 +419,26 @@ const app = createApp({
                         });
                         console.log('📌 [HOME] 已隐藏', allApps.length, '个已存在的标签页元素');
 
-                        // 创建一个临时容器来插入CSS和HTML
-                        const tempDiv = document.createElement('div');
-
-                        // 插入CSS样式（只插入新的）
+                        // 使用 createElement 插入 CSS 样式链接（更可靠）
                         if (styleLinks.length > 0) {
-                            const cssContainer = document.createElement('div');
-                            cssContainer.innerHTML = styleLinks.join('\n');
-                            while (cssContainer.firstChild) {
-                                this.$refs.tabContentEmbed.appendChild(cssContainer.firstChild);
-                            }
+                            styleLinks.forEach(linkHtml => {
+                                // 从 HTML 字符串中提取 href 属性
+                                const hrefMatch = linkHtml.match(/href=["']([^"']+)["']/);
+                                if (hrefMatch && hrefMatch[1]) {
+                                    const href = hrefMatch[1];
+                                    // 检查是否已加载
+                                    if (!document.querySelector(`link[href="${href}"]`)) {
+                                        const linkElement = document.createElement('link');
+                                        linkElement.rel = 'stylesheet';
+                                        linkElement.href = href;
+                                        this.$refs.tabContentEmbed.appendChild(linkElement);
+                                        console.log('📌 [HOME] 插入 CSS 链接:', href);
+                                    }
+                                }
+                            });
                         }
 
+                        // 插入内联样式
                         if (styleTags.length > 0) {
                             const styleContainer = document.createElement('div');
                             styleContainer.innerHTML = styleTags.join('\n');
@@ -455,24 +486,32 @@ const app = createApp({
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, 'text/html');
 
-            // 提取head中的样式链接
-            const head = doc.head;
             const styleLinks = [];
             const styleTags = [];
 
-            // 收集CSS链接
-            head.querySelectorAll('link[rel="stylesheet"]').forEach(link => {
-                const href = link.getAttribute('href');
-                // 只收集尚未加载的CSS（避免重复）
-                if (href && !document.querySelector(`link[href="${href}"]`)) {
-                    styleLinks.push(link.outerHTML);
-                }
-            });
+            // 收集CSS链接 - 从 head 和 body 中都查找（处理HTML片段的情况）
+            const collectStyleLinks = (container) => {
+                container.querySelectorAll('link[rel="stylesheet"]').forEach(link => {
+                    const href = link.getAttribute('href');
+                    // 只收集尚未加载的CSS（避免重复）
+                    if (href && !document.querySelector(`link[href="${href}"]`)) {
+                        styleLinks.push(link.outerHTML);
+                    }
+                });
+            };
 
             // 收集内联样式
-            head.querySelectorAll('style').forEach(style => {
-                styleTags.push(style.outerHTML);
-            });
+            const collectStyleTags = (container) => {
+                container.querySelectorAll('style').forEach(style => {
+                    styleTags.push(style.outerHTML);
+                });
+            };
+
+            // 从 head 和 body 中收集样式
+            collectStyleLinks(doc.head);
+            collectStyleLinks(doc.body);
+            collectStyleTags(doc.head);
+            collectStyleTags(doc.body);
 
             console.log('📌 [HOME] 找到', styleLinks.length, '个新CSS链接');
             console.log('📌 [HOME] 找到', styleTags.length, '个内联样式');

@@ -134,7 +134,7 @@ const app = Vue.createApp({
          */
         openCreateEditor() {
             // 使用 TabsManager 打开新标签页
-            TabsManager.openTabByPath('/ems/modules/pages/experiment-template.html', '实验模板编辑');
+            TabsManager.openTabByPath('/ems/modules/experiment-template/experiment-template.html', '实验模板编辑');
         },
 
         /**
@@ -142,7 +142,7 @@ const app = Vue.createApp({
          */
         openEditEditor(template) {
             // 使用 TabsManager 打开新标签页
-            TabsManager.openTabByPath(`/ems/modules/pages/experiment-template.html?templateId=${template.id}`, '实验模板编辑');
+            TabsManager.openTabByPath(`/ems/modules/experiment-template/experiment-template.html?templateId=${template.id}`, '实验模板编辑');
         },
 
         /**

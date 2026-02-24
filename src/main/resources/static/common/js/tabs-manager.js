@@ -198,16 +198,10 @@ const TabsManager = {
             const existingIndex = tabs.findIndex(tab => tab.key === pathHash);
 
             if (existingIndex > -1) {
-                // 标签页已存在，检查当前路径是否已经是目标路径
-                if (!this.isCurrentPath(path)) {
-                    // 当前路径不是目标路径，需要跳转
-                    this.saveCurrentTab(pathHash);
-                    window.location.href = path;
-                } else {
-                    // 已经在目标路径，只更新 currentTab
-                    this.saveCurrentTab(pathHash);
-                    console.log('📌 [TabsManager] 已在目标路径，只更新标签页状态');
-                }
+                // 标签页已存在，只更新 currentTab（SPA模式下不需要跳转）
+                this.saveCurrentTab(pathHash);
+                window.dispatchEvent(new CustomEvent('tab-switch', { detail: { tabKey: pathHash } }));
+                console.log('📌 [TabsManager] 标签页已存在，触发切换事件');
             } else {
                 // 添加新标签页
                 const pageTitle = title || this.extractTitleFromPath(path);
@@ -220,13 +214,14 @@ const TabsManager = {
                 });
                 this.saveTabs(tabs);
                 this.saveCurrentTab(pathHash);
-                window.location.href = path;
+                // 触发自定义事件，通知页面加载内容（SPA模式下不跳转）
+                window.dispatchEvent(new CustomEvent('tab-switch', { detail: { tabKey: pathHash } }));
             }
         } catch (error) {
             console.error('[TabsManager] 打开标签页失败:', error);
             // 发生错误时跳转到首页
             this.saveCurrentTab('home');
-            window.location.href = this.homeTab.path;
+            window.dispatchEvent(new CustomEvent('tab-switch', { detail: { tabKey: 'home' } }));
         }
     },
 
@@ -256,7 +251,8 @@ const TabsManager = {
      * 从路径中提取标题
      */
     extractTitleFromPath(path) {
-        const match = path.match(/\/modules\/pages\/([^-]+?)(-list|-edit)?\.html/);
+        // 匹配 /modules/xxx/xxx.html 或 /modules/pages/xxx.html 格式
+        const match = path.match(/\/modules\/(?:pages\/)?([^-\/]+?)(?:-list|-edit)?\.html/);
 
         if (match) {
             const baseName = match[1];

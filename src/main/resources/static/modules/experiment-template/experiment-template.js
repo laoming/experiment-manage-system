@@ -509,7 +509,7 @@ function saveTemplate() {
                 if (!currentTemplateId) {
                     setTimeout(() => {
                         // 使用 TabsManager 打开新标签页
-                        TabsManager.openTabByPath('/ems/modules/pages/experiment-template-list.html', '实验模板管理');
+                        TabsManager.openTabByPath('/ems/modules/experiment-template-list/experiment-template-list.html', '实验模板管理');
                     }, 1000);
                 }
                 // 如果是编辑模板，保持在当前页面

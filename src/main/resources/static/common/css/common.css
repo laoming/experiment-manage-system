@@ -682,7 +682,8 @@
     /* 嵌入的标签页内容样式 */
     padding: 0;
     width: 100%;
-    min-height: calc(100vh - 140px);
+    min-height: calc(100vh - 102px);
+    position: relative;
 }
 
 /* 确保嵌入的页面样式正常 */
