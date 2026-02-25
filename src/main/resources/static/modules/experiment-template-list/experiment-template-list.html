@@ -42,7 +42,6 @@
                 <tr>
                     <th>序号</th>
                     <th>模板名称</th>
-                    <th>组件数量</th>
                     <th>描述</th>
                     <th>创建者</th>
                     <th>创建时间</th>
@@ -52,7 +51,7 @@
             </thead>
             <tbody>
                 <tr v-if="templateList.length === 0">
-                    <td colspan="8" class="empty-cell">
+                    <td colspan="7" class="empty-cell">
                         <div class="empty-content">
                             <div class="empty-icon">📭</div>
                             <p>暂无数据</p>
@@ -62,9 +61,6 @@
                 <tr v-for="(template, index) in templateList" :key="template.id">
                     <td>{{ (pagination.current - 1) * pagination.size + index + 1 }}</td>
                     <td>{{ template.templateName }}</td>
-                    <td>
-                        <span class="badge">{{ getComponentCount(template.templateContent) }} 个组件</span>
-                    </td>
                     <td>
                         <div class="description-preview">
                             {{ template.description || '-' }}
@@ -137,10 +133,6 @@
                 <div class="view-item">
                     <label class="view-label">更新时间：</label>
                     <span class="view-value">{{ formatDateTime(currentTemplate.updateTime) }}</span>
-                </div>
-                <div class="view-item">
-                    <label class="view-label">组件数量：</label>
-                    <span class="view-value">{{ getComponentCount(currentTemplate.templateContent) }} 个组件</span>
                 </div>
                 <div class="view-item">
                     <label class="view-label">模板描述：</label>

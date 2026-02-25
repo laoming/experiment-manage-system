@@ -1,11 +1,10 @@
-/* 实验报告页面样式 */
-.main-content {
-    padding-top: 122px;
-    padding-bottom: 40px;
-    min-height: calc(100vh - 122px);
-}
+/**
+ * 实验报告模块样式
+ * 公共样式已在 common.css 中定义，本文件仅定义模块私有样式
+ */
 
-/* 模板选择器 */
+/* ==================== 模板选择器 ==================== */
+
 .template-selector {
     background: white;
     border-radius: 12px;
@@ -67,7 +66,8 @@
     color: #999;
 }
 
-/* 报告编辑器 */
+/* ==================== 报告编辑器 ==================== */
+
 .report-editor {
     display: flex;
     flex-direction: column;
@@ -128,7 +128,8 @@
     resize: vertical;
 }
 
-/* 报告预览 */
+/* ==================== 报告预览 ==================== */
+
 .report-preview {
     position: fixed;
     top: 0;
@@ -155,7 +156,8 @@
     overflow-y: auto;
 }
 
-/* 报告列表 */
+/* ==================== 报告列表 ==================== */
+
 .report-list-container {
     background: white;
     border-radius: 12px;
@@ -248,49 +250,4 @@
     font-size: 20px;
     font-weight: 600;
     color: #52c41a;
-}
-
-/* 按钮样式 */
-.btn {
-    padding: 8px 16px;
-    border: none;
-    border-radius: 6px;
-    font-size: 14px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: all 0.3s;
-}
-
-.btn-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-}
-
-.btn-secondary {
-    background: white;
-    border: 1px solid #e0e0e0;
-    color: #666;
-}
-
-.btn-success {
-    background: linear-gradient(135deg, #52c41a 0%, #73d13d 100%);
-    color: white;
-}
-
-.btn-danger {
-    background: #ff4d4f;
-    color: white;
-}
-
-.btn-sm {
-    padding: 4px 8px;
-    font-size: 12px;
-}
-
-.empty-tip {
-    text-align: center;
-    color: #999;
-    padding: 40px 0;
 }

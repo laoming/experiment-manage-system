@@ -1,104 +1,9 @@
 /**
  * 实验模板管理模块样式
- * 注意：本模块嵌入到 home.html 的 .tab-content-embed 中
- * 导航栏遮挡问题已由 common.css 统一处理，无需各模块单独处理
+ * 公共样式已在 common.css 中定义，本文件仅定义模块私有样式
  */
 
-/* ==================== 页面内容样式 ==================== */
-
-/* 页面标题 - 覆盖公共样式 */
-.tab-content-embed .page-header {
-    background: white;
-    border-radius: 12px;
-    padding: 24px;
-    margin: 0 0 20px 0;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.tab-content-embed .page-title {
-    font-size: 24px;
-    font-weight: 700;
-    color: #1a1a1a;
-    margin-bottom: 8px;
-}
-
-.tab-content-embed .page-subtitle {
-    font-size: 14px;
-    color: #666;
-}
-
-/* 工具栏 */
-.tab-content-embed .toolbar {
-    background: white;
-    border-radius: 12px;
-    padding: 16px 20px;
-    margin: 0 20px 20px 20px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 16px;
-    flex-wrap: wrap;
-}
-
-.tab-content-embed .search-box {
-    display: flex;
-    gap: 12px;
-    flex: 1;
-    flex-wrap: wrap;
-    align-items: center;
-}
-
-.tab-content-embed .search-input {
-    padding: 10px 16px;
-    border: 1px solid #e0e0e0;
-    border-radius: 6px;
-    font-size: 14px;
-    min-width: 200px;
-    transition: all 0.3s;
-}
-
-.tab-content-embed .search-input:focus {
-    outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-}
-
-/* 表格容器 */
-.tab-content-embed .table-container {
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-    margin: 0 20px 20px 20px;
-}
-
-/* 加载状态 */
-.tab-content-embed .loading {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 60px 20px;
-    color: #999;
-}
-
-.tab-content-embed .loading-spinner {
-    width: 40px;
-    height: 40px;
-    border: 3px solid #f3f3f3;
-    border-top: 3px solid #667eea;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin-bottom: 16px;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-/* ==================== 表格样式 ==================== */
+/* ==================== 模板表格私有样式 ==================== */
 
 .template-table {
     width: 100%;
@@ -133,22 +38,6 @@
     border-bottom: none;
 }
 
-.tab-content-embed .empty-cell {
-    padding: 60px !important;
-}
-
-.tab-content-embed .empty-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    color: #999;
-}
-
-.tab-content-embed .empty-icon {
-    font-size: 48px;
-    margin-bottom: 16px;
-}
-
 /* 描述预览 */
 .description-preview {
     max-width: 200px;
@@ -160,7 +49,7 @@
 }
 
 /* 组件数量徽章 */
-.badge {
+.template-badge {
     display: inline-block;
     padding: 4px 12px;
     background: #e6f7ff;
@@ -171,131 +60,7 @@
     font-weight: 500;
 }
 
-/* 操作按钮 */
-.tab-content-embed .actions {
-    display: flex;
-    gap: 8px;
-}
-
-.tab-content-embed .action-btn {
-    padding: 6px 12px;
-    border: none;
-    border-radius: 4px;
-    font-size: 12px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    transition: all 0.3s;
-}
-
-.btn-view {
-    background: #f6ffed;
-    color: #52c41a;
-}
-
-.btn-view:hover {
-    background: #d9f7be;
-}
-
-.btn-edit {
-    background: #e6f7ff;
-    color: #1890ff;
-}
-
-.btn-edit:hover {
-    background: #bae7ff;
-}
-
-.btn-delete {
-    background: #fff1f0;
-    color: #ff4d4f;
-}
-
-.btn-delete:hover {
-    background: #ffccc7;
-}
-
-/* ==================== 分页样式 ==================== */
-
-.tab-content-embed .pagination {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 16px;
-    padding: 16px;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    margin: 0 20px 20px 20px;
-}
-
-.tab-content-embed .pagination-btn {
-    padding: 8px 16px;
-    background: white;
-    border: 1px solid #e0e0e0;
-    border-radius: 6px;
-    color: #666;
-    cursor: pointer;
-    font-size: 14px;
-    transition: all 0.3s;
-}
-
-.tab-content-embed .pagination-btn:hover:not(:disabled) {
-    background: #f5f5f5;
-    border-color: #999;
-}
-
-.tab-content-embed .pagination-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-.tab-content-embed .pagination-info {
-    font-size: 14px;
-    color: #666;
-}
-
-.tab-content-embed .pagination-total {
-    color: #999;
-    font-size: 12px;
-    margin-left: 8px;
-}
-
-/* ==================== 查看弹窗样式 ==================== */
-
-.modal-large {
-    max-width: 800px;
-}
-
-.view-item {
-    margin-bottom: 20px;
-}
-
-.view-label {
-    display: inline-block;
-    width: 100px;
-    font-weight: 500;
-    color: #333;
-    font-size: 14px;
-}
-
-.view-value {
-    color: #666;
-    font-size: 14px;
-}
-
-.view-description {
-    margin: 8px 0 0;
-    padding: 12px;
-    background: #f5f7fa;
-    border-radius: 6px;
-    color: #666;
-    font-size: 14px;
-    line-height: 1.6;
-    white-space: pre-wrap;
-    word-break: break-word;
-}
+/* ==================== 查看弹窗私有样式 ==================== */
 
 .view-content {
     display: block;
@@ -315,31 +80,9 @@
 /* ==================== 响应式设计 ==================== */
 
 @media (max-width: 768px) {
-    .tab-content-embed .toolbar {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .tab-content-embed .search-box {
-        flex-direction: column;
-    }
-
-    .tab-content-embed .search-input {
-        min-width: 100%;
-    }
-
     .template-table th,
     .template-table td {
         padding: 12px 8px;
         font-size: 12px;
-    }
-
-    .tab-content-embed .actions {
-        flex-direction: column;
-    }
-
-    .tab-content-embed .action-btn {
-        width: 100%;
-        justify-content: center;
     }
 }

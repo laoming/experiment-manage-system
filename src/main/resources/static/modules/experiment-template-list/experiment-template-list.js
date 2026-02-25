@@ -208,19 +208,6 @@ const app = Vue.createApp({
         },
 
         /**
-         * 获取组件数量
-         */
-        getComponentCount(content) {
-            if (!content) return 0;
-            try {
-                const components = JSON.parse(content);
-                return Array.isArray(components) ? components.length : 0;
-            } catch (error) {
-                return 0;
-            }
-        },
-
-        /**
          * 格式化 JSON 显示
          */
         formatJson(content) {

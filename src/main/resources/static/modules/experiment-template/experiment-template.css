@@ -71,12 +71,61 @@
 .component-list {
     flex: 1;
     overflow-y: auto;
-    padding: 16px;
+    padding: 12px;
 }
 
+/* 组件分类 */
+.component-section {
+    margin-bottom: 20px;
+}
+
+.section-title {
+    font-size: 12px;
+    color: #9ca3af;
+    padding: 8px 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* 插入按钮（内联元素） */
+.insert-btn {
+    width: 100%;
+    padding: 12px 16px;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: white;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.25s;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.insert-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.insert-btn .btn-icon {
+    font-size: 18px;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+}
+
+/* 拖拽组件项（块级元素） */
 .component-item {
     padding: 12px 16px;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
     background: white;
     border: 1px solid #e5e7eb;
     border-radius: 8px;
@@ -222,23 +271,188 @@
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
+/* 可编辑画布 */
 .canvas {
     flex: 1;
-    padding: 20px;
+    padding: 24px;
     overflow-y: auto;
-    background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
-}
-
-.empty-tip {
-    text-align: center;
-    color: #9ca3af;
-    font-size: 14px;
-    padding-top: 120px;
+    background: white;
     line-height: 1.8;
+    font-size: 15px;
+    color: #333;
+    outline: none;
+    min-height: 300px;
 }
 
-.empty-tip p {
-    margin: 0;
+.canvas:empty::before {
+    content: '在此输入内容，使用左侧按钮插入填空或公式...';
+    color: #9ca3af;
+}
+
+.canvas.drag-over {
+    background: #f0f7ff;
+    border: 2px dashed #667eea;
+}
+
+/* ==================== 内联元素样式 ==================== */
+
+/* 填空 */
+.inline-input {
+    display: inline-block;
+    background: #f0f7ff;
+    border: 1px dashed #1890ff;
+    border-radius: 4px;
+    padding: 2px 6px;
+    margin: 0 2px;
+    color: #1890ff;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.inline-input:hover,
+.inline-input.selected {
+    background: #e6f7ff;
+    border-style: solid;
+    box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+.inline-input .input-marker {
+    opacity: 0.5;
+}
+
+.inline-input .input-content {
+    font-weight: 500;
+}
+
+/* 公式 */
+.inline-formula {
+    display: inline-block;
+    background: #fff7e6;
+    border: 1px dashed #fa8c16;
+    border-radius: 4px;
+    padding: 2px 6px;
+    margin: 0 2px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.inline-formula:hover,
+.inline-formula.selected {
+    background: #fff1cc;
+    border-style: solid;
+    box-shadow: 0 0 0 2px rgba(250, 140, 22, 0.2);
+}
+
+.inline-formula .formula-display {
+    font-family: 'Times New Roman', serif;
+    color: #fa8c16;
+}
+
+/* ==================== 块级组件样式 ==================== */
+
+.block-component {
+    background: #fafafa;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    margin: 16px 0;
+    padding: 16px;
+    position: relative;
+    transition: all 0.25s;
+}
+
+.block-component:hover,
+.block-component.selected {
+    border-color: #667eea;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+}
+
+.block-component .component-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.block-component .component-type-icon {
+    font-size: 16px;
+}
+
+.block-component .component-type-name {
+    font-size: 13px;
+    color: #666;
+    font-weight: 500;
+    flex: 1;
+}
+
+.block-component .component-delete {
+    width: 24px;
+    height: 24px;
+    border: none;
+    background: #ff4d4f;
+    color: white;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.block-component:hover .component-delete {
+    opacity: 1;
+}
+
+.block-component .component-delete:hover {
+    background: #ff7875;
+}
+
+.block-component .component-body {
+    padding: 8px 0;
+}
+
+/* 表格预览 */
+.preview-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.preview-table td {
+    padding: 12px;
+    border: 1px solid #ddd;
+    background: white;
+}
+
+/* 分割线预览 */
+.preview-divider {
+    margin: 8px 0;
+}
+
+/* 图片预览 */
+.preview-image {
+    text-align: center;
+    padding: 12px;
+    background: white;
+    border-radius: 8px;
+}
+
+.preview-image img {
+    max-width: 100%;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.preview-image.img-small img { max-height: 100px; }
+.preview-image.img-medium img { max-height: 200px; }
+.preview-image.img-large img { max-height: 350px; }
+
+.preview-image-placeholder {
+    padding: 40px 20px;
+    background: #f5f5f5;
+    border-radius: 8px;
+    text-align: center;
+    color: #999;
 }
 
 /* ==================== 右侧属性面板样式 ==================== */
@@ -270,101 +484,56 @@
     padding: 16px;
 }
 
-/* ==================== 画布组件样式 ==================== */
-
-.canvas-component {
-    background: white;
-    border: 2px solid #e5e7eb;
-    border-radius: 12px;
-    margin-bottom: 16px;
-    padding: 20px 24px;
-    cursor: move;
-    position: relative;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+/* 帮助内容 */
+.help-content {
+    padding: 16px;
+    background: linear-gradient(135deg, #e0e7ff 0%, #f0e6fa 100%);
+    border-radius: 10px;
 }
 
-.canvas-component:hover {
-    border-color: #667eea;
-    box-shadow: 0 8px 16px rgba(102, 126, 234, 0.15);
-    transform: translateY(-2px);
-}
-
-.canvas-component.selected {
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15), 0 8px 16px rgba(102, 126, 234, 0.15);
-}
-
-.canvas-component-actions {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    display: none;
-    gap: 8px;
-}
-
-.canvas-component:hover .canvas-component-actions {
-    display: flex;
-}
-
-.component-btn {
-    width: 32px;
-    height: 32px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.help-content h4 {
+    margin: 0 0 12px 0;
     font-size: 14px;
-    transition: all 0.25s;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    color: #4338ca;
 }
 
-.component-btn:hover {
-    transform: scale(1.1);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+.help-content ul {
+    margin: 0;
+    padding-left: 20px;
 }
 
-.component-btn-edit {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-}
-
-.component-btn-delete {
-    background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
-    color: white;
+.help-content li {
+    margin-bottom: 8px;
+    font-size: 13px;
+    color: #4338ca;
+    line-height: 1.5;
 }
 
 /* ==================== 属性面板表单样式 ==================== */
 
 .editor-page .form-group {
-    margin-bottom: 24px;
+    margin-bottom: 20px;
 }
 
 .editor-page .form-label {
     display: block;
-    margin-bottom: 10px;
-    font-size: 14px;
+    margin-bottom: 8px;
+    font-size: 13px;
     color: #374151;
     font-weight: 600;
 }
 
 .editor-page .form-input {
     width: 100%;
-    padding: 12px 16px;
+    padding: 10px 12px;
     font-size: 14px;
     border: 2px solid #e5e7eb;
-    border-radius: 10px;
+    border-radius: 8px;
     outline: none;
     box-sizing: border-box;
     transition: all 0.25s;
     background: #fafafa;
     color: #374151;
-}
-
-.editor-page .form-input::placeholder {
-    color: #9ca3af;
 }
 
 .editor-page .form-input:focus {
@@ -375,22 +544,18 @@
 
 .editor-page .form-textarea {
     width: 100%;
-    padding: 12px 16px;
+    padding: 10px 12px;
     font-size: 14px;
     border: 2px solid #e5e7eb;
-    border-radius: 10px;
+    border-radius: 8px;
     outline: none;
     resize: vertical;
-    min-height: 120px;
+    min-height: 80px;
     box-sizing: border-box;
     transition: all 0.25s;
     background: #fafafa;
     color: #374151;
     line-height: 1.6;
-}
-
-.editor-page .form-textarea::placeholder {
-    color: #9ca3af;
 }
 
 .editor-page .form-textarea:focus {
@@ -401,22 +566,36 @@
 
 .editor-page .form-select {
     width: 100%;
-    padding: 12px 16px;
+    padding: 10px 12px;
     font-size: 14px;
     border: 2px solid #e5e7eb;
-    border-radius: 10px;
+    border-radius: 8px;
     outline: none;
     box-sizing: border-box;
     background: #fafafa;
     color: #374151;
-    transition: all 0.25s;
     cursor: pointer;
 }
 
 .editor-page .form-select:focus {
     border-color: #667eea;
     background: white;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.btn-delete-full {
+    width: 100%;
+    padding: 10px;
+    background: linear-gradient(135deg, #ff4d4f 0%, #ff7875 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.25s;
+}
+
+.btn-delete-full:hover {
+    box-shadow: 0 4px 12px rgba(255, 77, 79, 0.3);
 }
 
 /* ==================== 滚动条样式 ==================== */
@@ -439,115 +618,12 @@
 .panel-content::-webkit-scrollbar-thumb {
     background: #c1c1c1;
     border-radius: 3px;
-    transition: background 0.25s;
 }
 
 .component-list::-webkit-scrollbar-thumb:hover,
 .canvas::-webkit-scrollbar-thumb:hover,
 .panel-content::-webkit-scrollbar-thumb:hover {
     background: #a8a8a8;
-}
-
-/* ==================== 组件预览样式 ==================== */
-
-/* 富文本组件预览 */
-.richtext-preview {
-    padding: 12px;
-    min-height: 60px;
-    background: #fafafa;
-    border-radius: 8px;
-    border: 1px dashed #ddd;
-    line-height: 1.6;
-}
-
-/* 公式组件预览 */
-.formula-preview {
-    padding: 16px;
-    background: #fafafa;
-    border-radius: 8px;
-    border: 1px dashed #ddd;
-}
-
-.formula-display {
-    font-family: 'Times New Roman', serif;
-    font-size: 18px;
-    color: #333;
-    padding: 8px;
-    background: white;
-    border-radius: 6px;
-    margin-bottom: 8px;
-    overflow-x: auto;
-}
-
-.formula-desc {
-    font-size: 14px;
-    color: #666;
-    font-style: italic;
-}
-
-/* 图片组件预览 */
-.image-preview {
-    padding: 12px;
-    background: #fafafa;
-    border-radius: 8px;
-    border: 1px dashed #ddd;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    overflow: hidden;
-}
-
-.image-preview img {
-    max-width: 100%;
-    height: auto;
-    border-radius: 6px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.img-small {
-    max-height: 100px;
-}
-
-.img-medium {
-    max-height: 200px;
-}
-
-.img-large {
-    max-height: 350px;
-}
-
-.image-placeholder {
-    padding: 40px 20px;
-    background: #fafafa;
-    border-radius: 8px;
-    border: 1px dashed #ddd;
-    text-align: center;
-    color: #999;
-    font-size: 14px;
-}
-
-/* 组件头部样式 */
-.component-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 12px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid #f0f0f0;
-}
-
-.component-type-icon {
-    font-size: 16px;
-}
-
-.component-type-name {
-    font-size: 13px;
-    color: #666;
-    font-weight: 500;
-}
-
-.component-preview {
-    padding: 8px 0;
 }
 
 /* ==================== 响应式设计 ==================== */
@@ -602,6 +678,21 @@
         flex-wrap: wrap;
         gap: 8px;
         padding: 10px;
+    }
+
+    .component-section {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 0;
+    }
+
+    .section-title {
+        display: none;
+    }
+
+    .insert-btn {
+        padding: 8px 12px;
+        margin-bottom: 0;
     }
 
     .component-item {

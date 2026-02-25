@@ -6,35 +6,35 @@
 <div class="main-content editor-page" v-cloak>
     <!-- 左侧工具栏 -->
     <div class="toolbar">
-        <div class="toolbar-title">组件库</div>
+        <div class="toolbar-title">插入组件</div>
         <div class="component-list">
-            <div class="component-item" draggable="true" data-type="text">
-                <div class="component-icon">A</div>
-                <div class="component-name">文本</div>
+            <!-- 内联组件（按钮插入） -->
+            <div class="component-section">
+                <div class="section-title">内联元素</div>
+                <button class="insert-btn" onclick="insertInput()">
+                    <span class="btn-icon">_</span>
+                    <span>填空</span>
+                </button>
+                <button class="insert-btn" onclick="insertFormula()">
+                    <span class="btn-icon">∑</span>
+                    <span>公式</span>
+                </button>
             </div>
-            <div class="component-item" draggable="true" data-type="table">
-                <div class="component-icon">▦</div>
-                <div class="component-name">表格</div>
-            </div>
-            <div class="component-item" draggable="true" data-type="input">
-                <div class="component-icon">_</div>
-                <div class="component-name">填空</div>
-            </div>
-            <div class="component-item" draggable="true" data-type="richtext">
-                <div class="component-icon">📝</div>
-                <div class="component-name">富文本</div>
-            </div>
-            <div class="component-item" draggable="true" data-type="divider">
-                <div class="component-icon">─</div>
-                <div class="component-name">分割线</div>
-            </div>
-            <div class="component-item" draggable="true" data-type="formula">
-                <div class="component-icon">∑</div>
-                <div class="component-name">公式</div>
-            </div>
-            <div class="component-item" draggable="true" data-type="image">
-                <div class="component-icon">🖼️</div>
-                <div class="component-name">图片</div>
+            <!-- 块级组件（拖拽插入） -->
+            <div class="component-section">
+                <div class="section-title">块级元素</div>
+                <div class="component-item" draggable="true" data-type="table">
+                    <div class="component-icon">▦</div>
+                    <div class="component-name">表格</div>
+                </div>
+                <div class="component-item" draggable="true" data-type="divider">
+                    <div class="component-icon">─</div>
+                    <div class="component-name">分割线</div>
+                </div>
+                <div class="component-item" draggable="true" data-type="image">
+                    <div class="component-icon">🖼️</div>
+                    <div class="component-name">图片</div>
+                </div>
             </div>
         </div>
     </div>
@@ -55,10 +55,9 @@
         <div class="description-area">
             <textarea id="templateDescription" placeholder="请输入模板描述（可选）"></textarea>
         </div>
-        <div class="canvas" id="canvas">
-            <div class="empty-tip" id="emptyTip">
-                <p>从左侧拖拽组件到此处开始创建模板</p>
-            </div>
+        <!-- 可编辑画布 -->
+        <div class="canvas" id="canvas" contenteditable="true">
+            <p>在此输入内容，使用左侧按钮插入填空或公式...</p>
         </div>
     </div>
 
@@ -66,7 +65,16 @@
     <div class="properties-panel">
         <div class="panel-title">属性配置</div>
         <div class="panel-content" id="propertiesContent">
-            <p class="empty-tip">请选择画布中的组件进行配置</p>
+            <div class="help-content">
+                <h4>使用说明</h4>
+                <ul>
+                    <li>直接在画布中输入文字</li>
+                    <li>点击「填空」按钮插入填空项</li>
+                    <li>点击「公式」按钮插入公式</li>
+                    <li>拖拽块级元素到画布</li>
+                    <li>点击元素可编辑其属性</li>
+                </ul>
+            </div>
         </div>
     </div>
 </div>

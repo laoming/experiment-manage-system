@@ -1068,6 +1068,15 @@ ${combinedScriptContent}
         },
 
         /**
+         * 关闭错误标签页
+         */
+        closeErrorTab() {
+            const tabKey = this.currentTabKey;
+            this.tabError = null;
+            TabsManager.closeTab(tabKey);
+        },
+
+        /**
          * 检查登录状态
          */
         checkLogin() {

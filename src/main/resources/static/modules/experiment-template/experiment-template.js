@@ -1,17 +1,28 @@
 // 实验模板编辑器
-let components = [];
-let selectedComponentIndex = -1;
 let currentTemplateId = null;
+let selectedElement = null;
 
 const app = Vue.createApp({
     mounted() {
         this.checkLogin();
+        initCanvas();
         initDragDrop();
-        renderCanvas();
-        renderPropertiesPanel();
 
-        const urlParams = new URLSearchParams(window.location.search);
-        const templateId = urlParams.get('templateId');
+        // 从 TabsManager 获取当前标签页的参数（嵌入页面时 window.location.search 不可用）
+        let templateId = null;
+        if (typeof TabsManager !== 'undefined') {
+            const params = TabsManager.getCurrentTabParams();
+            if (params) {
+                templateId = params.get('templateId');
+            }
+        }
+        
+        // 如果 TabsManager 没有获取到，尝试从 URL 获取（直接访问时）
+        if (!templateId) {
+            const urlParams = new URLSearchParams(window.location.search);
+            templateId = urlParams.get('templateId');
+        }
+        
         if (templateId) {
             loadTemplate(templateId);
         }
@@ -36,15 +47,8 @@ const app = Vue.createApp({
 app.component('header-component', HeaderComponent);
 app.mount('#app');
 
-// 组件类型定义（简化版）
-const componentTypes = {
-    text: {
-        name: '文本',
-        icon: 'A',
-        fields: [
-            { type: 'textarea', name: 'content', label: '文本内容' }
-        ]
-    },
+// 组件类型定义（仅块级元素）
+const blockComponentTypes = {
     table: {
         name: '表格',
         icon: '▦',
@@ -53,36 +57,12 @@ const componentTypes = {
             { type: 'input', name: 'cols', label: '列数' }
         ]
     },
-    input: {
-        name: '填空',
-        icon: '_',
-        fields: [
-            { type: 'input', name: 'label', label: '问题' },
-            { type: 'input', name: 'placeholder', label: '占位符' }
-        ]
-    },
-    richtext: {
-        name: '富文本',
-        icon: '📝',
-        fields: [
-            { type: 'textarea', name: 'content', label: '富文本内容' },
-            { type: 'select', name: 'alignment', label: '对齐方式', options: ['left', 'center', 'right'] }
-        ]
-    },
     divider: {
         name: '分割线',
         icon: '─',
         fields: [
             { type: 'select', name: 'style', label: '线条样式', options: ['solid', 'dashed', 'dotted'] },
             { type: 'input', name: 'color', label: '颜色（如 #333）' }
-        ]
-    },
-    formula: {
-        name: '公式',
-        icon: '∑',
-        fields: [
-            { type: 'textarea', name: 'formula', label: 'LaTeX公式' },
-            { type: 'textarea', name: 'description', label: '公式说明' }
         ]
     },
     image: {
@@ -95,6 +75,38 @@ const componentTypes = {
         ]
     }
 };
+
+// 初始化画布
+function initCanvas() {
+    const canvas = document.getElementById('canvas');
+    
+    // 点击画布时清除选中状态
+    canvas.addEventListener('click', (e) => {
+        if (e.target === canvas) {
+            clearSelection();
+        }
+    });
+
+    // 点击元素时选中
+    canvas.addEventListener('click', (e) => {
+        const target = e.target.closest('.inline-input, .inline-formula, .block-component');
+        if (target) {
+            e.stopPropagation();
+            selectElement(target);
+        }
+    });
+
+    // 监听键盘删除
+    canvas.addEventListener('keydown', (e) => {
+        if (e.key === 'Delete' || e.key === 'Backspace') {
+            if (selectedElement && selectedElement.classList.contains('block-component')) {
+                e.preventDefault();
+                selectedElement.remove();
+                clearSelection();
+            }
+        }
+    });
+}
 
 // 初始化拖拽功能
 function initDragDrop() {
@@ -109,250 +121,320 @@ function initDragDrop() {
 
     canvas.addEventListener('dragover', (e) => {
         e.preventDefault();
-        e.stopPropagation();
+        canvas.classList.add('drag-over');
+    });
+
+    canvas.addEventListener('dragleave', () => {
+        canvas.classList.remove('drag-over');
     });
 
     canvas.addEventListener('drop', (e) => {
         e.preventDefault();
-        e.stopPropagation();
+        canvas.classList.remove('drag-over');
         const type = e.dataTransfer.getData('type');
-        if (type) {
-            addComponent(type);
+        if (type && blockComponentTypes[type]) {
+            insertBlockComponent(type);
         }
     });
 }
 
-// 添加组件
-function addComponent(type) {
-    const component = {
-        id: Date.now().toString(),
-        type: type,
-        data: {}
-    };
+// 插入填空
+window.insertInput = function() {
+    const placeholder = prompt('请输入填空提示（可选）：', '请输入');
+    const html = `<span class="inline-input" contenteditable="false" data-placeholder="${placeholder || '请输入'}">
+        <span class="input-marker">[</span>
+        <span class="input-content">${placeholder || '请输入'}</span>
+        <span class="input-marker">]</span>
+    </span>`;
+    insertAtCursor(html);
+    triggerContentChange();
+};
 
-    // 初始化组件数据
-    const typeConfig = componentTypes[type];
-    typeConfig.fields.forEach(field => {
-        component.data[field.name] = field.type === 'input' ? '' : '';
-        if (field.type === 'textarea') {
-            component.data[field.name] = '';
+// 插入公式
+window.insertFormula = function() {
+    const formula = prompt('请输入 LaTeX 公式：', 'E=mc^2');
+    if (formula) {
+        const html = `<span class="inline-formula" contenteditable="false" data-formula="${formula}">
+            <span class="formula-display">$${formula}$</span>
+        </span>`;
+        insertAtCursor(html);
+        triggerContentChange();
+        // 触发 MathJax 渲染
+        if (window.MathJax) {
+            MathJax.typesetPromise();
         }
-        if (field.type === 'select' && field.options) {
-            component.data[field.name] = field.options[0];
-        }
-    });
+    }
+};
 
-    components.push(component);
-    renderCanvas();
-    selectComponent(components.length - 1);
-}
-
-// 渲染画布
-function renderCanvas() {
+// 在光标位置插入 HTML
+function insertAtCursor(html) {
     const canvas = document.getElementById('canvas');
-    const emptyTip = document.getElementById('emptyTip');
-
-    if (components.length === 0) {
-        // 显示空提示
-        if (!canvas.querySelector('#emptyTip')) {
-            canvas.innerHTML = '<div class="empty-tip" id="emptyTip"><p>从左侧拖拽组件到此处开始创建模板</p></div>';
-        } else {
-            emptyTip.style.display = 'block';
+    canvas.focus();
+    
+    const selection = window.getSelection();
+    if (selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        if (canvas.contains(range.commonAncestorContainer)) {
+            range.deleteContents();
+            const temp = document.createElement('div');
+            temp.innerHTML = html;
+            const frag = document.createDocumentFragment();
+            while (temp.firstChild) {
+                frag.appendChild(temp.firstChild);
+            }
+            range.insertNode(frag);
+            // 移动光标到插入内容之后
+            range.collapse(false);
+            selection.removeAllRanges();
+            selection.addRange(range);
+            return;
         }
-        return;
     }
-
-    // 隐藏空提示
-    if (emptyTip) {
-        emptyTip.style.display = 'none';
-    }
-
-    // 只重新渲染组件部分
-    const existingComponents = canvas.querySelectorAll('.canvas-component');
-    existingComponents.forEach(el => el.remove());
-
-    components.forEach((component, index) => {
-        const componentEl = createComponentElement(component, index);
-        canvas.appendChild(componentEl);
-    });
+    
+    // 如果没有有效选区，追加到末尾
+    canvas.insertAdjacentHTML('beforeend', html);
 }
 
-// 创建组件元素
-function createComponentElement(component, index) {
-    const typeConfig = componentTypes[component.type];
-    const el = document.createElement('div');
-    el.className = 'canvas-component';
-    if (index === selectedComponentIndex) {
-        el.classList.add('selected');
-    }
-    el.dataset.index = index;
-
-    el.innerHTML = `
+// 插入块级组件
+function insertBlockComponent(type) {
+    const canvas = document.getElementById('canvas');
+    const typeConfig = blockComponentTypes[type];
+    
+    // 创建组件容器
+    const component = document.createElement('div');
+    component.className = 'block-component';
+    component.setAttribute('contenteditable', 'false');
+    component.setAttribute('data-type', type);
+    component.setAttribute('data-id', Date.now().toString());
+    
+    // 初始化默认数据
+    const data = {};
+    typeConfig.fields.forEach(field => {
+        if (field.type === 'select' && field.options) {
+            data[field.name] = field.options[0];
+        } else {
+            data[field.name] = '';
+        }
+    });
+    component.setAttribute('data-props', JSON.stringify(data));
+    
+    // 渲染组件
+    component.innerHTML = `
         <div class="component-header">
             <span class="component-type-icon">${typeConfig.icon}</span>
             <span class="component-type-name">${typeConfig.name}</span>
+            <button class="component-delete" onclick="this.closest('.block-component').remove(); clearSelection();">×</button>
         </div>
-        <div class="canvas-component-actions">
-            <button class="component-btn component-btn-edit" data-index="${index}" data-action="edit">✎</button>
-            <button class="component-btn component-btn-delete" data-index="${index}" data-action="delete">✕</button>
-        </div>
-        <div class="component-preview">
-            ${renderComponentPreview(component)}
-        </div>
+        <div class="component-body">${renderBlockComponentPreview(type, data)}</div>
     `;
-
-    // 绑定点击事件
-    el.addEventListener('click', (e) => {
-        e.stopPropagation();
-
-        // 检查是否点击了按钮
-        if (e.target.tagName === 'BUTTON') {
-            const action = e.target.dataset.action;
-            const btnIndex = parseInt(e.target.dataset.index);
-
-            if (action === 'edit') {
-                editComponent(btnIndex);
-            } else if (action === 'delete') {
-                deleteComponent(btnIndex);
-            }
-        } else {
-            // 点击组件本身，选择该组件
-            selectComponent(index);
-        }
-    });
-
-    return el;
+    
+    canvas.appendChild(component);
+    selectElement(component);
+    triggerContentChange();
 }
 
-// 渲染组件预览
-function renderComponentPreview(component) {
-    const data = component.data;
-    switch (component.type) {
-        case 'text':
-            return `<div>${data.content || '暂无文本内容'}</div>`;
+// 渲染块级组件预览
+function renderBlockComponentPreview(type, data) {
+    switch (type) {
         case 'table':
-            return `<div>${data.rows || 0} 行 × ${data.cols || 0} 列</div>`;
-        case 'input':
-            return `<label>${data.label || '未设置问题'}</label><br><input type="text" placeholder="${data.placeholder || ''}" disabled>`;
-        case 'richtext':
-            return `<div class="richtext-preview" style="text-align: ${data.alignment || 'left'}">${data.content || '暂无富文本内容'}</div>`;
+            const rows = parseInt(data.rows) || 3;
+            const cols = parseInt(data.cols) || 3;
+            let tableHtml = '<table class="preview-table">';
+            for (let i = 0; i < rows; i++) {
+                tableHtml += '<tr>';
+                for (let j = 0; j < cols; j++) {
+                    tableHtml += '<td></td>';
+                }
+                tableHtml += '</tr>';
+            }
+            tableHtml += '</table>';
+            return tableHtml;
         case 'divider':
             const borderStyle = data.style || 'solid';
             const borderColor = data.color || '#ddd';
-            return `<div style="border-top: 2px ${borderStyle} ${borderColor}; margin: 20px 0;"></div>`;
-        case 'formula':
-            const previewFormula = data.formula || '暂无公式';
-            return `<div class="formula-preview">
-                <div class="formula-display">$${previewFormula}$</div>
-                ${data.description ? `<div class="formula-desc">${data.description}</div>` : ''}
-            </div>`;
+            return `<div class="preview-divider" style="border-top: 2px ${borderStyle} ${borderColor};"></div>`;
         case 'image':
-            const imgUrl = data.url || '';
-            const imgAlt = data.alt || '图片';
-            const imgSize = data.size || 'medium';
-            const sizeClass = `img-${imgSize}`;
-            return imgUrl 
-                ? `<div class="image-preview ${sizeClass}"><img src="${imgUrl}" alt="${imgAlt}" /></div>`
-                : `<div class="image-placeholder">暂无图片</div>`;
+            const size = data.size || 'medium';
+            if (data.url) {
+                return `<div class="preview-image img-${size}"><img src="${data.url}" alt="${data.alt || ''}"></div>`;
+            }
+            return `<div class="preview-image-placeholder img-${size}">点击设置图片</div>`;
         default:
-            return '未知组件类型';
+            return '';
     }
 }
 
-// 选择组件
-function selectComponent(index) {
-    selectedComponentIndex = index;
-    renderCanvas();
-    renderPropertiesPanel();
+// 选中元素
+function selectElement(element) {
+    clearSelection();
+    selectedElement = element;
+    element.classList.add('selected');
+    renderPropertiesPanel(element);
 }
 
-// 编辑组件
-function editComponent(index) {
-    selectComponent(index);
-}
-
-// 删除组件
-function deleteComponent(index) {
-    if (confirm('确定要删除这个组件吗？')) {
-        components.splice(index, 1);
-        if (selectedComponentIndex === index) {
-            selectedComponentIndex = -1;
-        } else if (selectedComponentIndex > index) {
-            selectedComponentIndex--;
-        }
-        renderCanvas();
-        renderPropertiesPanel();
+// 清除选中
+function clearSelection() {
+    if (selectedElement) {
+        selectedElement.classList.remove('selected');
+        selectedElement = null;
     }
+    renderDefaultPanel();
 }
 
 // 渲染属性面板
-function renderPropertiesPanel() {
+function renderPropertiesPanel(element) {
     const panel = document.getElementById('propertiesContent');
-
-    if (selectedComponentIndex === -1) {
-        panel.innerHTML = '<p class="empty-tip">请选择画布中的组件进行配置</p>';
-        return;
+    
+    if (element.classList.contains('inline-input')) {
+        const placeholder = element.getAttribute('data-placeholder') || '请输入';
+        panel.innerHTML = `
+            <h3>_ 填空</h3>
+            <div class="properties-form">
+                <div class="form-group">
+                    <label class="form-label">占位提示</label>
+                    <input type="text" class="form-input" value="${placeholder}" 
+                        oninput="updateInputPlaceholder(this.value)">
+                </div>
+                <div class="form-group">
+                    <button class="btn btn-delete-full" onclick="deleteSelectedElement()">删除此填空</button>
+                </div>
+            </div>
+        `;
+    } else if (element.classList.contains('inline-formula')) {
+        const formula = element.getAttribute('data-formula') || '';
+        panel.innerHTML = `
+            <h3>∑ 公式</h3>
+            <div class="properties-form">
+                <div class="form-group">
+                    <label class="form-label">LaTeX 公式</label>
+                    <textarea class="form-textarea" oninput="updateFormula(this.value)">${formula}</textarea>
+                </div>
+                <div class="form-group">
+                    <button class="btn btn-delete-full" onclick="deleteSelectedElement()">删除此公式</button>
+                </div>
+            </div>
+        `;
+    } else if (element.classList.contains('block-component')) {
+        const type = element.getAttribute('data-type');
+        const typeConfig = blockComponentTypes[type];
+        const data = JSON.parse(element.getAttribute('data-props') || '{}');
+        
+        let html = `<h3>${typeConfig.icon} ${typeConfig.name}</h3>`;
+        html += '<div class="properties-form">';
+        
+        typeConfig.fields.forEach(field => {
+            const value = data[field.name] || '';
+            html += `<div class="form-group">`;
+            html += `<label class="form-label">${field.label}</label>`;
+            
+            switch (field.type) {
+                case 'input':
+                    html += `<input type="text" class="form-input" value="${value}" 
+                        oninput="updateBlockComponent('${field.name}', this.value)">`;
+                    break;
+                case 'textarea':
+                    html += `<textarea class="form-textarea" 
+                        oninput="updateBlockComponent('${field.name}', this.value)">${value}</textarea>`;
+                    break;
+                case 'select':
+                    html += `<select class="form-select" onchange="updateBlockComponent('${field.name}', this.value)">`;
+                    field.options.forEach(opt => {
+                        const selected = value === opt ? 'selected' : '';
+                        html += `<option value="${opt}" ${selected}>${opt}</option>`;
+                    });
+                    html += `</select>`;
+                    break;
+            }
+            
+            html += `</div>`;
+        });
+        
+        html += `<div class="form-group">
+            <button class="btn btn-delete-full" onclick="deleteSelectedElement()">删除此组件</button>
+        </div>`;
+        html += '</div>';
+        
+        panel.innerHTML = html;
     }
-
-    const component = components[selectedComponentIndex];
-    const typeConfig = componentTypes[component.type];
-
-    let html = `<h3>${typeConfig.icon} ${typeConfig.name}</h3>`;
-    html += '<div class="properties-form">';
-
-    typeConfig.fields.forEach(field => {
-        const value = component.data[field.name] || '';
-        html += `<div class="form-group">`;
-        html += `<label class="form-label">${field.label}</label>`;
-
-        switch (field.type) {
-            case 'input':
-                html += `<input type="text" class="form-input" name="${field.name}" value="${value}" oninput="updateComponentData('${field.name}', this.value)">`;
-                break;
-            case 'textarea':
-                html += `<textarea class="form-textarea" name="${field.name}" oninput="updateComponentData('${field.name}', this.value)">${value}</textarea>`;
-                break;
-            case 'select':
-                html += `<select class="form-select" name="${field.name}" onchange="updateComponentData('${field.name}', this.value)">`;
-                field.options.forEach(opt => {
-                    const selected = value === opt ? 'selected' : '';
-                    html += `<option value="${opt}" ${selected}>${opt}</option>`;
-                });
-                html += `</select>`;
-                break;
-        }
-
-        html += `</div>`;
-    });
-
-    html += '</div>';
-    panel.innerHTML = html;
 }
 
-// 更新组件数据
-function updateComponentData(fieldName, value) {
-    if (selectedComponentIndex === -1) return;
-    components[selectedComponentIndex].data[fieldName] = value;
-    renderCanvas();
+// 渲染默认面板
+function renderDefaultPanel() {
+    const panel = document.getElementById('propertiesContent');
+    panel.innerHTML = `
+        <div class="help-content">
+            <h4>使用说明</h4>
+            <ul>
+                <li>直接在画布中输入文字</li>
+                <li>点击「填空」按钮插入填空项</li>
+                <li>点击「公式」按钮插入公式</li>
+                <li>拖拽块级元素到画布</li>
+                <li>点击元素可编辑其属性</li>
+            </ul>
+        </div>
+    `;
+}
+
+// 更新填空占位符
+window.updateInputPlaceholder = function(value) {
+    if (selectedElement && selectedElement.classList.contains('inline-input')) {
+        selectedElement.setAttribute('data-placeholder', value);
+        selectedElement.querySelector('.input-content').textContent = value;
+    }
+};
+
+// 更新公式
+window.updateFormula = function(value) {
+    if (selectedElement && selectedElement.classList.contains('inline-formula')) {
+        selectedElement.setAttribute('data-formula', value);
+        selectedElement.querySelector('.formula-display').textContent = `$${value}$`;
+        if (window.MathJax) {
+            MathJax.typesetPromise([selectedElement]);
+        }
+    }
+};
+
+// 更新块级组件属性
+window.updateBlockComponent = function(fieldName, value) {
+    if (selectedElement && selectedElement.classList.contains('block-component')) {
+        const data = JSON.parse(selectedElement.getAttribute('data-props') || '{}');
+        data[fieldName] = value;
+        selectedElement.setAttribute('data-props', JSON.stringify(data));
+        
+        const type = selectedElement.getAttribute('data-type');
+        const body = selectedElement.querySelector('.component-body');
+        body.innerHTML = renderBlockComponentPreview(type, data);
+    }
+};
+
+// 删除选中元素
+window.deleteSelectedElement = function() {
+    if (selectedElement) {
+        selectedElement.remove();
+        clearSelection();
+        triggerContentChange();
+    }
+};
+
+// 触发内容变化
+function triggerContentChange() {
+    // 可以在这里添加自动保存等逻辑
 }
 
 // 清空画布
-function clearCanvas() {
-    if (confirm('确定要清空画布吗？所有组件将被删除。')) {
-        components = [];
-        selectedComponentIndex = -1;
-        renderCanvas();
-        renderPropertiesPanel();
+window.clearCanvas = function() {
+    if (confirm('确定要清空画布吗？')) {
+        const canvas = document.getElementById('canvas');
+        canvas.innerHTML = '<p>在此输入内容，使用左侧按钮插入填空或公式...</p>';
+        clearSelection();
     }
-}
+};
 
 // 预览模板
-function previewTemplate() {
-    if (components.length === 0) {
-        alert('请先添加组件');
-        return;
-    }
-
+window.previewTemplate = function() {
+    const canvas = document.getElementById('canvas');
+    const content = getTemplateContent();
+    
     const previewWindow = window.open('', '_blank');
     let previewContent = `
 <!DOCTYPE html>
@@ -361,6 +443,7 @@ function previewTemplate() {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>模板预览</title>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -376,12 +459,6 @@ function previewTemplate() {
             border-radius: 4px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
-        .component-label {
-            font-weight: bold;
-            margin-bottom: 10px;
-            display: block;
-            color: #333;
-        }
         table {
             width: 100%;
             border-collapse: collapse;
@@ -390,99 +467,146 @@ function previewTemplate() {
             padding: 8px;
             border: 1px solid #ddd;
         }
+        .inline-input-display {
+            display: inline-block;
+            border-bottom: 1px solid #333;
+            min-width: 80px;
+            margin: 0 4px;
+            padding: 2px 8px;
+            background: #f9f9f9;
+        }
+        .inline-formula-display {
+            margin: 0 4px;
+        }
     </style>
 </head>
 <body>
     <h1>${document.getElementById('templateName').value}</h1>
     <p>${document.getElementById('templateDescription').value || ''}</p>
     <hr>
-`;
-
-    components.forEach(component => {
-        const data = component.data;
-        previewContent += '<div class="component">';
-        
-        switch (component.type) {
-            case 'text':
-                previewContent += `<div>${data.content || '暂无文本内容'}</div>`;
-                break;
-            case 'table':
-                const rows = parseInt(data.rows) || 0;
-                const cols = parseInt(data.cols) || 0;
-                if (rows > 0 && cols > 0) {
-                    previewContent += '<table border="1">';
-                    for (let i = 0; i < rows; i++) {
-                        previewContent += '<tr>';
-                        for (let j = 0; j < cols; j++) {
-                            previewContent += '<td>&nbsp;</td>';
-                        }
-                        previewContent += '</tr>';
-                    }
-                    previewContent += '</table>';
-                }
-                break;
-            case 'input':
-                previewContent += `<label>${data.label || '问题'}</label>`;
-                previewContent += `<p>【填写区域：${data.placeholder || '请输入内容'}】</p>`;
-                break;
-            case 'richtext':
-                previewContent += `<div style="text-align: ${data.alignment || 'left'}">${data.content || '暂无内容'}</div>`;
-                break;
-            case 'divider':
-                previewContent += `<hr style="border: 2px ${data.style || 'solid'} ${data.color || '#ddd'}; margin: 20px 0;">`;
-                break;
-            case 'formula':
-                previewContent += `<div style="padding: 10px; background: #f9f9f9; margin: 10px 0;">`;
-                previewContent += `<p><strong>公式：</strong>${data.formula || '未设置'}</p>`;
-                if (data.description) {
-                    previewContent += `<p><strong>说明：</strong>${data.description}</p>`;
-                }
-                previewContent += `</div>`;
-                break;
-            case 'image':
-                const imgPreviewUrl = data.url || '';
-                const imgPreviewAlt = data.alt || '图片';
-                if (imgPreviewUrl) {
-                    previewContent += `<img src="${imgPreviewUrl}" alt="${imgPreviewAlt}" style="max-width: 100%;">`;
-                    if (data.alt) {
-                        previewContent += `<p style="font-size: 12px; color: #666;">${data.alt}</p>`;
-                    }
-                } else {
-                    previewContent += `<p style="color: #999;">[图片位置]</p>`;
-                }
-                break;
-        }
-        
-        previewContent += '</div>';
-    });
-
-    previewContent += `
+    <div class="component">
+        ${renderPreviewContent(canvas)}
+    </div>
 </body>
 </html>`;
-
+    
     previewWindow.document.write(previewContent);
     previewWindow.document.close();
+};
+
+// 渲染预览内容
+function renderPreviewContent(canvas) {
+    let html = canvas.innerHTML;
+    
+    // 替换填空元素
+    html = html.replace(/<span class="inline-input"[^>]*data-placeholder="([^"]*)"[^>]*>[\s\S]*?<\/span>/g, 
+        '<span class="inline-input-display">[$1]</span>');
+    
+    // 替换公式元素
+    html = html.replace(/<span class="inline-formula"[^>]*data-formula="([^"]*)"[^>]*>[\s\S]*?<\/span>/g,
+        '<span class="inline-formula-display">\\($1\\)</span>');
+    
+    // 替换块级组件
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = html;
+    
+    tempDiv.querySelectorAll('.block-component').forEach(comp => {
+        const type = comp.getAttribute('data-type');
+        const data = JSON.parse(comp.getAttribute('data-props') || '{}');
+        const previewHtml = renderBlockPreview(type, data);
+        comp.outerHTML = previewHtml;
+    });
+    
+    // 移除 contenteditable 等属性
+    tempDiv.querySelectorAll('[contenteditable]').forEach(el => {
+        el.removeAttribute('contenteditable');
+    });
+    
+    return tempDiv.innerHTML;
+}
+
+// 渲染块级组件预览（预览窗口用）
+function renderBlockPreview(type, data) {
+    switch (type) {
+        case 'table':
+            const rows = parseInt(data.rows) || 3;
+            const cols = parseInt(data.cols) || 3;
+            let tableHtml = '<table border="1" style="width:100%; margin: 10px 0;">';
+            for (let i = 0; i < rows; i++) {
+                tableHtml += '<tr>';
+                for (let j = 0; j < cols; j++) {
+                    tableHtml += '<td>&nbsp;</td>';
+                }
+                tableHtml += '</tr>';
+            }
+            tableHtml += '</table>';
+            return tableHtml;
+        case 'divider':
+            return `<hr style="border: 2px ${data.style || 'solid'} ${data.color || '#ddd'}; margin: 20px 0;">`;
+        case 'image':
+            if (data.url) {
+                return `<div style="text-align: center; margin: 10px 0;">
+                    <img src="${data.url}" alt="${data.alt || ''}" style="max-width: 100%;">
+                    ${data.alt ? `<p style="font-size: 12px; color: #666;">${data.alt}</p>` : ''}
+                </div>`;
+            }
+            return '<p style="color: #999;">[图片位置]</p>';
+        default:
+            return '';
+    }
+}
+
+// 获取模板内容（用于保存）
+function getTemplateContent() {
+    const canvas = document.getElementById('canvas');
+    
+    // 提取所有内容，包括文本和组件
+    const content = {
+        html: canvas.innerHTML,
+        elements: []
+    };
+    
+    // 提取内联元素数据
+    canvas.querySelectorAll('.inline-input').forEach(el => {
+        content.elements.push({
+            type: 'input',
+            placeholder: el.getAttribute('data-placeholder')
+        });
+    });
+    
+    canvas.querySelectorAll('.inline-formula').forEach(el => {
+        content.elements.push({
+            type: 'formula',
+            formula: el.getAttribute('data-formula')
+        });
+    });
+    
+    // 提取块级组件数据
+    canvas.querySelectorAll('.block-component').forEach(el => {
+        content.elements.push({
+            type: el.getAttribute('data-type'),
+            props: JSON.parse(el.getAttribute('data-props') || '{}')
+        });
+    });
+    
+    return content;
 }
 
 // 保存模板
-function saveTemplate() {
+window.saveTemplate = function() {
     const templateName = document.getElementById('templateName').value;
     const templateDescription = document.getElementById('templateDescription').value;
+    const canvas = document.getElementById('canvas');
 
     if (!templateName.trim()) {
         alert('请输入模板名称');
         return;
     }
 
-    if (components.length === 0) {
-        alert('请至少添加一个组件');
-        return;
-    }
-
     const templateData = {
         id: currentTemplateId || null,
         templateName: templateName,
-        templateContent: JSON.stringify(components),
+        templateContent: canvas.innerHTML,
         description: templateDescription,
         creatorId: getCurrentUserId()
     };
@@ -505,14 +629,11 @@ function saveTemplate() {
             if (result.data === true) {
                 alert('模板保存成功');
 
-                // 如果是新增模板（没有currentTemplateId），跳转到列表页面
                 if (!currentTemplateId) {
                     setTimeout(() => {
-                        // 使用 TabsManager 打开新标签页
                         TabsManager.openTabByPath('/ems/modules/experiment-template-list/experiment-template-list.html', '实验模板管理');
                     }, 1000);
                 }
-                // 如果是编辑模板，保持在当前页面
             } else {
                 alert('模板保存失败：操作未成功');
             }
@@ -524,87 +645,23 @@ function saveTemplate() {
         console.error('请求失败:', error);
         alert('模板保存失败：' + (error.message || '网络错误'));
     });
-}
+};
 
-// 导出模板为Markdown示例
-function exportTemplateAsMarkdown() {
-    if (components.length === 0) {
-        alert('请先添加组件');
-        return;
-    }
-
+// 导出 Markdown
+window.exportTemplateAsMarkdown = function() {
+    const canvas = document.getElementById('canvas');
     let markdown = `# ${document.getElementById('templateName').value}\n\n`;
     
     const description = document.getElementById('templateDescription').value;
     if (description) {
         markdown += `${description}\n\n`;
     }
-
+    
     markdown += '---\n\n';
-
-    components.forEach(component => {
-        const data = component.data;
-        
-        switch (component.type) {
-            case 'text':
-                markdown += `${data.content || ''}\n\n`;
-                break;
-            case 'table':
-                const rows = parseInt(data.rows) || 0;
-                const cols = parseInt(data.cols) || 0;
-                if (rows > 0 && cols > 0) {
-                    markdown += '|';
-                    for (let j = 0; j < cols; j++) {
-                        markdown += '   |';
-                    }
-                    markdown += '\n|';
-                    for (let j = 0; j < cols; j++) {
-                        markdown += '---|';
-                    }
-                    markdown += '\n';
-                    for (let i = 0; i < rows; i++) {
-                        markdown += '|';
-                        for (let j = 0; j < cols; j++) {
-                            markdown += '   |';
-                        }
-                        markdown += '\n';
-                    }
-                    markdown += '\n';
-                }
-                break;
-            case 'input':
-                if (data.label) {
-                    markdown += `### ${data.label}\n\n`;
-                }
-                markdown += `*${data.placeholder || '待填写'}*\n\n`;
-                break;
-            case 'richtext':
-                markdown += `${data.content || ''}\n\n`;
-                break;
-            case 'divider':
-                markdown += '---\n\n';
-                break;
-            case 'formula':
-                if (data.formula) {
-                    markdown += `$$\n${data.formula}\n$$\n\n`;
-                }
-                if (data.description) {
-                    markdown += `> ${data.description}\n\n`;
-                }
-                break;
-            case 'image':
-                if (data.url) {
-                    markdown += `![${data.alt || '图片'}](${data.url})\n\n`;
-                    if (data.alt) {
-                        markdown += `*${data.alt}*\n\n`;
-                    }
-                } else {
-                    markdown += `[图片]\n\n`;
-                }
-                break;
-        }
-    });
-
+    
+    // 转换内容为 Markdown
+    markdown += convertToMarkdown(canvas);
+    
     const blob = new Blob([markdown], { type: 'text/markdown' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -614,6 +671,68 @@ function exportTemplateAsMarkdown() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+};
+
+// 转换为 Markdown
+function convertToMarkdown(element) {
+    let markdown = '';
+    
+    element.childNodes.forEach(node => {
+        if (node.nodeType === Node.TEXT_NODE) {
+            markdown += node.textContent;
+        } else if (node.nodeType === Node.ELEMENT_NODE) {
+            const el = node;
+            
+            if (el.classList.contains('inline-input')) {
+                const placeholder = el.getAttribute('data-placeholder') || '请输入';
+                markdown += `*[${placeholder}]*`;
+            } else if (el.classList.contains('inline-formula')) {
+                const formula = el.getAttribute('data-formula') || '';
+                markdown += `$${formula}$`;
+            } else if (el.classList.contains('block-component')) {
+                const type = el.getAttribute('data-type');
+                const data = JSON.parse(el.getAttribute('data-props') || '{}');
+                markdown += '\n' + convertBlockToMarkdown(type, data) + '\n';
+            } else if (el.tagName === 'BR') {
+                markdown += '\n';
+            } else if (el.tagName === 'P' || el.tagName === 'DIV') {
+                markdown += convertToMarkdown(el) + '\n\n';
+            } else {
+                markdown += convertToMarkdown(el);
+            }
+        }
+    });
+    
+    return markdown;
+}
+
+// 转换块级组件为 Markdown
+function convertBlockToMarkdown(type, data) {
+    switch (type) {
+        case 'table':
+            const rows = parseInt(data.rows) || 3;
+            const cols = parseInt(data.cols) || 3;
+            let md = '|';
+            for (let j = 0; j < cols; j++) md += '   |';
+            md += '\n|';
+            for (let j = 0; j < cols; j++) md += '---|';
+            md += '\n';
+            for (let i = 0; i < rows; i++) {
+                md += '|';
+                for (let j = 0; j < cols; j++) md += '   |';
+                md += '\n';
+            }
+            return md;
+        case 'divider':
+            return '---';
+        case 'image':
+            if (data.url) {
+                return `![${data.alt || '图片'}](${data.url})`;
+            }
+            return '[图片]';
+        default:
+            return '';
+    }
 }
 
 // 获取当前用户ID
@@ -635,10 +754,14 @@ function loadTemplate(templateId) {
             currentTemplateId = template.id;
             document.getElementById('templateName').value = template.templateName;
             document.getElementById('templateDescription').value = template.description || '';
-            components = JSON.parse(template.templateContent);
-            selectedComponentIndex = -1;
-            renderCanvas();
-            renderPropertiesPanel();
+            
+            const canvas = document.getElementById('canvas');
+            canvas.innerHTML = template.templateContent || '<p></p>';
+            
+            // 重新渲染公式
+            if (window.MathJax) {
+                MathJax.typesetPromise();
+            }
         }
     })
     .catch(error => {

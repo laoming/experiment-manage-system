@@ -191,7 +191,7 @@ const TabsManager = {
 
             const tabs = this.getTabs();
 
-            // 生成唯一的标签页 key
+            // 生成唯一的标签页 key（包含 query 参数）
             const pathHash = this.generateTabKey(path);
 
             // 检查标签页是否已存在
@@ -226,12 +226,41 @@ const TabsManager = {
     },
 
     /**
+     * 获取当前标签页的完整路径（包含 query 参数）
+     */
+    getCurrentTabPath() {
+        try {
+            const currentTabKey = this.getCurrentTab();
+            const tabs = this.getTabs();
+            const tab = tabs.find(t => t.key === currentTabKey);
+            return tab ? tab.path : null;
+        } catch (error) {
+            console.error('[TabsManager] 获取当前标签页路径失败:', error);
+            return null;
+        }
+    },
+
+    /**
+     * 获取当前标签页的 query 参数
+     * @returns {URLSearchParams|null}
+     */
+    getCurrentTabParams() {
+        const path = this.getCurrentTabPath();
+        if (!path) return null;
+        
+        const queryIndex = path.indexOf('?');
+        if (queryIndex === -1) return new URLSearchParams();
+        
+        const queryString = path.substring(queryIndex + 1);
+        return new URLSearchParams(queryString);
+    },
+
+    /**
      * 生成标签页的唯一 key
      */
     generateTabKey(path) {
-        // 使用路径生成唯一 key（去除 query 参数）
-        const baseKey = path.split('?')[0];
-        return 'page_' + btoa(baseKey).replace(/[+=]/g, '');
+        // 使用完整路径（包含 query 参数）生成唯一 key
+        return 'page_' + btoa(path).replace(/[+=]/g, '');
     },
 
     /**

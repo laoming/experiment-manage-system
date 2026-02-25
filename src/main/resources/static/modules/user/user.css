@@ -1,154 +1,9 @@
 /**
  * 用户管理模块样式
- * 注意：本模块嵌入到 home.html 的 .tab-content-embed 中
- * 导航栏遮挡问题已由 common.css 统一处理，无需各模块单独处理
+ * 公共样式已在 common.css 中定义，本文件仅定义模块私有样式
  */
 
-/* 容器 */
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 20px;
-}
-
-/* 页面标题 */
-.page-header {
-    background: white;
-    border-radius: 12px;
-    padding: 32px;
-    margin-bottom: 24px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.page-title {
-    font-size: 28px;
-    font-weight: 700;
-    color: #1a1a1a;
-    margin-bottom: 8px;
-}
-
-.page-subtitle {
-    font-size: 14px;
-    color: #666;
-}
-
-/* 工具栏 */
-.toolbar {
-    background: white;
-    border-radius: 12px;
-    padding: 20px;
-    margin-bottom: 24px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 16px;
-    flex-wrap: wrap;
-}
-
-.search-box {
-    display: flex;
-    gap: 12px;
-    flex: 1;
-    flex-wrap: wrap;
-}
-
-.search-input,
-.search-select {
-    padding: 10px 16px;
-    border: 1px solid #e0e0e0;
-    border-radius: 6px;
-    font-size: 14px;
-    min-width: 200px;
-    transition: all 0.3s;
-}
-
-.search-input:focus,
-.search-select:focus {
-    outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-}
-
-/* 按钮样式 */
-.btn {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 6px;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: all 0.3s;
-    white-space: nowrap;
-}
-
-.btn-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-}
-
-.btn-primary:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-}
-
-.btn-secondary {
-    background: white;
-    border: 1px solid #e0e0e0;
-    color: #666;
-}
-
-.btn-secondary:hover {
-    background: #f5f5f5;
-    border-color: #999;
-}
-
-.btn-success {
-    background: linear-gradient(135deg, #52c41a 0%, #73d13d 100%);
-    color: white;
-}
-
-.btn-success:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(82, 196, 26, 0.4);
-}
-
-/* 表格容器 */
-.table-container {
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-    margin-bottom: 24px;
-}
-
-/* 加载状态 */
-.loading {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 60px 20px;
-    color: #999;
-}
-
-.loading-spinner {
-    width: 40px;
-    height: 40px;
-    border: 3px solid #f3f3f3;
-    border-top: 3px solid #667eea;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin-bottom: 16px;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
+/* ==================== 用户表格私有样式 ==================== */
 
 .user-table {
     width: 100%;
@@ -183,24 +38,8 @@
     border-bottom: none;
 }
 
-.empty-cell {
-    padding: 60px !important;
-}
-
-.empty-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    color: #999;
-}
-
-.empty-icon {
-    font-size: 48px;
-    margin-bottom: 16px;
-}
-
 /* 状态徽章 */
-.status-badge {
+.user-status-badge {
     padding: 4px 12px;
     border-radius: 12px;
     font-size: 12px;
@@ -208,269 +47,36 @@
     display: inline-block;
 }
 
-.status-active {
+.user-status-active {
     background: #f6ffed;
     color: #52c41a;
     border: 1px solid #b7eb8f;
 }
 
-.status-disabled {
+.user-status-disabled {
     background: #fffbe6;
     color: #faad14;
     border: 1px solid #ffe58f;
 }
 
-.status-deleted {
+.user-status-deleted {
     background: #fff1f0;
     color: #ff4d4f;
     border: 1px solid #ffccc7;
 }
 
-.status-unknown {
+.user-status-unknown {
     background: #f5f5f5;
     color: #999;
     border: 1px solid #d9d9d9;
 }
 
-/* 操作按钮 */
-.actions {
-    display: flex;
-    gap: 8px;
-}
+/* ==================== 响应式设计 ==================== */
 
-.action-btn {
-    padding: 6px 12px;
-    border: none;
-    border-radius: 4px;
-    font-size: 12px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    transition: all 0.3s;
-}
-
-.btn-edit {
-    background: #e6f7ff;
-    color: #1890ff;
-}
-
-.btn-edit:hover {
-    background: #bae7ff;
-}
-
-.btn-reset {
-    background: #f9f0ff;
-    color: #722ed1;
-}
-
-.btn-reset:hover {
-    background: #efdbff;
-}
-
-.btn-delete {
-    background: #fff1f0;
-    color: #ff4d4f;
-}
-
-.btn-delete:hover {
-    background: #ffccc7;
-}
-
-/* 分页 */
-.pagination {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 16px;
-    padding: 16px;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.pagination-btn {
-    padding: 8px 16px;
-    background: white;
-    border: 1px solid #e0e0e0;
-    border-radius: 6px;
-    color: #666;
-    cursor: pointer;
-    font-size: 14px;
-    transition: all 0.3s;
-}
-
-.pagination-btn:hover:not(:disabled) {
-    background: #f5f5f5;
-    border-color: #999;
-}
-
-.pagination-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-.pagination-info {
-    font-size: 14px;
-    color: #666;
-}
-
-.pagination-total {
-    color: #999;
-    font-size: 12px;
-}
-
-/* 弹窗 */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 2000;
-}
-
-.modal-overlay[style*="display: none"] {
-    /* 隐藏状态 */
-}
-
-.modal-overlay:not([style*="display: none"]) {
-    animation: fadeIn 0.2s ease-in-out;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-.modal-content {
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-    width: 90%;
-    max-width: 500px;
-    max-height: 90vh;
-    overflow-y: auto;
-    animation: slideUp 0.3s ease-in-out;
-}
-
-@keyframes slideUp {
-    from { transform: translateY(20px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-}
-
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 24px;
-    border-bottom: 1px solid #f0f0f0;
-}
-
-.modal-header h2 {
-    font-size: 20px;
-    font-weight: 600;
-    color: #1a1a1a;
-}
-
-.modal-close {
-    width: 32px;
-    height: 32px;
-    border: none;
-    background: #f5f5f5;
-    border-radius: 50%;
-    cursor: pointer;
-    font-size: 18px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s;
-}
-
-.modal-close:hover {
-    background: #e0e0e0;
-}
-
-.modal-body {
-    padding: 24px;
-}
-
-/* 表单样式 */
-.form-group {
-    margin-bottom: 20px;
-}
-
-.form-label {
-    display: block;
-    margin-bottom: 8px;
-    font-size: 14px;
-    font-weight: 500;
-    color: #333;
-}
-
-.required {
-    color: #ff4d4f;
-}
-
-.form-input {
-    width: 100%;
-    padding: 10px 16px;
-    border: 1px solid #e0e0e0;
-    border-radius: 6px;
-    font-size: 14px;
-    transition: all 0.3s;
-}
-
-.form-input:focus {
-    outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-}
-
-.form-input:disabled {
-    background: #f5f5f5;
-    cursor: not-allowed;
-}
-
-.modal-footer {
-    display: flex;
-    justify-content: flex-end;
-    gap: 12px;
-    margin-top: 24px;
-}
-
-/* 响应式设计 */
 @media (max-width: 768px) {
-    .toolbar {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .search-box {
-        flex-direction: column;
-    }
-
-    .search-input,
-    .search-select {
-        min-width: 100%;
-    }
-
     .user-table th,
     .user-table td {
         padding: 12px 8px;
         font-size: 12px;
-    }
-
-    .actions {
-        flex-direction: column;
-    }
-
-    .action-btn {
-        width: 100%;
-        justify-content: center;
     }
 }

@@ -1,30 +1,9 @@
-/* 主内容区域 */
-.main-content {
-    padding-top: 122px;
-    padding-bottom: 40px;
-    min-height: calc(100vh - 122px);
-}
+/**
+ * 公告消息模块样式
+ * 公共样式已在 common.css 中定义，本文件仅定义模块私有样式
+ */
 
-/* 页面标题 */
-.page-header {
-    background: white;
-    border-radius: 12px;
-    padding: 32px;
-    margin-bottom: 24px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.page-title {
-    font-size: 28px;
-    font-weight: 700;
-    color: #1a1a1a;
-    margin-bottom: 8px;
-}
-
-.page-subtitle {
-    font-size: 14px;
-    color: #666;
-}
+/* ==================== 消息网格 ==================== */
 
 .message-grid {
     display: grid;
@@ -124,37 +103,13 @@
     background: #73d13d;
 }
 
-.loading {
-    padding: 40px 0;
-    text-align: center;
-    color: #999;
-}
-
-.loading-spinner {
-    width: 32px;
-    height: 32px;
-    margin: 0 auto 12px;
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid #667eea;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
 .empty-state {
     text-align: center;
     color: #999;
     padding: 40px 0;
 }
 
-.empty-icon {
-    font-size: 40px;
-    margin-bottom: 8px;
-}
+/* ==================== 响应式设计 ==================== */
 
 @media (max-width: 900px) {
     .message-grid {

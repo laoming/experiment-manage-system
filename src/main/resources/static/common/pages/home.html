@@ -109,8 +109,10 @@
                         <div class="error-icon">⚠️</div>
                         <h2>页面加载失败</h2>
                         <p>{{ tabError }}</p>
-                        <button class="btn btn-primary" @click="reloadCurrentTab">重新加载</button>
-                        <button class="btn btn-secondary" @click="currentTabKey='home';tabError=null">返回首页</button>
+                        <div class="error-actions">
+                            <button class="btn btn-primary" @click="reloadCurrentTab">重新加载</button>
+                            <button class="btn btn-secondary" @click="closeErrorTab">关闭页面</button>
+                        </div>
                     </div>
 
                     <!-- 内容显示 -->

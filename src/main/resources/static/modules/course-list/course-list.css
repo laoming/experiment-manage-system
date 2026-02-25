@@ -1,147 +1,10 @@
-/* 课程管理页面样式 */
-/* 注意：本模块嵌入到 home.html 的 .tab-content-embed 中
- * 导航栏遮挡问题已由 common.css 统一处理，无需各模块单独处理
+/**
+ * 课程管理模块样式
+ * 注意：本模块嵌入到 home.html 的 .tab-content-embed 中
+ * 公共样式已在 common.css 中定义，本文件仅定义模块私有样式
  */
 
-/* 页面错误提示 */
-.page-error {
-    background-color: white;
-    padding: 60px 40px;
-    border-radius: 8px;
-    text-align: center;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.page-error .error-icon {
-    font-size: 64px;
-    margin-bottom: 20px;
-}
-
-.page-error h2 {
-    color: #f44336;
-    margin: 0 0 16px 0;
-    font-size: 24px;
-}
-
-.page-error p {
-    color: #666;
-    margin: 0 0 24px 0;
-    font-size: 16px;
-}
-
-.container {
-    max-width: 1400px;
-    margin: 0 auto;
-}
-
-/* 页面标题 */
-.page-header {
-    background-color: white;
-    padding: 24px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.page-title {
-    font-size: 28px;
-    font-weight: 600;
-    color: #333;
-    margin: 0 0 8px 0;
-}
-
-.page-subtitle {
-    font-size: 14px;
-    color: #666;
-    margin: 0;
-}
-
-/* 工具栏 */
-.toolbar {
-    background-color: white;
-    padding: 20px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.search-box {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-}
-
-.search-input {
-    padding: 8px 12px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 14px;
-    width: 250px;
-    outline: none;
-    transition: border-color 0.3s;
-}
-
-.search-input:focus {
-    border-color: #4CAF50;
-}
-
-/* 按钮样式 */
-.btn {
-    padding: 8px 16px;
-    border: none;
-    border-radius: 4px;
-    font-size: 14px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: all 0.3s;
-}
-
-.btn-primary {
-    background-color: #4CAF50;
-    color: white;
-}
-
-.btn-primary:hover {
-    background-color: #45a049;
-}
-
-.btn-secondary {
-    background-color: #f5f5f5;
-    color: #333;
-    border: 1px solid #ddd;
-}
-
-.btn-secondary:hover {
-    background-color: #e0e0e0;
-}
-
-.btn-success {
-    background-color: #4CAF50;
-    color: white;
-}
-
-.btn-success:hover {
-    background-color: #45a049;
-}
-
-.btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-/* 表格容器 */
-.table-container {
-    background-color: white;
-    border-radius: 8px;
-    margin-bottom: 20px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-}
+/* ==================== 课程表格私有样式 ==================== */
 
 .course-table {
     width: 100%;
@@ -169,32 +32,8 @@
     background-color: #f9f9f9;
 }
 
-.empty-cell {
-    padding: 60px 20px !important;
-    text-align: center;
-}
-
-.empty-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    color: #999;
-}
-
-.empty-icon {
-    font-size: 48px;
-    margin-bottom: 16px;
-}
-
-.description-preview {
-    max-width: 300px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    color: #666;
-}
-
-.badge {
+/* 课程徽章 */
+.course-badge {
     display: inline-block;
     padding: 2px 8px;
     background-color: #e3f2fd;
@@ -203,282 +42,22 @@
     font-size: 12px;
 }
 
-.badge-admin {
+.course-badge-admin {
     background-color: #fff3e0;
     color: #f57c00;
 }
 
-/* 操作按钮 */
-.actions {
-    display: flex;
-    gap: 8px;
-}
-
-.action-btn {
-    padding: 6px 12px;
-    border: none;
-    border-radius: 4px;
-    font-size: 12px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    transition: all 0.3s;
-}
-
-.btn-view {
-    background-color: #2196F3;
-    color: white;
-}
-
-.btn-view:hover {
-    background-color: #1976d2;
-}
-
-.btn-edit {
-    background-color: #FF9800;
-    color: white;
-}
-
-.btn-edit:hover {
-    background-color: #f57c00;
-}
-
-.btn-bind {
-    background-color: #9C27B0;
-    color: white;
-}
-
-.btn-bind:hover {
-    background-color: #7b1fa2;
-}
-
-.btn-delete {
-    background-color: #f44336;
-    color: white;
-}
-
-.btn-delete:hover {
-    background-color: #d32f2f;
-}
-
-/* 分页 */
-.pagination {
-    background-color: white;
-    padding: 16px;
-    border-radius: 8px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 16px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.pagination-btn {
-    padding: 8px 16px;
-    border: 1px solid #ddd;
-    background-color: white;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.3s;
-}
-
-.pagination-btn:hover:not(:disabled) {
-    background-color: #4CAF50;
-    color: white;
-    border-color: #4CAF50;
-}
-
-.pagination-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-.pagination-info {
-    font-size: 14px;
+/* 描述预览 */
+.description-preview {
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     color: #666;
 }
 
-.pagination-total {
-    color: #999;
-    margin-left: 8px;
-}
+/* ==================== 绑定管理私有样式 ==================== */
 
-/* 加载状态 */
-.loading {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 60px 20px;
-}
-
-.loading-spinner {
-    width: 40px;
-    height: 40px;
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid #4CAF50;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin-bottom: 16px;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-/* 弹窗 */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-}
-
-/* 当v-show为false时，Vue会设置display: none */
-.modal-overlay[style*="display: none"] {
-    /* 隐藏状态 */
-}
-
-/* 当v-show为true时，Vue会清除display属性（display: ''），显示并添加动画 */
-.modal-overlay:not([style*="display: none"]) {
-    animation: fadeIn 0.3s ease-out;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
-}
-
-.modal-content {
-    background-color: white;
-    border-radius: 8px;
-    max-width: 600px;
-    width: 90%;
-    max-height: 80vh;
-    overflow-y: auto;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.modal-large {
-    max-width: 900px;
-}
-
-.modal-header {
-    padding: 20px;
-    border-bottom: 1px solid #e0e0e0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.modal-header h2 {
-    margin: 0;
-    font-size: 20px;
-    font-weight: 600;
-    color: #333;
-}
-
-.modal-close {
-    background: none;
-    border: none;
-    font-size: 24px;
-    cursor: pointer;
-    color: #999;
-    padding: 0;
-    width: 30px;
-    height: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.modal-close:hover {
-    color: #333;
-}
-
-.modal-body {
-    padding: 20px;
-}
-
-.modal-footer {
-    padding: 16px 20px;
-    border-top: 1px solid #e0e0e0;
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-}
-
-/* 表单 */
-.form-group {
-    margin-bottom: 20px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 500;
-    color: #333;
-}
-
-.form-group .required {
-    color: #f44336;
-}
-
-.form-control {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 14px;
-    outline: none;
-    transition: border-color 0.3s;
-}
-
-.form-control:focus {
-    border-color: #4CAF50;
-}
-
-textarea.form-control {
-    resize: vertical;
-    min-height: 100px;
-}
-
-/* 查看项 */
-.view-item {
-    margin-bottom: 16px;
-}
-
-.view-label {
-    font-weight: 500;
-    color: #666;
-    margin-right: 8px;
-}
-
-.view-value {
-    color: #333;
-}
-
-.view-description {
-    color: #333;
-    line-height: 1.6;
-    margin: 8px 0 0 0;
-    white-space: pre-wrap;
-    word-break: break-word;
-}
-
-/* 绑定管理 */
 .bind-tabs {
     display: flex;
     border-bottom: 2px solid #e0e0e0;
@@ -556,7 +135,7 @@ textarea.form-control {
     background-color: #e8f5e9;
 }
 
-.checkbox {
+.bind-checkbox {
     display: inline-block;
     width: 18px;
     height: 18px;
@@ -566,12 +145,12 @@ textarea.form-control {
     position: relative;
 }
 
-.checkbox.checked {
+.bind-checkbox.checked {
     background-color: #4CAF50;
     border-color: #4CAF50;
 }
 
-.checkbox.checked::after {
+.bind-checkbox.checked::after {
     content: '✓';
     color: white;
     position: absolute;
@@ -595,38 +174,18 @@ textarea.form-control {
     border-radius: 4px;
 }
 
-.empty-text {
-    color: #999;
-    text-align: center;
-    padding: 20px;
-}
-
-/* 绑定操作按钮 */
 .bind-actions {
     margin-top: 12px;
     display: flex;
     gap: 10px;
 }
 
-.btn-sm {
-    padding: 6px 12px;
-    font-size: 12px;
-}
+/* ==================== 查看项私有样式 ==================== */
 
-.btn-success {
-    background-color: #4CAF50;
-    color: white;
-}
-
-.btn-success:hover {
-    background-color: #45a049;
-}
-
-.btn-danger {
-    background-color: #f44336;
-    color: white;
-}
-
-.btn-danger:hover {
-    background-color: #d32f2f;
+.view-description {
+    color: #333;
+    line-height: 1.6;
+    margin: 8px 0 0 0;
+    white-space: pre-wrap;
+    word-break: break-word;
 }

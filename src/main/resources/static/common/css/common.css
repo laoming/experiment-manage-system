@@ -796,6 +796,13 @@
     padding: 60px 40px;
     text-align: center;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    /* 居中布局 */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 180px);
+    margin: 0;
 }
 
 .tab-page-error .error-icon {
@@ -819,8 +826,224 @@
     margin: 0 8px;
 }
 
+.tab-page-error .error-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
 /* 确保嵌入的页面样式不冲突 */
 .tab-content-embed * {
     max-width: 100%;
+}
+
+/* ==================== 嵌入页面公共组件样式 ==================== */
+
+/* 加载状态 */
+.tab-content-embed .loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    color: #999;
+}
+
+.tab-content-embed .loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 16px;
+}
+
+/* 空状态 */
+.tab-content-embed .empty-cell {
+    padding: 60px !important;
+}
+
+.tab-content-embed .empty-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: #999;
+}
+
+.tab-content-embed .empty-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+}
+
+/* 搜索框 */
+.tab-content-embed .search-box {
+    display: flex;
+    gap: 12px;
+    flex: 1;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.tab-content-embed .search-input,
+.tab-content-embed .search-select {
+    padding: 10px 16px;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    font-size: 14px;
+    min-width: 200px;
+    transition: all 0.3s;
+}
+
+.tab-content-embed .search-input:focus,
+.tab-content-embed .search-select:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* 操作按钮组 */
+.tab-content-embed .actions {
+    display: flex;
+    gap: 8px;
+}
+
+.tab-content-embed .action-btn {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.3s;
+}
+
+.tab-content-embed .btn-edit {
+    background: #e6f7ff;
+    color: #1890ff;
+}
+
+.tab-content-embed .btn-edit:hover {
+    background: #bae7ff;
+}
+
+.tab-content-embed .btn-view {
+    background: #f6ffed;
+    color: #52c41a;
+}
+
+.tab-content-embed .btn-view:hover {
+    background: #d9f7be;
+}
+
+.tab-content-embed .btn-delete {
+    background: #fff1f0;
+    color: #ff4d4f;
+}
+
+.tab-content-embed .btn-delete:hover {
+    background: #ffccc7;
+}
+
+/* 分页 */
+.tab-content-embed .pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    margin: 0 0 20px 0;
+}
+
+.tab-content-embed .pagination-btn {
+    padding: 8px 16px;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    color: #666;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s;
+}
+
+.tab-content-embed .pagination-btn:hover:not(:disabled) {
+    background: #f5f5f5;
+    border-color: #999;
+}
+
+.tab-content-embed .pagination-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.tab-content-embed .pagination-info {
+    font-size: 14px;
+    color: #666;
+}
+
+.tab-content-embed .pagination-total {
+    color: #999;
+    font-size: 12px;
+    margin-left: 8px;
+}
+
+/* 大弹窗 */
+.tab-content-embed .modal-large {
+    max-width: 800px;
+}
+
+/* 查看项 */
+.tab-content-embed .view-item {
+    margin-bottom: 16px;
+}
+
+.tab-content-embed .view-label {
+    font-weight: 500;
+    color: #666;
+    margin-right: 8px;
+}
+
+.tab-content-embed .view-value {
+    color: #333;
+}
+
+.tab-content-embed .view-description {
+    color: #333;
+    line-height: 1.6;
+    margin: 8px 0 0 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+/* ==================== 响应式设计 ==================== */
+
+@media (max-width: 768px) {
+    .tab-content-embed .toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .tab-content-embed .search-box {
+        flex-direction: column;
+    }
+
+    .tab-content-embed .search-input,
+    .tab-content-embed .search-select {
+        min-width: 100%;
+    }
+
+    .tab-content-embed .actions {
+        flex-direction: column;
+    }
+
+    .tab-content-embed .action-btn {
+        width: 100%;
+        justify-content: center;
+    }
 }
 
