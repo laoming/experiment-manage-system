@@ -273,13 +273,13 @@ function selectElement(element) {
 }
 
 // 清除选中
-function clearSelection() {
+window.clearSelection = function() {
     if (selectedElement) {
         selectedElement.classList.remove('selected');
         selectedElement = null;
     }
     renderDefaultPanel();
-}
+};
 
 // 渲染属性面板
 function renderPropertiesPanel(element) {
