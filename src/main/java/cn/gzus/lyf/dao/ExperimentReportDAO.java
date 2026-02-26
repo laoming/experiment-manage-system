@@ -133,4 +133,51 @@ public class ExperimentReportDAO extends ServiceImpl<ExperimentReportMapper, Exp
         );
         return BeanCopyUtils.copy(reportPage, PageDto.class);
     }
+
+    /**
+     * 根据学生ID获取所有报告
+     * @param studentId 学生ID
+     * @return 报告列表
+     */
+    public List<ExperimentReportEntity> getReportsByStudentId(String studentId) {
+        Objects.requireNonNull(studentId, "学生ID不能为空");
+        return this.list(new LambdaQueryWrapper<ExperimentReportEntity>()
+                .eq(ExperimentReportEntity::getStudentId, studentId)
+                .orderByDesc(ExperimentReportEntity::getUpdateTime)
+        );
+    }
+
+    /**
+     * 根据学生ID和模板ID列表获取报告
+     * @param studentId 学生ID
+     * @param templateIds 模板ID列表
+     * @return 报告列表
+     */
+    public List<ExperimentReportEntity> getReportsByStudentIdAndTemplateIds(String studentId, List<String> templateIds) {
+        if (templateIds == null || templateIds.isEmpty()) {
+            return java.util.Collections.emptyList();
+        }
+        return this.list(new LambdaQueryWrapper<ExperimentReportEntity>()
+                .eq(ExperimentReportEntity::getStudentId, studentId)
+                .in(ExperimentReportEntity::getTemplateId, templateIds)
+                .orderByDesc(ExperimentReportEntity::getUpdateTime)
+        );
+    }
+
+    /**
+     * 根据学生ID和模板ID获取报告
+     * @param studentId 学生ID
+     * @param templateId 模板ID
+     * @return 报告实体
+     */
+    public ExperimentReportEntity getReportByStudentIdAndTemplateId(String studentId, String templateId) {
+        Objects.requireNonNull(studentId, "学生ID不能为空");
+        Objects.requireNonNull(templateId, "模板ID不能为空");
+        return this.getOne(new LambdaQueryWrapper<ExperimentReportEntity>()
+                .eq(ExperimentReportEntity::getStudentId, studentId)
+                .eq(ExperimentReportEntity::getTemplateId, templateId)
+                .orderByDesc(ExperimentReportEntity::getUpdateTime)
+                .last("LIMIT 1")
+        );
+    }
 }

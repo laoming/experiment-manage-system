@@ -64,4 +64,17 @@ public class CourseTemplateRelationDAO extends ServiceImpl<CourseTemplateRelatio
                 .map(CourseTemplateRelationEntity::getTemplateId)
                 .collect(java.util.stream.Collectors.toList());
     }
+
+    /**
+     * 根据课程ID列表获取所有课程-模板关联
+     * @param courseIds 课程ID列表
+     * @return 课程-模板关联列表
+     */
+    public List<CourseTemplateRelationEntity> getByCourseIds(List<String> courseIds) {
+        if (courseIds == null || courseIds.isEmpty()) {
+            return java.util.Collections.emptyList();
+        }
+        return this.list(Wrappers.<CourseTemplateRelationEntity>lambdaQuery()
+                .in(CourseTemplateRelationEntity::getCourseId, courseIds));
+    }
 }

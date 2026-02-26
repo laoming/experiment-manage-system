@@ -1,13 +1,17 @@
 package cn.gzus.lyf.controller.experiment;
 
 import cn.gzus.lyf.common.dto.PageDto;
+import cn.gzus.lyf.common.dto.ReportOverviewDto;
 import cn.gzus.lyf.common.dto.Result;
+import cn.gzus.lyf.common.dto.UserDto;
 import cn.gzus.lyf.dao.entity.ExperimentReportEntity;
 import cn.gzus.lyf.service.experiment.ExperimentReportService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,6 +28,22 @@ public class ExperimentReportController {
     @Autowired
     public void setReportService(ExperimentReportService reportService) {
         this.reportService = reportService;
+    }
+
+    /**
+     * 获取当前用户ID
+     * @return 用户ID
+     */
+    private String getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return null;
+        }
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof UserDto) {
+            return ((UserDto) principal).getId();
+        }
+        return null;
     }
 
     /**
@@ -111,5 +131,41 @@ public class ExperimentReportController {
         return ResponseEntity.ok()
                 .headers(headers)
                 .body(markdown);
+    }
+
+    /**
+     * 获取当前用户的报告概览
+     */
+    @PostMapping("/overview")
+    public Result<List<ReportOverviewDto>> getReportOverview() {
+        String userId = getCurrentUserId();
+        if (userId == null) {
+            return Result.error("未登录");
+        }
+        return Result.success(reportService.getReportOverview(userId));
+    }
+
+    /**
+     * 获取当前用户的待提交报告列表
+     */
+    @PostMapping("/pending")
+    public Result<List<ReportOverviewDto>> getPendingReports() {
+        String userId = getCurrentUserId();
+        if (userId == null) {
+            return Result.error("未登录");
+        }
+        return Result.success(reportService.getPendingReports(userId));
+    }
+
+    /**
+     * 获取当前用户的已提交报告列表
+     */
+    @PostMapping("/submitted")
+    public Result<List<ReportOverviewDto>> getSubmittedReports() {
+        String userId = getCurrentUserId();
+        if (userId == null) {
+            return Result.error("未登录");
+        }
+        return Result.success(reportService.getSubmittedReports(userId));
     }
 }

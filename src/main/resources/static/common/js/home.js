@@ -914,90 +914,90 @@ const app = createApp({
                         console.log('📌 [HOME] 脚本内容后500字符:', combinedScriptContent.substring(combinedScriptContent.length - 500));
 
                         try {
-                            // 将脚本内容包装在 try-catch 中，避免错误影响其他脚本
-                            // 使用 IIFE 创建独立作用域，避免变量名冲突
-                            const wrappedContent = `(function() {
-    const targetId = ${JSON.stringify(targetAppId)};
-    const tabKey = ${JSON.stringify(tabKey)};
-    let createdVueApp = null;
-
-    console.log('📌 [HOME] 开始执行脚本');
-    console.log('📌 [HOME] 挂载目标ID:', targetId);
-    console.log('📌 [HOME] 标签页key:', tabKey);
-    console.log('📌 [HOME] 全局tabVueInstances:', typeof window.homeTabVueInstances);
-
-    // 检查目标元素是否存在
-    const targetElement = document.getElementById(targetId);
-    console.log('📌 [HOME] 目标元素是否存在:', !!targetElement);
-    if (!targetElement) {
-        console.error('[HOME] 目标元素不存在:', targetId);
-        return;
-    }
-
-    // 修改 Vue.createApp 函数以捕获创建的实例
-    const originalCreateApp = Vue.createApp;
-    Vue.createApp = function(...args) {
-        createdVueApp = originalCreateApp.apply(Vue, args);
-
-        // 保存原始的 mount 方法
-        const originalMount = createdVueApp.mount;
-
-        // 重写 mount 方法以捕获挂载后的实例
-        createdVueApp.mount = function(...mountArgs) {
-            const result = originalMount.apply(createdVueApp, mountArgs);
-            console.log('📌 [HOME] Vue实例已挂载:', targetId);
-
-            // 保存Vue实例到全局变量
-            setTimeout(() => {
-                console.log('📌 [HOME] 开始保存Vue实例...');
-                console.log('📌 [HOME] window.homeTabVueInstances 类型:', typeof window.homeTabVueInstances);
-                console.log('📌 [HOME] window.homeTabVueInstances:', window.homeTabVueInstances);
-
-                if (window.homeTabVueInstances) {
-                    console.log('📌 [HOME] 保存Vue实例，tabKey:', tabKey);
-                    window.homeTabVueInstances[tabKey] = createdVueApp;
-                    console.log('📌 [HOME] Vue实例已保存到window.homeTabVueInstances');
-                    console.log('📌 [HOME] 保存后的 window.homeTabVueInstances:', window.homeTabVueInstances);
-                } else {
-                    console.error('[HOME] window.homeTabVueInstances 不存在');
-                }
-            }, 50);
-
-            return result;
-        };
-
-        return createdVueApp;
-    };
-
-    try {
-${combinedScriptContent}
-        console.log('📌 [HOME] 脚本执行完成');
-    } catch (e) {
-        console.error('[HOME] 脚本执行错误:', e);
-        console.error('[HOME] 错误堆栈:', e.stack);
-    }
-
-    // 恢复原始的 createApp
-    Vue.createApp = originalCreateApp;
-
-    // 如果脚本执行后没有创建Vue实例，尝试从DOM获取
-    if (!createdVueApp) {
-        setTimeout(() => {
-            const appElement = document.getElementById(targetId);
-            if (appElement && appElement.__vue_app__) {
-                console.log('📌 [HOME] 从DOM获取Vue实例:', targetId);
-                if (window.homeTabVueInstances) {
-                    window.homeTabVueInstances[tabKey] = appElement.__vue_app__;
-                }
-            }
-        }, 100);
-    }
-})();`;
-
-                            // 创建并执行脚本
-                            const newScript = document.createElement('script');
-                            newScript.textContent = wrappedContent;
-                            document.head.appendChild(newScript);
+                            // 使用数组构建函数体，避免模板字符串嵌套问题
+                            const wrapperParts = [
+                                'const targetId = ' + JSON.stringify(targetAppId) + ';',
+                                'const tabKey = ' + JSON.stringify(tabKey) + ';',
+                                'let createdVueApp = null;',
+                                '',
+                                "console.log('📌 [HOME] 开始执行脚本');",
+                                "console.log('📌 [HOME] 挂载目标ID:', targetId);",
+                                "console.log('📌 [HOME] 标签页key:', tabKey);",
+                                "console.log('📌 [HOME] 全局tabVueInstances:', typeof window.homeTabVueInstances);",
+                                '',
+                                '// 检查目标元素是否存在',
+                                'const targetElement = document.getElementById(targetId);',
+                                "console.log('📌 [HOME] 目标元素是否存在:', !!targetElement);",
+                                'if (!targetElement) {',
+                                "    console.error('[HOME] 目标元素不存在:', targetId);",
+                                '    return;',
+                                '}',
+                                '',
+                                '// 修改 Vue.createApp 函数以捕获创建的实例',
+                                'const originalCreateApp = Vue.createApp;',
+                                'Vue.createApp = function(...args) {',
+                                '    createdVueApp = originalCreateApp.apply(Vue, args);',
+                                '',
+                                '    // 保存原始的 mount 方法',
+                                '    const originalMount = createdVueApp.mount;',
+                                '',
+                                '    // 重写 mount 方法以捕获挂载后的实例',
+                                '    createdVueApp.mount = function(...mountArgs) {',
+                                '        const result = originalMount.apply(createdVueApp, mountArgs);',
+                                "        console.log('📌 [HOME] Vue实例已挂载:', targetId);",
+                                '',
+                                '        // 保存Vue实例到全局变量',
+                                '        setTimeout(() => {',
+                                "            console.log('📌 [HOME] 开始保存Vue实例...');",
+                                "            console.log('📌 [HOME] window.homeTabVueInstances 类型:', typeof window.homeTabVueInstances);",
+                                "            console.log('📌 [HOME] window.homeTabVueInstances:', window.homeTabVueInstances);",
+                                '',
+                                '            if (window.homeTabVueInstances) {',
+                                "                console.log('📌 [HOME] 保存Vue实例，tabKey:', tabKey);",
+                                '                window.homeTabVueInstances[tabKey] = createdVueApp;',
+                                "                console.log('📌 [HOME] Vue实例已保存到window.homeTabVueInstances');",
+                                "                console.log('📌 [HOME] 保存后的 window.homeTabVueInstances:', window.homeTabVueInstances);",
+                                '            } else {',
+                                "                console.error('[HOME] window.homeTabVueInstances 不存在');",
+                                '            }',
+                                '        }, 50);',
+                                '',
+                                '        return result;',
+                                '    };',
+                                '',
+                                '    return createdVueApp;',
+                                '};',
+                                '',
+                                'try {',
+                                combinedScriptContent,
+                                "    console.log('📌 [HOME] 脚本执行完成');",
+                                '} catch (e) {',
+                                "    console.error('[HOME] 脚本执行错误:', e);",
+                                "    console.error('[HOME] 错误堆栈:', e.stack);",
+                                '}',
+                                '',
+                                '// 恢复原始的 createApp',
+                                'Vue.createApp = originalCreateApp;',
+                                '',
+                                '// 如果脚本执行后没有创建Vue实例，尝试从DOM获取',
+                                'if (!createdVueApp) {',
+                                '    setTimeout(() => {',
+                                '        const appElement = document.getElementById(targetId);',
+                                '        if (appElement && appElement.__vue_app__) {',
+                                "            console.log('📌 [HOME] 从DOM获取Vue实例:', targetId);",
+                                '            if (window.homeTabVueInstances) {',
+                                '                window.homeTabVueInstances[tabKey] = appElement.__vue_app__;',
+                                '            }',
+                                '        }',
+                                '    }, 100);',
+                                '}'
+                            ];
+                            
+                            const wrapperFunctionBody = wrapperParts.join('\n');
+                            
+                            // 使用 Function 构造函数执行脚本
+                            const wrapperFunction = new Function(wrapperFunctionBody);
+                            wrapperFunction();
 
                             console.log('📌 [HOME] 合并脚本执行完成');
 
@@ -1011,13 +1011,6 @@ ${combinedScriptContent}
                                     console.log('📌 [HOME] appEl.__vue_app__:', appEl.__vue_app__);
                                 }
                             }, 500);
-
-                            // 延迟移除脚本
-                            setTimeout(() => {
-                                if (document.head.contains(newScript)) {
-                                    document.head.removeChild(newScript);
-                                }
-                            }, 1000);
                         } catch (error) {
                             console.error('[HOME] 执行合并脚本失败:', error);
                         }
