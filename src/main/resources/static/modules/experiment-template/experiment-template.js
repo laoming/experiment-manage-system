@@ -284,11 +284,15 @@ function renderBlockComponentPreview(type, data) {
         case 'table':
             const rows = parseInt(data.rows) || 3;
             const cols = parseInt(data.cols) || 3;
+            const cells = data.cells || {};
             let tableHtml = '<table class="preview-table">';
             for (let i = 0; i < rows; i++) {
                 tableHtml += '<tr>';
                 for (let j = 0; j < cols; j++) {
-                    tableHtml += '<td></td>';
+                    const cellKey = `${i}-${j}`;
+                    const cellValue = cells[cellKey] || '';
+                    tableHtml += `<td contenteditable="true" data-row="${i}" data-col="${j}" 
+                        onblur="updateTableCell(this)">${cellValue}</td>`;
                 }
                 tableHtml += '</tr>';
             }
@@ -452,6 +456,24 @@ window.updateBlockComponent = function(fieldName, value) {
     }
 };
 
+// 更新表格单元格内容
+window.updateTableCell = function(cell) {
+    var component = cell.closest('.block-component');
+    if (!component) return;
+    
+    var data = JSON.parse(component.getAttribute('data-props') || '{}');
+    if (!data.cells) {
+        data.cells = {};
+    }
+    
+    var row = cell.getAttribute('data-row');
+    var col = cell.getAttribute('data-col');
+    var cellKey = row + '-' + col;
+    
+    data.cells[cellKey] = cell.textContent;
+    component.setAttribute('data-props', JSON.stringify(data));
+};
+
 // 删除选中元素
 window.deleteSelectedElement = function() {
     if (selectedElement) {
@@ -576,11 +598,14 @@ function renderBlockPreview(type, data) {
         case 'table':
             const rows = parseInt(data.rows) || 3;
             const cols = parseInt(data.cols) || 3;
-            let tableHtml = '<table border="1" style="width:100%; margin: 10px 0;">';
+            const cells = data.cells || {};
+            let tableHtml = '<table border="1" style="width:100%; margin: 10px 0; border-collapse: collapse;">';
             for (let i = 0; i < rows; i++) {
                 tableHtml += '<tr>';
                 for (let j = 0; j < cols; j++) {
-                    tableHtml += '<td>&nbsp;</td>';
+                    const cellKey = `${i}-${j}`;
+                    const cellValue = cells[cellKey] || '&nbsp;';
+                    tableHtml += `<td style="padding: 8px; border: 1px solid #ddd;">${cellValue}</td>`;
                 }
                 tableHtml += '</tr>';
             }
@@ -757,14 +782,22 @@ function convertBlockToMarkdown(type, data) {
         case 'table':
             const rows = parseInt(data.rows) || 3;
             const cols = parseInt(data.cols) || 3;
+            const cells = data.cells || {};
             let md = '|';
-            for (let j = 0; j < cols; j++) md += '   |';
+            for (let j = 0; j < cols; j++) {
+                const cellValue = cells['0-' + j] || '   ';
+                md += ' ' + cellValue + ' |';
+            }
             md += '\n|';
             for (let j = 0; j < cols; j++) md += '---|';
             md += '\n';
-            for (let i = 0; i < rows; i++) {
+            for (let i = 1; i < rows; i++) {
                 md += '|';
-                for (let j = 0; j < cols; j++) md += '   |';
+                for (let j = 0; j < cols; j++) {
+                    const cellKey = i + '-' + j;
+                    const cellValue = cells[cellKey] || '   ';
+                    md += ' ' + cellValue + ' |';
+                }
                 md += '\n';
             }
             return md;
