@@ -1,5 +1,8 @@
 <link rel="stylesheet" href="/ems/modules/experiment-template-list/experiment-template-list.css">
 
+<!-- MathJax 用于公式渲染 -->
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
 <div class="main-content" v-cloak>
     <!-- 页面标题 -->
     <div class="page-header">
@@ -112,41 +115,42 @@
 
     <!-- 查看模板弹窗 -->
     <div class="modal-overlay" v-show="showViewModal" style="display: none;" @click.self="closeViewModal">
-        <div class="modal-content modal-large">
+        <div class="modal-content modal-large template-view-modal">
             <div class="modal-header">
-                <h2>查看模板</h2>
+                <h2>查看模板 - {{ currentTemplate.templateName }}</h2>
                 <button class="modal-close" @click="closeViewModal">✕</button>
             </div>
-            <div class="modal-body">
-                <div class="view-item">
-                    <label class="view-label">模板名称：</label>
-                    <span class="view-value">{{ currentTemplate.templateName }}</span>
+            <div class="modal-body template-view-body">
+                <!-- 模板信息 -->
+                <div class="template-info-bar">
+                    <div class="info-item">
+                        <span class="info-label">创建者：</span>
+                        <span class="info-value">{{ getCreatorName(currentTemplate.creatorId) }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">创建时间：</span>
+                        <span class="info-value">{{ formatDateTime(currentTemplate.createTime) }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">更新时间：</span>
+                        <span class="info-value">{{ formatDateTime(currentTemplate.updateTime) }}</span>
+                    </div>
                 </div>
-                <div class="view-item">
-                    <label class="view-label">创建者：</label>
-                    <span class="view-value">{{ getCreatorName(currentTemplate.creatorId) }}</span>
+                <!-- 模板描述 -->
+                <div class="template-description-view" v-if="currentTemplate.description">
+                    <div class="description-label">模板描述</div>
+                    <div class="description-text">{{ currentTemplate.description }}</div>
                 </div>
-                <div class="view-item">
-                    <label class="view-label">创建时间：</label>
-                    <span class="view-value">{{ formatDateTime(currentTemplate.createTime) }}</span>
+                <!-- 模板内容预览 -->
+                <div class="template-preview-container">
+                    <div class="preview-label">模板内容</div>
+                    <div class="template-preview-canvas" id="viewCanvas" ref="viewCanvas"></div>
                 </div>
-                <div class="view-item">
-                    <label class="view-label">更新时间：</label>
-                    <span class="view-value">{{ formatDateTime(currentTemplate.updateTime) }}</span>
-                </div>
-                <div class="view-item">
-                    <label class="view-label">模板描述：</label>
-                    <p class="view-description">{{ currentTemplate.description || '无' }}</p>
-                </div>
-                <div class="view-item">
-                    <label class="view-label">模板内容：</label>
-                    <pre class="view-content">{{ formatJson(currentTemplate.templateContent) }}</pre>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" @click="closeViewModal">
-                        关闭
-                    </button>
-                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" @click="closeViewModal">
+                    关闭
+                </button>
             </div>
         </div>
     </div>

@@ -62,6 +62,253 @@
 
 /* ==================== 查看弹窗私有样式 ==================== */
 
+.template-view-modal {
+    width: 95%;
+    max-width: 1200px;
+    height: 90vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.template-view-body {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* 模板信息栏 */
+.template-info-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    padding: 12px 16px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.info-label {
+    color: #999;
+    font-size: 13px;
+}
+
+.info-value {
+    color: #333;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+/* 模板描述 */
+.template-description-view {
+    padding: 16px;
+    background: #fffbe6;
+    border-radius: 8px;
+    border-left: 4px solid #faad14;
+}
+
+.description-label {
+    font-size: 13px;
+    color: #999;
+    margin-bottom: 8px;
+}
+
+.description-text {
+    color: #333;
+    font-size: 14px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+}
+
+/* 模板内容预览容器 */
+.template-preview-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 300px;
+}
+
+.preview-label {
+    font-size: 13px;
+    color: #999;
+    margin-bottom: 8px;
+}
+
+/* 模板内容预览画布（只读） */
+.template-preview-canvas {
+    flex: 1;
+    padding: 24px;
+    background: white;
+    border: 1px solid #e8e8e8;
+    border-radius: 8px;
+    overflow-y: auto;
+    line-height: 1.8;
+    font-size: 15px;
+    color: #333;
+}
+
+/* 画布内标题样式 */
+.template-preview-canvas h1 {
+    font-size: 28px;
+    font-weight: bold;
+    margin: 24px 0 16px 0;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #e8e8e8;
+    color: #1a1a1a;
+    line-height: 1.3;
+}
+
+.template-preview-canvas h2 {
+    font-size: 24px;
+    font-weight: bold;
+    margin: 20px 0 12px 0;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #e8e8e8;
+    color: #2a2a2a;
+    line-height: 1.4;
+}
+
+.template-preview-canvas h3 {
+    font-size: 20px;
+    font-weight: bold;
+    margin: 16px 0 10px 0;
+    color: #3a3a3a;
+    line-height: 1.4;
+}
+
+.template-preview-canvas h4 {
+    font-size: 18px;
+    font-weight: bold;
+    margin: 14px 0 8px 0;
+    color: #4a4a4a;
+    line-height: 1.5;
+}
+
+.template-preview-canvas h5 {
+    font-size: 16px;
+    font-weight: bold;
+    margin: 12px 0 6px 0;
+    color: #5a5a5a;
+    line-height: 1.5;
+}
+
+.template-preview-canvas h6 {
+    font-size: 15px;
+    font-weight: bold;
+    margin: 10px 0 4px 0;
+    color: #6a6a6a;
+    line-height: 1.5;
+}
+
+/* 填空样式（只读） */
+.template-preview-canvas .inline-input {
+    display: inline-block;
+    background: #f0f7ff;
+    border: 1px dashed #1890ff;
+    border-radius: 4px;
+    padding: 2px 6px;
+    min-width: 60px;
+    font-family: monospace;
+    color: #1890ff;
+}
+
+/* 公式样式 */
+.template-preview-canvas .inline-formula {
+    display: inline-block;
+    background: #fff7e6;
+    border: 1px solid #ffd591;
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-family: 'Times New Roman', serif;
+    color: #d46b08;
+}
+
+/* 块级组件样式（只读） */
+.template-preview-canvas .block-component {
+    margin: 16px 0;
+    border: 1px solid #e8e8e8;
+    border-radius: 8px;
+    background: #fafafa;
+    overflow: hidden;
+}
+
+.template-preview-canvas .block-component .component-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: #f0f0f0;
+    border-bottom: 1px solid #e8e8e8;
+    font-size: 13px;
+    color: #666;
+}
+
+.template-preview-canvas .block-component .component-type-icon {
+    font-size: 16px;
+}
+
+.template-preview-canvas .block-component .component-body {
+    padding: 16px;
+}
+
+/* 表格样式 */
+.template-preview-canvas .preview-table,
+.template-preview-canvas table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.template-preview-canvas .preview-table th,
+.template-preview-canvas .preview-table td,
+.template-preview-canvas table th,
+.template-preview-canvas table td {
+    border: 1px solid #e8e8e8;
+    padding: 8px 12px;
+    text-align: left;
+}
+
+.template-preview-canvas .preview-table th,
+.template-preview-canvas table th {
+    background: #f5f5f5;
+    font-weight: 600;
+}
+
+/* 图片样式 */
+.template-preview-canvas .component-image {
+    max-width: 100%;
+    text-align: center;
+}
+
+.template-preview-canvas .component-image img {
+    max-width: 100%;
+    border-radius: 4px;
+}
+
+/* 分割线样式 */
+.template-preview-canvas .component-divider {
+    margin: 16px 0;
+    border: none;
+    height: 1px;
+    background: #e8e8e8;
+}
+
+.template-preview-canvas .component-divider.dashed {
+    border-top: 2px dashed #e8e8e8;
+    background: none;
+}
+
+.template-preview-canvas .component-divider.dotted {
+    border-top: 2px dotted #e8e8e8;
+    background: none;
+}
+
+/* 旧版样式保留 */
 .view-content {
     display: block;
     margin: 8px 0 0;

@@ -159,12 +159,37 @@ const app = Vue.createApp({
                 if (result.code === 200) {
                     this.currentTemplate = result.data;
                     this.showViewModal = true;
+                    
+                    // 等待 Vue 更新 DOM 后渲染模板内容
+                    this.$nextTick(() => {
+                        this.renderTemplateContent();
+                    });
                 } else {
                     this.showError('获取模板详情失败: ' + (result.message || '未知错误'));
                 }
             } catch (error) {
                 console.error('❌ [TEMPLATE-LIST] 获取模板详情失败:', error);
                 this.showError('获取模板详情失败: ' + error.message);
+            }
+        },
+
+        /**
+         * 渲染模板内容到查看画布
+         */
+        renderTemplateContent() {
+            var canvas = document.getElementById('viewCanvas');
+            if (!canvas || !this.currentTemplate.templateContent) {
+                return;
+            }
+            
+            // 渲染模板内容
+            canvas.innerHTML = this.currentTemplate.templateContent;
+            
+            // 重新渲染公式
+            if (window.MathJax) {
+                MathJax.typesetPromise([canvas]).catch(function(err) {
+                    console.error('MathJax 渲染失败:', err);
+                });
             }
         },
 

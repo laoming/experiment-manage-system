@@ -195,6 +195,51 @@ function insertAtCursor(html) {
     canvas.insertAdjacentHTML('beforeend', html);
 }
 
+// 文本格式化功能
+// 加粗
+window.formatBold = function() {
+    document.execCommand('bold', false, null);
+    document.getElementById('canvas').focus();
+};
+
+// 斜体
+window.formatItalic = function() {
+    document.execCommand('italic', false, null);
+    document.getElementById('canvas').focus();
+};
+
+// 删除线
+window.formatStrikethrough = function() {
+    document.execCommand('strikeThrough', false, null);
+    document.getElementById('canvas').focus();
+};
+
+// 下划线
+window.formatUnderline = function() {
+    document.execCommand('underline', false, null);
+    document.getElementById('canvas').focus();
+};
+
+// 清除格式
+window.formatClear = function() {
+    document.execCommand('removeFormat', false, null);
+    document.getElementById('canvas').focus();
+};
+
+// 标题格式化
+window.formatHeading = function(level) {
+    var canvas = document.getElementById('canvas');
+    canvas.focus();
+    
+    if (level === 0) {
+        // 普通文本
+        document.execCommand('formatBlock', false, 'p');
+    } else {
+        // H1-H6 标题
+        document.execCommand('formatBlock', false, 'h' + level);
+    }
+};
+
 // 插入块级组件
 function insertBlockComponent(type) {
     const canvas = document.getElementById('canvas');

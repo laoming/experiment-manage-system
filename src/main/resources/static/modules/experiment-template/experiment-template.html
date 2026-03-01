@@ -37,6 +37,54 @@
                 </div>
             </div>
         </div>
+        <!-- 文本格式工具 -->
+        <div class="format-toolbar">
+            <div class="toolbar-title">文本格式</div>
+            <div class="format-buttons">
+                <button class="format-btn" onclick="formatBold()" title="加粗 (Ctrl+B)">
+                    <strong>B</strong>
+                </button>
+                <button class="format-btn" onclick="formatItalic()" title="斜体 (Ctrl+I)">
+                    <em>I</em>
+                </button>
+                <button class="format-btn" onclick="formatStrikethrough()" title="删除线">
+                    <s>S</s>
+                </button>
+                <button class="format-btn" onclick="formatUnderline()" title="下划线 (Ctrl+U)">
+                    <u>U</u>
+                </button>
+                <button class="format-btn" onclick="formatClear()" title="清除格式">
+                    <span>✕</span>
+                </button>
+            </div>
+        </div>
+        <!-- 标题格式工具 -->
+        <div class="format-toolbar heading-toolbar">
+            <div class="toolbar-title">标题格式</div>
+            <div class="format-buttons">
+                <button class="format-btn heading-btn" onclick="formatHeading(1)" title="一级标题">
+                    H1
+                </button>
+                <button class="format-btn heading-btn" onclick="formatHeading(2)" title="二级标题">
+                    H2
+                </button>
+                <button class="format-btn heading-btn" onclick="formatHeading(3)" title="三级标题">
+                    H3
+                </button>
+                <button class="format-btn heading-btn" onclick="formatHeading(4)" title="四级标题">
+                    H4
+                </button>
+                <button class="format-btn heading-btn" onclick="formatHeading(5)" title="五级标题">
+                    H5
+                </button>
+                <button class="format-btn heading-btn" onclick="formatHeading(6)" title="六级标题">
+                    H6
+                </button>
+                <button class="format-btn" onclick="formatHeading(0)" title="普通文本">
+                    P
+                </button>
+            </div>
+        </div>
     </div>
 
     <!-- 中间画布区域 -->
