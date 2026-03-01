@@ -681,38 +681,71 @@ const app = Vue.createApp({
         },
 
         /**
-         * 保存模板绑定
+         * 添加模板绑定
          */
-        saveTemplateBindings: async function() {
+        addTemplates: async function() {
+            if (this.selectedTemplateIds.length === 0) {
+                this.showError('请选择要绑定的模板');
+                return;
+            }
             try {
-                if (this.selectedTemplateIds.length > 0) {
-                    var unbindResult = await fetch('/course/unbindTemplates', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            courseId: this.currentBindCourse.id,
-                            templateIds: this.selectedTemplateIds
-                        })
-                    });
-                    if (unbindResult.code !== 200) {
-                        this.showError('解除模板绑定失败: ' + (unbindResult.message || '未知错误'));
-                        return;
-                    }
-                }
-
-                var self = this;
-                this.boundTemplateIds = this.boundTemplateIds.filter(function(id) {
-                    return !self.selectedTemplateIds.includes(id);
+                var result = await fetch('/course/bindTemplates', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        courseId: this.currentBindCourse.id,
+                        templateIds: this.selectedTemplateIds
+                    })
                 });
-                this.selectedTemplateIds = [];
-                
-                this.showSuccess('解除模板绑定成功');
-                await this.fetchCourseList();
+                if (result.code === 200) {
+                    this.showSuccess('绑定模板成功');
+                    // 刷新模板列表
+                    await this.fetchCourseTemplateIds(this.currentBindCourse.id);
+                    this.boundTemplateIds = [].concat(this.courseTemplateCache[this.currentBindCourse.id] || []);
+                    this.selectedTemplateIds = [];
+                } else {
+                    this.showError('绑定模板失败: ' + (result.message || '未知错误'));
+                }
             } catch (error) {
-                console.error('[COURSE-LIST] 保存模板绑定失败:', error);
-                this.showError('保存模板绑定失败: ' + error.message);
+                console.error('[COURSE-LIST] 绑定模板失败:', error);
+                this.showError('绑定模板失败: ' + error.message);
+            }
+        },
+
+        /**
+         * 解除模板绑定
+         */
+        removeTemplates: async function() {
+            if (this.selectedTemplateIds.length === 0) {
+                this.showError('请选择要解除绑定的模板');
+                return;
+            }
+            try {
+                var result = await fetch('/course/unbindTemplates', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        courseId: this.currentBindCourse.id,
+                        templateIds: this.selectedTemplateIds
+                    })
+                });
+                if (result.code === 200) {
+                    this.showSuccess('解除模板绑定成功');
+                    // 刷新模板列表
+                    await this.fetchCourseTemplateIds(this.currentBindCourse.id);
+                    this.boundTemplateIds = [].concat(this.courseTemplateCache[this.currentBindCourse.id] || []);
+                    this.selectedTemplateIds = [];
+                    await this.fetchCourseList();
+                } else {
+                    this.showError('解除模板绑定失败: ' + (result.message || '未知错误'));
+                }
+            } catch (error) {
+                console.error('[COURSE-LIST] 解除模板绑定失败:', error);
+                this.showError('解除模板绑定失败: ' + error.message);
             }
         },
 

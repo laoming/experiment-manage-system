@@ -364,6 +364,11 @@
                                 <span>{{ template.templateName }}</span>
                             </div>
                         </div>
+                        <div class="bind-actions" v-if="selectedTemplateIds.length > 0">
+                            <button type="button" class="btn btn-success btn-sm" @click="addTemplates">
+                                添加选中 ({{ selectedTemplateIds.length }})
+                            </button>
+                        </div>
                     </div>
                     <div class="bind-section">
                         <h3>已绑定的实验模板 ({{ boundTemplateIds.length }})</h3>
@@ -382,7 +387,7 @@
                         </div>
                         <div v-else class="empty-text">暂无绑定的实验模板</div>
                         <div class="bind-actions" v-if="selectedTemplateIds.length > 0">
-                            <button type="button" class="btn btn-danger btn-sm" @click="saveTemplateBindings">
+                            <button type="button" class="btn btn-danger btn-sm" @click="removeTemplates">
                                 解除选中 ({{ selectedTemplateIds.length }})
                             </button>
                         </div>
