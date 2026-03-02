@@ -712,8 +712,11 @@ const app = createApp({
 
                 console.log('📌 [HOME] 外部脚本:', externalScripts.length, '内联脚本:', inlineScripts.length);
 
+
                 // 用于存储所有脚本内容
                 let combinedScriptContent = '';
+                // 跟踪需要等待的库文件
+                const requiredLibraries = { marked: false, turndown: false };
                 
                 // 加载外部脚本
                 const loadExternalScripts = async () => {
@@ -735,13 +738,18 @@ const app = createApp({
                         const existingScript = document.querySelector(`script[src="${src}"]`);
                         if (existingScript) {
                             console.log('📌 [HOME] 脚本已存在:', src);
+                            // 如果是库文件，检查全局变量
+                            if (src.includes('marked')) requiredLibraries.marked = typeof marked !== 'undefined';
+                            if (src.includes('turndown')) requiredLibraries.turndown = typeof TurndownService !== 'undefined';
                             continue;
                         }
 
                         // 对于业务逻辑脚本（如 user.js），我们需要获取内容并作为内联脚本执行
                         // 这样才能动态修改挂载目标
+                        // 注意：common/js/ 下的库文件（如 marked, turndown）需要正常加载以导出全局变量
+                        const isLibraryScript = src.includes('/common/js/');
                         if (src.includes('.js') && !src.includes('vue') && !src.includes('api') && 
-                            (src.includes('/ems/'))) {
+                            (src.includes('/ems/')) && !isLibraryScript) {
                             console.log('📌 [HOME] 获取脚本内容进行动态执行:', src);
                             
                             try {
@@ -822,6 +830,15 @@ const app = createApp({
                             newScript.src = src;
                             newScript.onload = () => {
                                 console.log('📌 [HOME] 脚本加载成功:', src);
+                                // 标记库文件加载完成
+                                if (src.includes('marked')) {
+                                    requiredLibraries.marked = true;
+                                    console.log('📌 [HOME] marked 库已就绪');
+                                }
+                                if (src.includes('turndown')) {
+                                    requiredLibraries.turndown = true;
+                                    console.log('📌 [HOME] turndown 库已就绪');
+                                }
                                 resolve();
                             };
                             newScript.onerror = (err) => {
@@ -1023,21 +1040,59 @@ const app = createApp({
                 loadExternalScripts().then(() => {
                     console.log('📌 [HOME] 外部脚本加载完成');
                     console.log('📌 [HOME] 合并脚本长度:', combinedScriptContent.length);
+                    console.log('📌 [HOME] 库加载状态:', requiredLibraries);
 
-                    // 确保 Vue 已加载
+                    // 等待必要库加载完成的辅助函数
+                    const waitForLibraries = (callback, maxWait = 3000) => {
+                        const checkLibraries = () => {
+                            // 直接检查全局变量是否已定义（库文件已通过正常路径加载）
+                            const markedReady = !requiredLibraries.marked || typeof marked !== 'undefined';
+                            const turndownReady = !requiredLibraries.turndown || typeof TurndownService !== 'undefined';
+                            
+                            if (markedReady && turndownReady) {
+                                console.log('📌 [HOME] 所需库已就绪 (marked:', markedReady, ', turndown:', turndownReady, ')');
+                                callback();
+                                return true;
+                            }
+                            return false;
+                        };
+                        
+                        if (checkLibraries()) return;
+                        
+                        // 轮询等待
+                        let waited = 0;
+                        const interval = setInterval(() => {
+                            waited += 100;
+                            if (checkLibraries() || waited >= maxWait) {
+                                clearInterval(interval);
+                                if (waited >= maxWait) {
+                                    console.warn('[HOME] 等待库加载超时 (marked:', typeof marked !== 'undefined', ', turndown:', typeof TurndownService !== 'undefined', ')');
+                                    callback();
+                                }
+                            }
+                        }, 100);
+                    };
+
+                    // 确保 Vue 和必要库已加载
                     if (typeof Vue === 'undefined') {
                         console.error('[HOME] Vue 未加载，等待...');
                         setTimeout(() => {
                             if (typeof Vue !== 'undefined') {
-                                console.log('📌 [HOME] Vue 已加载，执行脚本');
-                                executeInlineScripts();
+                                console.log('📌 [HOME] Vue 已加载，等待库...');
+                                waitForLibraries(() => {
+                                    console.log('📌 [HOME] 执行脚本');
+                                    executeInlineScripts();
+                                });
                             } else {
                                 console.error('[HOME] Vue 加载超时');
                             }
                         }, 500);
                     } else {
-                        console.log('📌 [HOME] Vue 已就绪，执行脚本');
-                        executeInlineScripts();
+                        console.log('📌 [HOME] Vue 已就绪，等待库...');
+                        waitForLibraries(() => {
+                            console.log('📌 [HOME] 执行脚本');
+                            executeInlineScripts();
+                        });
                     }
                 }).catch(error => {
                     console.error('[HOME] 加载外部脚本失败:', error);
