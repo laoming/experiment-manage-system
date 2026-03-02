@@ -78,13 +78,13 @@
                     </td>
                     <td>{{ getCreatorName(course.creatorId) }}</td>
                     <td>
-                        <span class="badge badge-admin">{{ getAdminCount(course.id) }} 人</span>
+                        <span class="badge badge-admin">{{ course.adminCount || 0 }} 人</span>
                     </td>
                     <td>
-                        <span class="badge">{{ getStudentCount(course.id) }} 人</span>
+                        <span class="badge">{{ course.studentCount || 0 }} 人</span>
                     </td>
                     <td>
-                        <span class="badge">{{ getTemplateCount(course.id) }} 个</span>
+                        <span class="badge">{{ course.templateCount || 0 }} 个</span>
                     </td>
                     <td>{{ formatDateTime(course.createTime) }}</td>
                     <td class="actions">
@@ -177,7 +177,7 @@
 
     <!-- 查看课程弹窗 -->
     <div class="modal-overlay" v-show="showViewModal && !pageError" style="display: none;" @click.self="closeViewModal">
-        <div class="modal-content">
+        <div class="modal-content modal-large">
             <div class="modal-header">
                 <h2>查看课程</h2>
                 <button class="modal-close" @click="closeViewModal">✕</button>
@@ -192,16 +192,31 @@
                     <span class="view-value">{{ getCreatorName(currentCourse.creatorId) }}</span>
                 </div>
                 <div class="view-item">
-                    <label class="view-label">管理者人数：</label>
-                    <span class="view-value">{{ getAdminCount(currentCourse.id) }} 人</span>
+                    <label class="view-label">管理者 ({{ currentCourse.adminCount || 0 }} 人)：</label>
+                    <div class="view-list" v-if="currentCourse.adminIds && currentCourse.adminIds.length > 0">
+                        <span v-for="userId in currentCourse.adminIds" :key="userId" class="view-tag tag-admin">
+                            {{ getCreatorName(userId) }}
+                        </span>
+                    </div>
+                    <span v-else class="view-value">暂无</span>
                 </div>
                 <div class="view-item">
-                    <label class="view-label">学生人数：</label>
-                    <span class="view-value">{{ getStudentCount(currentCourse.id) }} 人</span>
+                    <label class="view-label">学生 ({{ currentCourse.studentCount || 0 }} 人)：</label>
+                    <div class="view-list" v-if="currentCourse.studentIds && currentCourse.studentIds.length > 0">
+                        <span v-for="userId in currentCourse.studentIds" :key="userId" class="view-tag tag-student">
+                            {{ getCreatorName(userId) }}
+                        </span>
+                    </div>
+                    <span v-else class="view-value">暂无</span>
                 </div>
                 <div class="view-item">
-                    <label class="view-label">实验模板数：</label>
-                    <span class="view-value">{{ getTemplateCount(currentCourse.id) }} 个</span>
+                    <label class="view-label">实验模板 ({{ currentCourse.templateCount || 0 }} 个)：</label>
+                    <div class="view-list" v-if="currentCourse.templateIds && currentCourse.templateIds.length > 0">
+                        <span v-for="templateId in currentCourse.templateIds" :key="templateId" class="view-tag tag-template">
+                            {{ getTemplateName(templateId) }}
+                        </span>
+                    </div>
+                    <span v-else class="view-value">暂无</span>
                 </div>
                 <div class="view-item">
                     <label class="view-label">创建时间：</label>
@@ -260,6 +275,16 @@
                 <div v-if="bindTab === 'admin'" class="bind-content">
                     <div class="bind-section">
                         <h3>可添加的管理者</h3>
+                        <div class="search-box-inline">
+                            <input
+                                v-model="adminSearchKeyword"
+                                type="text"
+                                class="search-input-sm"
+                                placeholder="搜索用户名"
+                                @keyup.enter="handleAdminSearch"
+                            >
+                            <button class="btn btn-sm btn-secondary" @click="handleAdminSearch">搜索</button>
+                        </div>
                         <div class="select-list">
                             <div
                                 v-for="user in availableAdmins"
@@ -271,6 +296,12 @@
                                 <span class="checkbox" :class="{ checked: selectedAdminIds.includes(user.id) }"></span>
                                 <span>{{ user.displayName }}</span>
                             </div>
+                            <div v-if="availableAdmins.length === 0" class="empty-text">暂无可添加的管理者</div>
+                        </div>
+                        <div class="pagination-sm" v-if="adminPagination.pages > 1">
+                            <button class="pagination-btn-sm" :disabled="adminPagination.current === 1" @click="handleAdminPageChange(adminPagination.current - 1)">上一页</button>
+                            <span>{{ adminPagination.current }} / {{ adminPagination.pages }}</span>
+                            <button class="pagination-btn-sm" :disabled="adminPagination.current >= adminPagination.pages" @click="handleAdminPageChange(adminPagination.current + 1)">下一页</button>
                         </div>
                         <div class="bind-actions" v-if="selectedAdminIds.length > 0">
                             <button type="button" class="btn btn-success btn-sm" @click="addAdmins">
@@ -289,7 +320,7 @@
                                 @click="toggleAdminSelection(userId)"
                             >
                                 <span class="checkbox" :class="{ checked: selectedAdminIds.includes(userId) }"></span>
-                                <span>{{ getUserName(userId) }}</span>
+                                <span>{{ getCreatorName(userId) }}</span>
                                 <button class="btn-remove" @click.stop="toggleAdminSelection(userId)">✕</button>
                             </div>
                         </div>
@@ -306,6 +337,16 @@
                 <div v-if="bindTab === 'student'" class="bind-content">
                     <div class="bind-section">
                         <h3>可添加的学生</h3>
+                        <div class="search-box-inline">
+                            <input
+                                v-model="studentSearchKeyword"
+                                type="text"
+                                class="search-input-sm"
+                                placeholder="搜索用户名"
+                                @keyup.enter="handleStudentSearch"
+                            >
+                            <button class="btn btn-sm btn-secondary" @click="handleStudentSearch">搜索</button>
+                        </div>
                         <div class="select-list">
                             <div
                                 v-for="user in availableStudents"
@@ -317,6 +358,12 @@
                                 <span class="checkbox" :class="{ checked: selectedStudentIds.includes(user.id) }"></span>
                                 <span>{{ user.displayName }}</span>
                             </div>
+                            <div v-if="availableStudents.length === 0" class="empty-text">暂无可添加的学生</div>
+                        </div>
+                        <div class="pagination-sm" v-if="studentPagination.pages > 1">
+                            <button class="pagination-btn-sm" :disabled="studentPagination.current === 1" @click="handleStudentPageChange(studentPagination.current - 1)">上一页</button>
+                            <span>{{ studentPagination.current }} / {{ studentPagination.pages }}</span>
+                            <button class="pagination-btn-sm" :disabled="studentPagination.current >= studentPagination.pages" @click="handleStudentPageChange(studentPagination.current + 1)">下一页</button>
                         </div>
                         <div class="bind-actions" v-if="selectedStudentIds.length > 0">
                             <button type="button" class="btn btn-success btn-sm" @click="addStudents">
@@ -335,7 +382,7 @@
                                 @click="toggleStudentSelection(userId)"
                             >
                                 <span class="checkbox" :class="{ checked: selectedStudentIds.includes(userId) }"></span>
-                                <span>{{ getUserName(userId) }}</span>
+                                <span>{{ getCreatorName(userId) }}</span>
                                 <button class="btn-remove" @click.stop="toggleStudentSelection(userId)">✕</button>
                             </div>
                         </div>
@@ -352,6 +399,16 @@
                 <div v-if="bindTab === 'template'" class="bind-content">
                     <div class="bind-section">
                         <h3>可绑定的实验模板</h3>
+                        <div class="search-box-inline">
+                            <input
+                                v-model="templateSearchKeyword"
+                                type="text"
+                                class="search-input-sm"
+                                placeholder="搜索模板名称"
+                                @keyup.enter="handleTemplateSearch"
+                            >
+                            <button class="btn btn-sm btn-secondary" @click="handleTemplateSearch">搜索</button>
+                        </div>
                         <div class="select-list">
                             <div
                                 v-for="template in availableTemplates"
@@ -363,6 +420,12 @@
                                 <span class="checkbox" :class="{ checked: selectedTemplateIds.includes(template.id) }"></span>
                                 <span>{{ template.templateName }}</span>
                             </div>
+                            <div v-if="availableTemplates.length === 0" class="empty-text">暂无可绑定的模板</div>
+                        </div>
+                        <div class="pagination-sm" v-if="templatePagination.pages > 1">
+                            <button class="pagination-btn-sm" :disabled="templatePagination.current === 1" @click="handleTemplatePageChange(templatePagination.current - 1)">上一页</button>
+                            <span>{{ templatePagination.current }} / {{ templatePagination.pages }}</span>
+                            <button class="pagination-btn-sm" :disabled="templatePagination.current >= templatePagination.pages" @click="handleTemplatePageChange(templatePagination.current + 1)">下一页</button>
                         </div>
                         <div class="bind-actions" v-if="selectedTemplateIds.length > 0">
                             <button type="button" class="btn btn-success btn-sm" @click="addTemplates">

@@ -7,6 +7,8 @@ import cn.gzus.lyf.dao.entity.ExperimentTemplateEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class ExperimentTemplateService {
 
@@ -51,6 +53,15 @@ public class ExperimentTemplateService {
      */
     public ExperimentTemplateEntity getTemplateById(String templateId) {
         return templateDAO.getTemplateById(templateId);
+    }
+
+    /**
+     * 根据ID列表批量获取模板
+     * @param templateIds 模板ID列表
+     * @return 模板实体列表
+     */
+    public List<ExperimentTemplateEntity> getTemplatesByIds(List<String> templateIds) {
+        return templateDAO.getTemplatesByIds(templateIds);
     }
 
     /**

@@ -120,4 +120,70 @@ public class CourseDAO extends ServiceImpl<CourseMapper, CourseEntity> {
         IPage<CourseEntity> coursePage = this.page(new Page<>(current, size), queryWrapper);
         return BeanCopyUtils.copy(coursePage, PageDto.class);
     }
+
+    /**
+     * 更新课程的管理者数量
+     * @param courseId 课程ID
+     * @param count 数量
+     * @return 是否成功
+     */
+    public boolean updateAdminCount(String courseId, int count) {
+        CourseEntity entity = new CourseEntity();
+        entity.setId(courseId);
+        entity.setAdminCount(count);
+        entity.setUpdateTime(new Date());
+        return this.updateById(entity);
+    }
+
+    /**
+     * 更新课程的学生数量
+     * @param courseId 课程ID
+     * @param count 数量
+     * @return 是否成功
+     */
+    public boolean updateStudentCount(String courseId, int count) {
+        CourseEntity entity = new CourseEntity();
+        entity.setId(courseId);
+        entity.setStudentCount(count);
+        entity.setUpdateTime(new Date());
+        return this.updateById(entity);
+    }
+
+    /**
+     * 更新课程的模板数量
+     * @param courseId 课程ID
+     * @param count 数量
+     * @return 是否成功
+     */
+    public boolean updateTemplateCount(String courseId, int count) {
+        CourseEntity entity = new CourseEntity();
+        entity.setId(courseId);
+        entity.setTemplateCount(count);
+        entity.setUpdateTime(new Date());
+        return this.updateById(entity);
+    }
+
+    /**
+     * 批量更新课程统计数量
+     * @param courseId 课程ID
+     * @param adminCount 管理者数量（null表示不更新）
+     * @param studentCount 学生数量（null表示不更新）
+     * @param templateCount 模板数量（null表示不更新）
+     * @return 是否成功
+     */
+    public boolean updateCounts(String courseId, Integer adminCount, Integer studentCount, Integer templateCount) {
+        CourseEntity entity = new CourseEntity();
+        entity.setId(courseId);
+        if (adminCount != null) {
+            entity.setAdminCount(adminCount);
+        }
+        if (studentCount != null) {
+            entity.setStudentCount(studentCount);
+        }
+        if (templateCount != null) {
+            entity.setTemplateCount(templateCount);
+        }
+        entity.setUpdateTime(new Date());
+        return this.updateById(entity);
+    }
 }

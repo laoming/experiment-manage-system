@@ -40,6 +40,21 @@ public class CourseEntity {
      */
     private Date updateTime;
 
+    /**
+     * 管理者数量
+     */
+    private Integer adminCount;
+
+    /**
+     * 学生数量
+     */
+    private Integer studentCount;
+
+    /**
+     * 实验模板数量
+     */
+    private Integer templateCount;
+
     public String getId() {
         return id;
     }
@@ -86,5 +101,29 @@ public class CourseEntity {
 
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
+    }
+
+    public Integer getAdminCount() {
+        return adminCount;
+    }
+
+    public void setAdminCount(Integer adminCount) {
+        this.adminCount = adminCount;
+    }
+
+    public Integer getStudentCount() {
+        return studentCount;
+    }
+
+    public void setStudentCount(Integer studentCount) {
+        this.studentCount = studentCount;
+    }
+
+    public Integer getTemplateCount() {
+        return templateCount;
+    }
+
+    public void setTemplateCount(Integer templateCount) {
+        this.templateCount = templateCount;
     }
 }

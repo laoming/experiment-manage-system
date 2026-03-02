@@ -13,6 +13,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 
 @Service
@@ -65,6 +66,18 @@ public class ExperimentTemplateDAO extends ServiceImpl<ExperimentTemplateMapper,
     public ExperimentTemplateEntity getTemplateById(String templateId) {
         Objects.requireNonNull(templateId, "模板ID不能为空");
         return this.getById(templateId);
+    }
+
+    /**
+     * 根据ID列表批量获取模板
+     * @param templateIds 模板ID列表
+     * @return 模板实体列表
+     */
+    public List<ExperimentTemplateEntity> getTemplatesByIds(List<String> templateIds) {
+        if (templateIds == null || templateIds.isEmpty()) {
+            return java.util.Collections.emptyList();
+        }
+        return this.listByIds(templateIds);
     }
 
     /**

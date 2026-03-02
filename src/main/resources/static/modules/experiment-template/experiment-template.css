@@ -370,6 +370,16 @@
     color: #9ca3af;
 }
 
+/* 确保空段落可见且可点击 */
+.canvas p:empty::before {
+    content: '\00a0';
+}
+
+.canvas p {
+    min-height: 1.8em;
+    margin: 0.5em 0;
+}
+
 .canvas.drag-over {
     background: #f0f7ff;
     border: 2px dashed #667eea;
@@ -567,8 +577,15 @@
     box-shadow: inset 0 0 3px rgba(24, 144, 255, 0.3);
 }
 
+/* 表头单元格占位符 */
 .preview-table td:empty::before {
-    content: '点击输入';
+    content: '请输入内容';
+    color: #bbb;
+    font-style: italic;
+}
+
+.preview-table td[data-cell-type="header"]:empty::before {
+    content: '请输入表头';
     color: #bbb;
     font-style: italic;
 }
@@ -576,6 +593,7 @@
 /* 分割线预览 */
 .preview-divider {
     margin: 8px 0;
+    border-top: 2px solid #ddd;
 }
 
 /* 图片预览 */

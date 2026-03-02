@@ -5,7 +5,9 @@ import cn.gzus.lyf.common.dto.PageDto;
 import cn.gzus.lyf.common.dto.Result;
 import cn.gzus.lyf.common.dto.UserDto;
 import cn.gzus.lyf.dao.entity.CourseEntity;
+import cn.gzus.lyf.dao.entity.ExperimentTemplateEntity;
 import cn.gzus.lyf.service.course.CourseService;
+import cn.gzus.lyf.service.experiment.ExperimentTemplateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -15,6 +17,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -27,9 +31,16 @@ public class CourseController {
 
     private CourseService courseService;
 
+    private ExperimentTemplateService templateService;
+
     @Autowired
     public void setCourseService(CourseService courseService) {
         this.courseService = courseService;
+    }
+
+    @Autowired
+    public void setTemplateService(ExperimentTemplateService templateService) {
+        this.templateService = templateService;
     }
 
     /**
@@ -236,5 +247,24 @@ public class CourseController {
     @PostMapping("/getTemplateIds")
     public Result<List<String>> getTemplateIdsByCourseId(@RequestParam String courseId) {
         return Result.success(courseService.getTemplateIdsByCourseId(courseId));
+    }
+
+    /**
+     * 获取课程绑定的实验模板信息列表（包含ID和名称）
+     */
+    @PostMapping("/getTemplateInfos")
+    public Result<List<Map<String, Object>>> getTemplateInfosByCourseId(@RequestParam String courseId) {
+        List<String> templateIds = courseService.getTemplateIdsByCourseId(courseId);
+        List<Map<String, Object>> templateInfos = new ArrayList<>();
+        if (templateIds != null && !templateIds.isEmpty()) {
+            List<ExperimentTemplateEntity> templates = templateService.getTemplatesByIds(templateIds);
+            for (ExperimentTemplateEntity template : templates) {
+                Map<String, Object> info = new HashMap<>();
+                info.put("id", template.getId());
+                info.put("templateName", template.getTemplateName());
+                templateInfos.add(info);
+            }
+        }
+        return Result.success(templateInfos);
     }
 }

@@ -53,17 +53,14 @@ const blockComponentTypes = {
         name: '表格',
         icon: '▦',
         fields: [
-            { type: 'input', name: 'rows', label: '行数' },
-            { type: 'input', name: 'cols', label: '列数' }
+            { type: 'input', name: 'rows', label: '行数', min: 2 },
+            { type: 'input', name: 'cols', label: '列数', min: 1 }
         ]
     },
     divider: {
         name: '分割线',
         icon: '─',
-        fields: [
-            { type: 'select', name: 'style', label: '线条样式', options: ['solid', 'dashed', 'dotted'] },
-            { type: 'input', name: 'color', label: '颜色（如 #333）' }
-        ]
+        fields: []
     },
     image: {
         name: '图片',
@@ -96,13 +93,23 @@ function initCanvas() {
         }
     });
 
-    // 监听键盘删除
-    canvas.addEventListener('keydown', (e) => {
-        if (e.key === 'Delete' || e.key === 'Backspace') {
-            if (selectedElement && selectedElement.classList.contains('block-component')) {
-                e.preventDefault();
-                selectedElement.remove();
-                clearSelection();
+    // 监听键盘删除（仅支持Delete键删除块级组件，不支持Backspace）
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Delete' && selectedElement) {
+            // 检查是否选中了块级组件
+            if (selectedElement.classList.contains('block-component')) {
+                // 检查当前焦点是否在表格单元格内
+                const activeElement = document.activeElement;
+                const isInTableCell = activeElement && activeElement.tagName === 'TD';
+                
+                // 如果焦点不在表格单元格内，才允许删除整个组件
+                if (!isInTableCell) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    selectedElement.remove();
+                    clearSelection();
+                    triggerContentChange();
+                }
             }
         }
     });
@@ -116,11 +123,13 @@ function initDragDrop() {
     componentItems.forEach(item => {
         item.addEventListener('dragstart', (e) => {
             e.dataTransfer.setData('type', item.dataset.type);
+            e.dataTransfer.effectAllowed = 'copy';
         });
     });
 
     canvas.addEventListener('dragover', (e) => {
         e.preventDefault();
+        e.dataTransfer.dropEffect = 'copy';
         canvas.classList.add('drag-over');
     });
 
@@ -133,17 +142,41 @@ function initDragDrop() {
         canvas.classList.remove('drag-over');
         const type = e.dataTransfer.getData('type');
         if (type && blockComponentTypes[type]) {
-            insertBlockComponent(type);
+            // 获取拖放位置
+            const range = getCaretRangeFromPoint(e.clientX, e.clientY);
+            if (range) {
+                // 在拖放位置插入组件
+                insertBlockComponentAtRange(type, range);
+            } else {
+                // 如果无法获取位置，插入到末尾
+                insertBlockComponent(type);
+            }
         }
     });
 }
 
+// 根据鼠标位置获取选区
+function getCaretRangeFromPoint(x, y) {
+    if (document.caretRangeFromPoint) {
+        // Chrome, Safari
+        return document.caretRangeFromPoint(x, y);
+    } else if (document.caretPositionFromPoint) {
+        // Firefox
+        const position = document.caretPositionFromPoint(x, y);
+        const range = document.createRange();
+        range.setStart(position.offsetNode, position.offset);
+        range.collapse(true);
+        return range;
+    }
+    return null;
+}
+
 // 插入填空
 window.insertInput = function() {
-    const placeholder = prompt('请输入填空提示（可选）：', '请输入');
-    const html = `<span class="inline-input" contenteditable="false" data-placeholder="${placeholder || '请输入'}">
+    const placeholder = '请输入';
+    const html = `<span class="inline-input" contenteditable="false" data-placeholder="${placeholder}">
         <span class="input-marker">[</span>
-        <span class="input-content">${placeholder || '请输入'}</span>
+        <span class="input-content">${placeholder}</span>
         <span class="input-marker">]</span>
     </span>`;
     insertAtCursor(html);
@@ -152,17 +185,15 @@ window.insertInput = function() {
 
 // 插入公式
 window.insertFormula = function() {
-    const formula = prompt('请输入 LaTeX 公式：', 'E=mc^2');
-    if (formula) {
-        const html = `<span class="inline-formula" contenteditable="false" data-formula="${formula}">
-            <span class="formula-display">$${formula}$</span>
-        </span>`;
-        insertAtCursor(html);
-        triggerContentChange();
-        // 触发 MathJax 渲染
-        if (window.MathJax) {
-            MathJax.typesetPromise();
-        }
+    const formula = 'E=mc^2';
+    const html = `<span class="inline-formula" contenteditable="false" data-formula="${formula}">
+        <span class="formula-display">$${formula}$</span>
+    </span>`;
+    insertAtCursor(html);
+    triggerContentChange();
+    // 触发 MathJax 渲染
+    if (window.MathJax) {
+        MathJax.typesetPromise();
     }
 };
 
@@ -253,10 +284,18 @@ function insertBlockComponent(type) {
     component.setAttribute('data-id', Date.now().toString());
     
     // 初始化默认数据
-    const data = {};
-    typeConfig.fields.forEach(field => {
+    var data = {};
+    if (type === 'table') {
+        data = {
+            rows: '2',
+            cols: '3'
+        };
+    }
+    typeConfig.fields.forEach(function(field) {
         if (field.type === 'select' && field.options) {
             data[field.name] = field.options[0];
+        } else if (field.type === 'input' && field.min !== undefined) {
+            data[field.name] = field.min.toString();
         } else {
             data[field.name] = '';
         }
@@ -264,16 +303,99 @@ function insertBlockComponent(type) {
     component.setAttribute('data-props', JSON.stringify(data));
     
     // 渲染组件
-    component.innerHTML = `
-        <div class="component-header">
-            <span class="component-type-icon">${typeConfig.icon}</span>
-            <span class="component-type-name">${typeConfig.name}</span>
-            <button class="component-delete" onclick="this.closest('.block-component').remove(); clearSelection();">×</button>
-        </div>
-        <div class="component-body">${renderBlockComponentPreview(type, data)}</div>
-    `;
+    component.innerHTML = '<div class="component-body">' + renderBlockComponentPreview(type, data) + '</div>';
     
+    // 尝试在当前光标位置插入
+    const selection = window.getSelection();
+    if (selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        if (canvas.contains(range.commonAncestorContainer)) {
+            // 在光标位置插入
+            range.deleteContents();
+            
+            // 确保在块级组件后面有可编辑的内容
+            const afterNode = document.createElement('p');
+            afterNode.innerHTML = '<br>';
+            
+            range.insertNode(afterNode);
+            range.setStartBefore(afterNode);
+            range.insertNode(component);
+            
+            // 移动光标到组件后面
+            range.setStartAfter(component);
+            range.collapse(true);
+            selection.removeAllRanges();
+            selection.addRange(range);
+            
+            selectElement(component);
+            triggerContentChange();
+            return;
+        }
+    }
+    
+    // 如果没有有效选区，追加到末尾
     canvas.appendChild(component);
+    // 确保在块级组件后面有可编辑的内容
+    const afterNode = document.createElement('p');
+    afterNode.innerHTML = '<br>';
+    canvas.appendChild(afterNode);
+    
+    selectElement(component);
+    triggerContentChange();
+}
+
+// 在指定位置插入块级组件
+function insertBlockComponentAtRange(type, range) {
+    const canvas = document.getElementById('canvas');
+    const typeConfig = blockComponentTypes[type];
+    
+    // 创建组件容器
+    const component = document.createElement('div');
+    component.className = 'block-component';
+    component.setAttribute('contenteditable', 'false');
+    component.setAttribute('data-type', type);
+    component.setAttribute('data-id', Date.now().toString());
+    
+    // 初始化默认数据
+    var data = {};
+    if (type === 'table') {
+        data = {
+            rows: '2',
+            cols: '3'
+        };
+    }
+    typeConfig.fields.forEach(function(field) {
+        if (field.type === 'select' && field.options) {
+            data[field.name] = field.options[0];
+        } else if (field.type === 'input' && field.min !== undefined) {
+            data[field.name] = field.min.toString();
+        } else {
+            data[field.name] = '';
+        }
+    });
+    component.setAttribute('data-props', JSON.stringify(data));
+    
+    // 渲染组件
+    component.innerHTML = '<div class="component-body">' + renderBlockComponentPreview(type, data) + '</div>';
+    
+    // 在指定位置插入
+    range.deleteContents();
+    
+    // 确保在块级组件后面有可编辑的内容
+    const afterNode = document.createElement('p');
+    afterNode.innerHTML = '<br>';
+    
+    range.insertNode(afterNode);
+    range.setStartBefore(afterNode);
+    range.insertNode(component);
+    
+    // 移动光标到组件后面
+    range.setStartAfter(component);
+    range.collapse(true);
+    const selection = window.getSelection();
+    selection.removeAllRanges();
+    selection.addRange(range);
+    
     selectElement(component);
     triggerContentChange();
 }
@@ -282,32 +404,32 @@ function insertBlockComponent(type) {
 function renderBlockComponentPreview(type, data) {
     switch (type) {
         case 'table':
-            const rows = parseInt(data.rows) || 3;
+            const rows = parseInt(data.rows) || 2;
             const cols = parseInt(data.cols) || 3;
             const cells = data.cells || {};
+            
             let tableHtml = '<table class="preview-table">';
             for (let i = 0; i < rows; i++) {
                 tableHtml += '<tr>';
                 for (let j = 0; j < cols; j++) {
-                    const cellKey = `${i}-${j}`;
+                    const cellKey = i + '-' + j;
                     const cellValue = cells[cellKey] || '';
-                    tableHtml += `<td contenteditable="true" data-row="${i}" data-col="${j}" 
-                        onblur="updateTableCell(this)">${cellValue}</td>`;
+                    // 第一行是表头，添加 data-cell-type="header"
+                    const cellType = i === 0 ? 'header' : 'content';
+                    tableHtml += '<td contenteditable="true" data-row="' + i + '" data-col="' + j + '" data-cell-type="' + cellType + '" onblur="updateTableCell(this)">' + cellValue + '</td>';
                 }
                 tableHtml += '</tr>';
             }
             tableHtml += '</table>';
             return tableHtml;
         case 'divider':
-            const borderStyle = data.style || 'solid';
-            const borderColor = data.color || '#ddd';
-            return `<div class="preview-divider" style="border-top: 2px ${borderStyle} ${borderColor};"></div>`;
+            return '<div class="preview-divider"></div>';
         case 'image':
             const size = data.size || 'medium';
             if (data.url) {
-                return `<div class="preview-image img-${size}"><img src="${data.url}" alt="${data.alt || ''}"></div>`;
+                return '<div class="preview-image img-' + size + '"><img src="' + data.url + '" alt="' + (data.alt || '') + '"></div>';
             }
-            return `<div class="preview-image-placeholder img-${size}">点击设置图片</div>`;
+            return '<div class="preview-image-placeholder img-' + size + '">点击设置图片</div>';
         default:
             return '';
     }
@@ -368,34 +490,37 @@ function renderPropertiesPanel(element) {
         const typeConfig = blockComponentTypes[type];
         const data = JSON.parse(element.getAttribute('data-props') || '{}');
         
-        let html = `<h3>${typeConfig.icon} ${typeConfig.name}</h3>`;
+        let html = '<h3>' + typeConfig.icon + ' ' + typeConfig.name + '</h3>';
         html += '<div class="properties-form">';
         
         typeConfig.fields.forEach(field => {
             const value = data[field.name] || '';
-            html += `<div class="form-group">`;
-            html += `<label class="form-label">${field.label}</label>`;
+            html += '<div class="form-group">';
+            html += '<label class="form-label">' + field.label + '</label>';
             
             switch (field.type) {
                 case 'input':
-                    html += `<input type="text" class="form-input" value="${value}" 
-                        oninput="updateBlockComponent('${field.name}', this.value)">`;
+                    // 如果有最小值限制，使用 number 类型输入框
+                    if (field.min !== undefined) {
+                        html += '<input type="number" class="form-input" name="' + field.name + '" value="' + value + '" min="' + field.min + '" oninput="updateBlockComponent(\'' + field.name + '\', this.value)">';
+                    } else {
+                        html += '<input type="text" class="form-input" value="' + value + '" oninput="updateBlockComponent(\'' + field.name + '\', this.value)">';
+                    }
                     break;
                 case 'textarea':
-                    html += `<textarea class="form-textarea" 
-                        oninput="updateBlockComponent('${field.name}', this.value)">${value}</textarea>`;
+                    html += '<textarea class="form-textarea" oninput="updateBlockComponent(\'' + field.name + '\', this.value)">' + value + '</textarea>';
                     break;
                 case 'select':
-                    html += `<select class="form-select" onchange="updateBlockComponent('${field.name}', this.value)">`;
+                    html += '<select class="form-select" onchange="updateBlockComponent(\'' + field.name + '\', this.value)">';
                     field.options.forEach(opt => {
                         const selected = value === opt ? 'selected' : '';
-                        html += `<option value="${opt}" ${selected}>${opt}</option>`;
+                        html += '<option value="' + opt + '" ' + selected + '>' + opt + '</option>';
                     });
-                    html += `</select>`;
+                    html += '</select>';
                     break;
             }
             
-            html += `</div>`;
+            html += '</div>';
         });
         
         html += `<div class="form-group">
@@ -446,11 +571,29 @@ window.updateFormula = function(value) {
 // 更新块级组件属性
 window.updateBlockComponent = function(fieldName, value) {
     if (selectedElement && selectedElement.classList.contains('block-component')) {
+        const type = selectedElement.getAttribute('data-type');
+        const typeConfig = blockComponentTypes[type];
         const data = JSON.parse(selectedElement.getAttribute('data-props') || '{}');
+        
+        // 查找字段配置
+        const field = typeConfig.fields.find(f => f.name === fieldName);
+        
+        // 验证最小值
+        if (field && field.min !== undefined) {
+            const numValue = parseInt(value) || 0;
+            if (numValue < field.min) {
+                value = field.min.toString();
+                // 更新输入框的值
+                const input = document.querySelector('.properties-form input[name="' + fieldName + '"]');
+                if (input) {
+                    input.value = value;
+                }
+            }
+        }
+        
         data[fieldName] = value;
         selectedElement.setAttribute('data-props', JSON.stringify(data));
         
-        const type = selectedElement.getAttribute('data-type');
         const body = selectedElement.querySelector('.component-body');
         body.innerHTML = renderBlockComponentPreview(type, data);
     }
@@ -599,7 +742,12 @@ function renderBlockPreview(type, data) {
             const rows = parseInt(data.rows) || 3;
             const cols = parseInt(data.cols) || 3;
             const cells = data.cells || {};
-            let tableHtml = '<table border="1" style="width:100%; margin: 10px 0; border-collapse: collapse;">';
+            const tableName = data.tableName || '';
+            let tableHtml = '';
+            if (tableName) {
+                tableHtml += `<div style="font-weight: bold; margin-bottom: 8px;">${tableName}</div>`;
+            }
+            tableHtml += '<table border="1" style="width:100%; margin: 10px 0; border-collapse: collapse;">';
             for (let i = 0; i < rows; i++) {
                 tableHtml += '<tr>';
                 for (let j = 0; j < cols; j++) {
@@ -662,6 +810,98 @@ function getTemplateContent() {
     return content;
 }
 
+// 转换为 Markdown
+function convertToMarkdown(element) {
+    let markdown = '';
+    
+    element.childNodes.forEach(node => {
+        if (node.nodeType === Node.TEXT_NODE) {
+            markdown += node.textContent;
+        } else if (node.nodeType === Node.ELEMENT_NODE) {
+            const el = node;
+            
+            if (el.classList.contains('inline-input')) {
+                const placeholder = el.getAttribute('data-placeholder') || '请输入';
+                markdown += '*[' + placeholder + ']*';
+            } else if (el.classList.contains('inline-formula')) {
+                const formula = el.getAttribute('data-formula') || '';
+                markdown += '$' + formula + '$';
+            } else if (el.classList.contains('block-component')) {
+                // 块级组件直接转换，不再递归处理子元素
+                const type = el.getAttribute('data-type');
+                const data = JSON.parse(el.getAttribute('data-props') || '{}');
+                markdown += '\n' + convertBlockToMarkdown(type, data) + '\n';
+            } else if (el.classList.contains('component-body')) {
+                // component-body 是块级组件的容器，不处理
+                // 跳过，因为父元素 block-component 已经处理过了
+            } else if (el.tagName === 'BR') {
+                markdown += '\n';
+            } else if (el.tagName === 'P' || el.tagName === 'DIV') {
+                markdown += convertToMarkdown(el);
+            } else {
+                markdown += convertToMarkdown(el);
+            }
+        }
+    });
+    
+    return markdown;
+}
+
+// 转换块级组件为 Markdown
+function convertBlockToMarkdown(type, data) {
+    switch (type) {
+        case 'table':
+            const rows = parseInt(data.rows) || 2;
+            const cols = parseInt(data.cols) || 3;
+            const cells = data.cells || {};
+            
+            let md = '';
+            
+            // 第一行：表头（索引0）
+            md += '|';
+            for (let j = 0; j < cols; j++) {
+                const cellKey = '0-' + j;
+                const cellValue = cells[cellKey] || '  ';
+                md += ' ' + cellValue + ' |';
+            }
+            
+            // 换行
+            md += '\n';
+            
+            // 第二行：分隔线
+            md += '|';
+            for (let j = 0; j < cols; j++) {
+                md += '----|';
+            }
+            
+            // 换行
+            md += '\n';
+            
+            // 数据行（索引1开始）
+            for (let i = 1; i < rows; i++) {
+                md += '|';
+                for (let j = 0; j < cols; j++) {
+                    const cellKey = i + '-' + j;
+                    const cellValue = cells[cellKey] || '  ';
+                    md += ' ' + cellValue + ' |';
+                }
+                md += '\n';
+            }
+            
+            console.log('表格Markdown格式:', JSON.stringify(md));
+            return md;
+        case 'divider':
+            return '---';
+        case 'image':
+            if (data.url) {
+                return '![' + (data.alt || '图片') + '](' + data.url + ')';
+            }
+            return '[图片]';
+        default:
+            return '';
+    }
+}
+
 // 保存模板
 window.saveTemplate = function() {
     const templateName = document.getElementById('templateName').value;
@@ -673,10 +913,13 @@ window.saveTemplate = function() {
         return;
     }
 
+    // 转换为 Markdown 格式
+    const markdownContent = convertToMarkdown(canvas);
+    
     const templateData = {
         id: currentTemplateId || null,
         templateName: templateName,
-        templateContent: canvas.innerHTML,
+        templateContent: markdownContent,
         description: templateDescription,
         creatorId: getCurrentUserId()
     };
@@ -698,12 +941,6 @@ window.saveTemplate = function() {
         if (result.code === 200) {
             if (result.data === true) {
                 alert('模板保存成功');
-
-                if (!currentTemplateId) {
-                    setTimeout(() => {
-                        TabsManager.openTabByPath('/ems/modules/experiment-template-list/experiment-template-list.html', '实验模板管理');
-                    }, 1000);
-                }
             } else {
                 alert('模板保存失败：操作未成功');
             }
@@ -743,79 +980,111 @@ window.exportTemplateAsMarkdown = function() {
     URL.revokeObjectURL(url);
 };
 
-// 转换为 Markdown
-function convertToMarkdown(element) {
-    let markdown = '';
-    
-    element.childNodes.forEach(node => {
-        if (node.nodeType === Node.TEXT_NODE) {
-            markdown += node.textContent;
-        } else if (node.nodeType === Node.ELEMENT_NODE) {
-            const el = node;
-            
-            if (el.classList.contains('inline-input')) {
-                const placeholder = el.getAttribute('data-placeholder') || '请输入';
-                markdown += `*[${placeholder}]*`;
-            } else if (el.classList.contains('inline-formula')) {
-                const formula = el.getAttribute('data-formula') || '';
-                markdown += `$${formula}$`;
-            } else if (el.classList.contains('block-component')) {
-                const type = el.getAttribute('data-type');
-                const data = JSON.parse(el.getAttribute('data-props') || '{}');
-                markdown += '\n' + convertBlockToMarkdown(type, data) + '\n';
-            } else if (el.tagName === 'BR') {
-                markdown += '\n';
-            } else if (el.tagName === 'P' || el.tagName === 'DIV') {
-                markdown += convertToMarkdown(el) + '\n\n';
-            } else {
-                markdown += convertToMarkdown(el);
-            }
-        }
-    });
-    
-    return markdown;
-}
-
-// 转换块级组件为 Markdown
-function convertBlockToMarkdown(type, data) {
-    switch (type) {
-        case 'table':
-            const rows = parseInt(data.rows) || 3;
-            const cols = parseInt(data.cols) || 3;
-            const cells = data.cells || {};
-            let md = '|';
-            for (let j = 0; j < cols; j++) {
-                const cellValue = cells['0-' + j] || '   ';
-                md += ' ' + cellValue + ' |';
-            }
-            md += '\n|';
-            for (let j = 0; j < cols; j++) md += '---|';
-            md += '\n';
-            for (let i = 1; i < rows; i++) {
-                md += '|';
-                for (let j = 0; j < cols; j++) {
-                    const cellKey = i + '-' + j;
-                    const cellValue = cells[cellKey] || '   ';
-                    md += ' ' + cellValue + ' |';
-                }
-                md += '\n';
-            }
-            return md;
-        case 'divider':
-            return '---';
-        case 'image':
-            if (data.url) {
-                return `![${data.alt || '图片'}](${data.url})`;
-            }
-            return '[图片]';
-        default:
-            return '';
-    }
-}
-
 // 获取当前用户ID
 function getCurrentUserId() {
     return Auth.getUserId() || '1';
+}
+
+// 将 Markdown 转换为 HTML
+function markdownToHtml(markdown) {
+    let html = markdown || '';
+    
+    // 1. 先处理表格（标准markdown表格格式，确保在分割线之前处理）
+    // 表格特征：连续的多行，每行以 | 开头和结尾，第二行是分隔行（包含 ---）
+    const tablePattern = /(?:^\|.+\|$[\r\n]*)+/gm;
+    html = html.replace(tablePattern, function(match) {
+        const lines = match.trim().split(/[\r\n]+/).filter(function(l) { return l.trim(); });
+        if (lines.length < 2) return match;
+        
+        // 检查第二行是否是分隔行（格式：|---|---|... 或 |:---|:---:|...）
+        const dividerLine = lines[1];
+        if (!dividerLine.match(/^\|[\s\-:]+\|/)) {
+            return match; // 不是标准表格，不处理
+        }
+        
+        // 解析列数（从分隔行获取）
+        const cols = (dividerLine.match(/\|/g) || []).length - 1;
+        if (cols < 1) return match;
+        
+        // 行数（总行数减去分隔行）
+        const rows = lines.length - 1;
+        
+        // 解析表格数据
+        const tableData = {
+            rows: rows,
+            cols: cols,
+            cells: {}
+        };
+        
+        // 解析表头行（lines[0]）
+        const headerParts = lines[0].split('|');
+        for (let j = 1; j <= cols; j++) {
+            const cellValue = headerParts[j] ? headerParts[j].trim() : '';
+            tableData.cells['0-' + (j - 1)] = cellValue;
+        }
+        
+        // 解析数据行（从lines[2]开始，跳过分隔行）
+        for (let i = 2; i < lines.length; i++) {
+            const rowParts = lines[i].split('|');
+            for (let j = 1; j <= cols; j++) {
+                const cellValue = rowParts[j] ? rowParts[j].trim() : '';
+                tableData.cells[(i - 1) + '-' + (j - 1)] = cellValue;
+            }
+        }
+        
+        // 生成表格HTML
+        let tableHtml = '<table class="preview-table">';
+        for (let i = 0; i < tableData.rows; i++) {
+            tableHtml += '<tr>';
+            for (let j = 0; j < tableData.cols; j++) {
+                const cellKey = i + '-' + j;
+                const cellValue = tableData.cells[cellKey] || '';
+                const cellType = i === 0 ? 'header' : 'content';
+                tableHtml += '<td contenteditable="true" data-row="' + i + '" data-col="' + j + '" data-cell-type="' + cellType + '" onblur="updateTableCell(this)">' + cellValue + '</td>';
+            }
+            tableHtml += '</tr>';
+        }
+        tableHtml += '</table>';
+        
+        // 创建块级组件
+        const blockHtml = '<div class="block-component" contenteditable="false" data-type="table" data-props="' + JSON.stringify(tableData).replace(/"/g, '&quot;') + '"><div class="component-body">' + tableHtml + '</div></div>';
+        
+        return blockHtml;
+    });
+    
+    // 2. 处理分割线（独立的 --- 行，需要包装成 block-component）
+    html = html.replace(/^---$/gm, function(match) {
+        const dividerData = {};
+        return '<div class="block-component" contenteditable="false" data-type="divider" data-props="' + 
+               JSON.stringify(dividerData).replace(/"/g, '&quot;') + '">' +
+               '<div class="component-body">' +
+               '<div class="preview-divider"></div>' +
+               '</div></div>';
+    });
+    
+    // 3. 处理填空项
+    html = html.replace(/\*\[([^\]]*)\]\*/g, 
+        '<span class="inline-input" contenteditable="false" data-placeholder="$1"><span class="input-marker">[</span><span class="input-content">$1</span><span class="input-marker">]</span></span>');
+    
+    // 4. 处理公式
+    html = html.replace(/\$([^$]+)\$/g, 
+        '<span class="inline-formula" contenteditable="false" data-formula="$1"><span class="formula-display">$ $1 $</span></span>');
+    
+    // 5. 处理图片
+    html = html.replace(/!\[([^\]]*)\]\(([^\)]+)\)/g, function(match, alt, url) {
+        const imageData = { url: url, alt: alt, size: 'medium' };
+        return '<div class="block-component" contenteditable="false" data-type="image" data-props="' + 
+               JSON.stringify(imageData).replace(/"/g, '&quot;') + '">' +
+               '<div class="component-body">' +
+               '<div class="preview-image img-medium"><img src="' + url + '" alt="' + alt + '"></div>' +
+               '</div></div>';
+    });
+    
+    // 6. 处理段落和换行
+    html = html.replace(/\n\n/g, '</p><p>');
+    html = '<p>' + html + '</p>';
+    
+    return html;
 }
 
 // 加载模板
@@ -834,7 +1103,10 @@ function loadTemplate(templateId) {
             document.getElementById('templateDescription').value = template.description || '';
             
             const canvas = document.getElementById('canvas');
-            canvas.innerHTML = template.templateContent || '<p></p>';
+            
+            // 将 Markdown 内容转换为 HTML
+            const htmlContent = markdownToHtml(template.templateContent);
+            canvas.innerHTML = htmlContent || '<p>在此输入内容，使用左侧按钮插入填空或公式...</p>';
             
             // 重新渲染公式
             if (window.MathJax) {

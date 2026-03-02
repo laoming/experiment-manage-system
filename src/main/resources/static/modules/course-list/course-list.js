@@ -8,8 +8,6 @@ const app = Vue.createApp({
             loading: true,
             courseList: [],
             creatorList: [],
-            userList: [],
-            templateList: [],
             queryForm: {
                 courseName: ''
             },
@@ -37,17 +35,36 @@ const app = Vue.createApp({
             // 管理者相关
             selectedAdminIds: [],
             boundAdminIds: [],
-            availableAdminIds: [],
+            adminList: [],
+            adminPagination: {
+                current: 1,
+                size: 10,
+                total: 0,
+                pages: 0
+            },
+            adminSearchKeyword: '',
             // 学生相关
             selectedStudentIds: [],
             boundStudentIds: [],
+            studentList: [],
+            studentPagination: {
+                current: 1,
+                size: 10,
+                total: 0,
+                pages: 0
+            },
+            studentSearchKeyword: '',
             // 模板相关
             selectedTemplateIds: [],
             boundTemplateIds: [],
-            // 缓存数据
-            courseAdminCache: {},
-            courseStudentCache: {},
-            courseTemplateCache: {},
+            templateList: [],
+            templatePagination: {
+                current: 1,
+                size: 10,
+                total: 0,
+                pages: 0
+            },
+            templateSearchKeyword: '',
             // 权限缓存
             courseCreatorCache: {},
             // 页面加载状态
@@ -61,7 +78,7 @@ const app = Vue.createApp({
          */
         availableAdmins() {
             var self = this;
-            return (this.userList || []).filter(function(user) {
+            return (this.adminList || []).filter(function(user) {
                 return !self.boundAdminIds.includes(user.id);
             });
         },
@@ -71,7 +88,7 @@ const app = Vue.createApp({
          */
         availableStudents() {
             var self = this;
-            return (this.userList || []).filter(function(user) {
+            return (this.studentList || []).filter(function(user) {
                 return !self.boundStudentIds.includes(user.id) && !self.boundAdminIds.includes(user.id);
             });
         },
@@ -114,8 +131,6 @@ const app = Vue.createApp({
             try {
                 await Promise.all([
                     this.fetchCreatorList(),
-                    this.fetchUserList(),
-                    this.fetchTemplateList(),
                     this.fetchCourseList()
                 ]);
             } catch (error) {
@@ -150,53 +165,126 @@ const app = Vue.createApp({
         },
 
         /**
-         * 获取用户列表
+         * 搜索管理者（分页）
          */
-        fetchUserList: async function() {
+        searchAdmins: async function() {
             try {
-                console.log('[COURSE-LIST] 开始获取用户列表...');
-                var result = await fetch('/user/page?current=1&size=1000', {
+                var params = 'current=' + this.adminPagination.current + '&size=' + this.adminPagination.size;
+                var body = {};
+                if (this.adminSearchKeyword) {
+                    body.displayName = this.adminSearchKeyword;
+                }
+                var result = await fetch('/user/page?' + params, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({})
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
                 });
-                console.log('[COURSE-LIST] 获取用户列表成功:', result);
-
                 if (result.code === 200) {
-                    this.userList = result.data.records || [];
-                } else {
-                    console.warn('获取用户列表失败');
+                    this.adminList = result.data.records || [];
+                    this.adminPagination.total = result.data.total || 0;
+                    this.adminPagination.pages = result.data.pages || 0;
                 }
             } catch (error) {
-                console.error('[COURSE-LIST] 获取用户列表失败:', error);
+                console.error('[COURSE-LIST] 搜索管理者失败:', error);
             }
         },
 
         /**
-         * 获取实验模板列表
+         * 管理者分页变化
          */
-        fetchTemplateList: async function() {
-            try {
-                console.log('[COURSE-LIST] 开始获取实验模板列表...');
-                var result = await fetch('/experimentTemplate/page?current=1&size=1000', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({})
-                });
-                console.log('[COURSE-LIST] 获取实验模板列表成功:', result);
+        handleAdminPageChange: function(page) {
+            this.adminPagination.current = page;
+            this.searchAdmins();
+        },
 
+        /**
+         * 管理者搜索
+         */
+        handleAdminSearch: function() {
+            this.adminPagination.current = 1;
+            this.searchAdmins();
+        },
+
+        /**
+         * 搜索学生（分页）
+         */
+        searchStudents: async function() {
+            try {
+                var params = 'current=' + this.studentPagination.current + '&size=' + this.studentPagination.size;
+                var body = {};
+                if (this.studentSearchKeyword) {
+                    body.displayName = this.studentSearchKeyword;
+                }
+                var result = await fetch('/user/page?' + params, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
                 if (result.code === 200) {
-                    this.templateList = result.data.records || [];
-                } else {
-                    console.warn('获取实验模板列表失败');
+                    this.studentList = result.data.records || [];
+                    this.studentPagination.total = result.data.total || 0;
+                    this.studentPagination.pages = result.data.pages || 0;
                 }
             } catch (error) {
-                console.error('[COURSE-LIST] 获取实验模板列表失败:', error);
+                console.error('[COURSE-LIST] 搜索学生失败:', error);
             }
+        },
+
+        /**
+         * 学生分页变化
+         */
+        handleStudentPageChange: function(page) {
+            this.studentPagination.current = page;
+            this.searchStudents();
+        },
+
+        /**
+         * 学生搜索
+         */
+        handleStudentSearch: function() {
+            this.studentPagination.current = 1;
+            this.searchStudents();
+        },
+
+        /**
+         * 搜索模板（分页）
+         */
+        searchTemplates: async function() {
+            try {
+                var params = 'current=' + this.templatePagination.current + '&size=' + this.templatePagination.size;
+                var body = {};
+                if (this.templateSearchKeyword) {
+                    body.templateName = this.templateSearchKeyword;
+                }
+                var result = await fetch('/experimentTemplate/page?' + params, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                if (result.code === 200) {
+                    this.templateList = result.data.records || [];
+                    this.templatePagination.total = result.data.total || 0;
+                    this.templatePagination.pages = result.data.pages || 0;
+                }
+            } catch (error) {
+                console.error('[COURSE-LIST] 搜索模板失败:', error);
+            }
+        },
+
+        /**
+         * 模板分页变化
+         */
+        handleTemplatePageChange: function(page) {
+            this.templatePagination.current = page;
+            this.searchTemplates();
+        },
+
+        /**
+         * 模板搜索
+         */
+        handleTemplateSearch: function() {
+            this.templatePagination.current = 1;
+            this.searchTemplates();
         },
 
         /**
@@ -221,13 +309,9 @@ const app = Vue.createApp({
                     this.pagination.total = result.data.total || 0;
                     this.pagination.pages = result.data.pages || 0;
                     
-                    // 获取每个课程的管理者、学生和模板绑定情况
+                    // 缓存创建者信息（不在此处查询管理者、学生和模板，延迟到查看/绑定时查询）
                     for (var i = 0; i < this.courseList.length; i++) {
                         var course = this.courseList[i];
-                        this.fetchCourseAdminIds(course.id);
-                        this.fetchCourseStudentIds(course.id);
-                        this.fetchCourseTemplateIds(course.id);
-                        // 缓存创建者信息
                         this.courseCreatorCache[course.id] = course.creatorId;
                     }
                 } else {
@@ -250,11 +334,12 @@ const app = Vue.createApp({
                     method: 'POST'
                 });
                 if (result.code === 200) {
-                    this.courseAdminCache[courseId] = result.data || [];
+                    return result.data || [];
                 }
             } catch (error) {
                 console.error('获取课程管理者ID列表失败:', error);
             }
+            return [];
         },
 
         /**
@@ -266,11 +351,12 @@ const app = Vue.createApp({
                     method: 'POST'
                 });
                 if (result.code === 200) {
-                    this.courseStudentCache[courseId] = result.data || [];
+                    return result.data || [];
                 }
             } catch (error) {
                 console.error('获取课程学生ID列表失败:', error);
             }
+            return [];
         },
 
         /**
@@ -282,11 +368,29 @@ const app = Vue.createApp({
                     method: 'POST'
                 });
                 if (result.code === 200) {
-                    this.courseTemplateCache[courseId] = result.data || [];
+                    return result.data || [];
                 }
             } catch (error) {
                 console.error('获取课程模板ID列表失败:', error);
             }
+            return [];
+        },
+
+        /**
+         * 获取课程绑定的实验模板信息列表（包含ID和名称）
+         */
+        fetchCourseTemplateInfos: async function(courseId) {
+            try {
+                var result = await fetch('/course/getTemplateInfos?courseId=' + courseId, {
+                    method: 'POST'
+                });
+                if (result.code === 200) {
+                    return result.data || [];
+                }
+            } catch (error) {
+                console.error('获取课程模板信息列表失败:', error);
+            }
+            return [];
         },
 
         /**
@@ -423,6 +527,13 @@ const app = Vue.createApp({
 
                 if (result.code === 200) {
                     this.currentCourse = result.data;
+                    // 加载管理者、学生和模板数据
+                    this.currentCourse.adminIds = await this.fetchCourseAdminIds(course.id);
+                    this.currentCourse.studentIds = await this.fetchCourseStudentIds(course.id);
+                    // 获取模板信息列表，并存入templateList以便getTemplateName方法使用
+                    var templateInfos = await this.fetchCourseTemplateInfos(course.id);
+                    this.templateList = templateInfos;
+                    this.currentCourse.templateIds = templateInfos.map(function(t) { return t.id; });
                     this.showViewModal = true;
                 } else {
                     this.showError('获取课程详情失败: ' + (result.message || '未知错误'));
@@ -478,19 +589,32 @@ const app = Vue.createApp({
         openBindModal: async function(course) {
             this.currentBindCourse = course;
             this.bindTab = 'admin';
-            
+
             // 获取已绑定的管理者、学生和模板
-            await this.fetchCourseAdminIds(course.id);
-            await this.fetchCourseStudentIds(course.id);
-            await this.fetchCourseTemplateIds(course.id);
-            
+            var adminIds = await this.fetchCourseAdminIds(course.id);
+            var studentIds = await this.fetchCourseStudentIds(course.id);
+            var templateIds = await this.fetchCourseTemplateIds(course.id);
+
             this.selectedAdminIds = [];
             this.selectedStudentIds = [];
             this.selectedTemplateIds = [];
-            this.boundAdminIds = [].concat(this.courseAdminCache[course.id] || []);
-            this.boundStudentIds = [].concat(this.courseStudentCache[course.id] || []);
-            this.boundTemplateIds = [].concat(this.courseTemplateCache[course.id] || []);
-            
+            this.boundAdminIds = adminIds;
+            this.boundStudentIds = studentIds;
+            this.boundTemplateIds = templateIds;
+
+            // 重置分页和搜索状态
+            this.adminSearchKeyword = '';
+            this.adminPagination = { current: 1, size: 10, total: 0, pages: 0 };
+            this.studentSearchKeyword = '';
+            this.studentPagination = { current: 1, size: 10, total: 0, pages: 0 };
+            this.templateSearchKeyword = '';
+            this.templatePagination = { current: 1, size: 10, total: 0, pages: 0 };
+
+            // 加载第一页数据
+            await this.searchAdmins();
+            await this.searchStudents();
+            await this.searchTemplates();
+
             this.showBindModal = true;
         },
 
@@ -506,6 +630,9 @@ const app = Vue.createApp({
             this.boundAdminIds = [];
             this.boundStudentIds = [];
             this.boundTemplateIds = [];
+            this.adminList = [];
+            this.studentList = [];
+            this.templateList = [];
         },
 
         /**
@@ -566,9 +693,12 @@ const app = Vue.createApp({
                 if (result.code === 200) {
                     this.showSuccess('添加管理者成功');
                     // 刷新管理者列表
-                    await this.fetchCourseAdminIds(this.currentBindCourse.id);
-                    this.boundAdminIds = [].concat(this.courseAdminCache[this.currentBindCourse.id] || []);
+                    this.boundAdminIds = await this.fetchCourseAdminIds(this.currentBindCourse.id);
                     this.selectedAdminIds = [];
+                    // 刷新课程列表（更新统计数据）
+                    await this.fetchCourseList();
+                    // 刷新可添加列表
+                    await this.searchAdmins();
                 } else {
                     this.showError('添加管理者失败: ' + (result.message || '未知错误'));
                 }
@@ -600,9 +730,12 @@ const app = Vue.createApp({
                 if (result.code === 200) {
                     this.showSuccess('移除管理者成功');
                     // 刷新管理者列表
-                    await this.fetchCourseAdminIds(this.currentBindCourse.id);
-                    this.boundAdminIds = [].concat(this.courseAdminCache[this.currentBindCourse.id] || []);
+                    this.boundAdminIds = await this.fetchCourseAdminIds(this.currentBindCourse.id);
                     this.selectedAdminIds = [];
+                    // 刷新课程列表（更新统计数据）
+                    await this.fetchCourseList();
+                    // 刷新可添加列表
+                    await this.searchAdmins();
                 } else {
                     this.showError('移除管理者失败: ' + (result.message || '未知错误'));
                 }
@@ -634,9 +767,12 @@ const app = Vue.createApp({
                 if (result.code === 200) {
                     this.showSuccess('添加学生成功');
                     // 刷新学生列表
-                    await this.fetchCourseStudentIds(this.currentBindCourse.id);
-                    this.boundStudentIds = [].concat(this.courseStudentCache[this.currentBindCourse.id] || []);
+                    this.boundStudentIds = await this.fetchCourseStudentIds(this.currentBindCourse.id);
                     this.selectedStudentIds = [];
+                    // 刷新课程列表（更新统计数据）
+                    await this.fetchCourseList();
+                    // 刷新可添加列表
+                    await this.searchStudents();
                 } else {
                     this.showError('添加学生失败: ' + (result.message || '未知错误'));
                 }
@@ -668,9 +804,12 @@ const app = Vue.createApp({
                 if (result.code === 200) {
                     this.showSuccess('移除学生成功');
                     // 刷新学生列表
-                    await this.fetchCourseStudentIds(this.currentBindCourse.id);
-                    this.boundStudentIds = [].concat(this.courseStudentCache[this.currentBindCourse.id] || []);
+                    this.boundStudentIds = await this.fetchCourseStudentIds(this.currentBindCourse.id);
                     this.selectedStudentIds = [];
+                    // 刷新课程列表（更新统计数据）
+                    await this.fetchCourseList();
+                    // 刷新可添加列表
+                    await this.searchStudents();
                 } else {
                     this.showError('移除学生失败: ' + (result.message || '未知错误'));
                 }
@@ -702,9 +841,12 @@ const app = Vue.createApp({
                 if (result.code === 200) {
                     this.showSuccess('绑定模板成功');
                     // 刷新模板列表
-                    await this.fetchCourseTemplateIds(this.currentBindCourse.id);
-                    this.boundTemplateIds = [].concat(this.courseTemplateCache[this.currentBindCourse.id] || []);
+                    this.boundTemplateIds = await this.fetchCourseTemplateIds(this.currentBindCourse.id);
                     this.selectedTemplateIds = [];
+                    // 刷新课程列表（更新统计数据）
+                    await this.fetchCourseList();
+                    // 刷新可添加列表
+                    await this.searchTemplates();
                 } else {
                     this.showError('绑定模板失败: ' + (result.message || '未知错误'));
                 }
@@ -736,10 +878,12 @@ const app = Vue.createApp({
                 if (result.code === 200) {
                     this.showSuccess('解除模板绑定成功');
                     // 刷新模板列表
-                    await this.fetchCourseTemplateIds(this.currentBindCourse.id);
-                    this.boundTemplateIds = [].concat(this.courseTemplateCache[this.currentBindCourse.id] || []);
+                    this.boundTemplateIds = await this.fetchCourseTemplateIds(this.currentBindCourse.id);
                     this.selectedTemplateIds = [];
+                    // 刷新课程列表（更新统计数据）
                     await this.fetchCourseList();
+                    // 刷新可添加列表
+                    await this.searchTemplates();
                 } else {
                     this.showError('解除模板绑定失败: ' + (result.message || '未知错误'));
                 }
@@ -787,27 +931,6 @@ const app = Vue.createApp({
             }
             var template = this.templateList.find(function(t) { return t.id === templateId; });
             return template ? template.templateName : templateId;
-        },
-
-        /**
-         * 获取管理者人数
-         */
-        getAdminCount: function(courseId) {
-            return (this.courseAdminCache[courseId] || []).length;
-        },
-
-        /**
-         * 获取学生人数
-         */
-        getStudentCount: function(courseId) {
-            return (this.courseStudentCache[courseId] || []).length;
-        },
-
-        /**
-         * 获取模板数量
-         */
-        getTemplateCount: function(courseId) {
-            return (this.courseTemplateCache[courseId] || []).length;
         },
 
         /**

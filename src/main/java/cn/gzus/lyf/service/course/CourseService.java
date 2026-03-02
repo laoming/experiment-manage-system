@@ -130,7 +130,13 @@ public class CourseService {
      * @return 是否成功
      */
     public boolean bindUsers(String courseId, List<String> userIds) {
-        return courseUserRelationDAO.bindUsers(courseId, userIds, CourseUserRelationEntity.USER_TYPE_STUDENT);
+        boolean result = courseUserRelationDAO.bindUsers(courseId, userIds, CourseUserRelationEntity.USER_TYPE_STUDENT);
+        if (result) {
+            // 更新学生数量
+            int count = courseUserRelationDAO.getStudentIdsByCourseId(courseId).size();
+            courseDAO.updateStudentCount(courseId, count);
+        }
+        return result;
     }
 
     /**
@@ -140,7 +146,13 @@ public class CourseService {
      * @return 是否成功
      */
     public boolean bindAdmins(String courseId, List<String> userIds) {
-        return courseUserRelationDAO.bindUsers(courseId, userIds, CourseUserRelationEntity.USER_TYPE_ADMIN);
+        boolean result = courseUserRelationDAO.bindUsers(courseId, userIds, CourseUserRelationEntity.USER_TYPE_ADMIN);
+        if (result) {
+            // 更新管理者数量
+            int count = courseUserRelationDAO.getAdminIdsByCourseId(courseId).size();
+            courseDAO.updateAdminCount(courseId, count);
+        }
+        return result;
     }
 
     /**
@@ -150,7 +162,14 @@ public class CourseService {
      * @return 是否成功
      */
     public boolean unbindUsers(String courseId, List<String> userIds) {
-        return courseUserRelationDAO.unbindUsers(courseId, userIds);
+        boolean result = courseUserRelationDAO.unbindUsers(courseId, userIds);
+        if (result) {
+            // 重新计算管理者和学生数量
+            int adminCount = courseUserRelationDAO.getAdminIdsByCourseId(courseId).size();
+            int studentCount = courseUserRelationDAO.getStudentIdsByCourseId(courseId).size();
+            courseDAO.updateCounts(courseId, adminCount, studentCount, null);
+        }
+        return result;
     }
 
     /**
@@ -230,7 +249,13 @@ public class CourseService {
      * @return 是否成功
      */
     public boolean bindTemplates(String courseId, List<String> templateIds) {
-        return courseTemplateRelationDAO.bindTemplates(courseId, templateIds);
+        boolean result = courseTemplateRelationDAO.bindTemplates(courseId, templateIds);
+        if (result) {
+            // 更新模板数量
+            int count = courseTemplateRelationDAO.getTemplateIdsByCourseId(courseId).size();
+            courseDAO.updateTemplateCount(courseId, count);
+        }
+        return result;
     }
 
     /**
@@ -240,7 +265,13 @@ public class CourseService {
      * @return 是否成功
      */
     public boolean unbindTemplates(String courseId, List<String> templateIds) {
-        return courseTemplateRelationDAO.unbindTemplates(courseId, templateIds);
+        boolean result = courseTemplateRelationDAO.unbindTemplates(courseId, templateIds);
+        if (result) {
+            // 更新模板数量
+            int count = courseTemplateRelationDAO.getTemplateIdsByCourseId(courseId).size();
+            courseDAO.updateTemplateCount(courseId, count);
+        }
+        return result;
     }
 
     /**
