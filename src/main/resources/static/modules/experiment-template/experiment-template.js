@@ -2,6 +2,35 @@
 let currentTemplateId = null;
 let selectedElement = null;
 
+// 动态加载必要的脚本库
+(function loadRequiredScripts() {
+    // 加载 TurndownService (HTML -> Markdown)
+    if (typeof TurndownService === 'undefined') {
+        var turndownScript = document.createElement('script');
+        turndownScript.src = '/ems/common/js/turndown.browser.umd.min.js';
+        turndownScript.onload = function() {
+            console.log('[TEMPLATE] TurndownService 加载成功');
+        };
+        turndownScript.onerror = function() {
+            console.error('[TEMPLATE] TurndownService 加载失败');
+        };
+        document.head.appendChild(turndownScript);
+    }
+    
+    // 加载 Marked (Markdown -> HTML)
+    if (typeof marked === 'undefined') {
+        var markedScript = document.createElement('script');
+        markedScript.src = '/ems/common/js/marked.min.js';
+        markedScript.onload = function() {
+            console.log('[TEMPLATE] Marked 加载成功');
+        };
+        markedScript.onerror = function() {
+            console.error('[TEMPLATE] Marked 加载失败');
+        };
+        document.head.appendChild(markedScript);
+    }
+})();
+
 const app = Vue.createApp({
     mounted() {
         this.checkLogin();
@@ -29,17 +58,10 @@ const app = Vue.createApp({
     },
     methods: {
         checkLogin() {
-            try {
-                const token = Auth.getToken();
-            if (!token) {
+            // 使用公共 Auth 工具类检查登录状态
+            if (!Auth.isLoggedIn()) {
                 window.location.href = '/ems/common/pages/index.html';
-                return;
             }
-        } catch (error) {
-            console.error('[TEMPLATE] 检查登录状态失败:', error);
-            window.location.href = '/ems/common/pages/index.html';
-        }
-
         }
     }
 });
@@ -868,14 +890,69 @@ function initTurndownService() {
     return turndownService;
 }
 
-// 转换为 Markdown（使用 Turndown）
-function convertToMarkdown(element) {
+// 等待 TurndownService 加载完成
+function waitForTurndownService(maxWaitTime) {
+    maxWaitTime = maxWaitTime || 5000;
+    return new Promise(function(resolve, reject) {
+        if (typeof TurndownService !== 'undefined') {
+            resolve();
+            return;
+        }
+        
+        var startTime = Date.now();
+        var checkInterval = setInterval(function() {
+            if (typeof TurndownService !== 'undefined') {
+                clearInterval(checkInterval);
+                resolve();
+            } else if (Date.now() - startTime > maxWaitTime) {
+                clearInterval(checkInterval);
+                reject(new Error('TurndownService 加载超时'));
+            }
+        }, 100);
+    });
+}
+
+// 转换为 Markdown（使用 Turndown）- 异步版本
+async function convertToMarkdownAsync(element) {
+    try {
+        await waitForTurndownService(5000);
+    } catch (error) {
+        console.error('[TEMPLATE] TurndownService 未加载:', error.message);
+        alert('Markdown转换组件加载失败，请刷新页面重试');
+        return '';
+    }
+    
     var turndownService = initTurndownService();
     if (!turndownService) {
-        console.error('[TEMPLATE] 无法初始化 TurndownService，返回原始 HTML');
-        return element.innerHTML || '';
+        console.error('[TEMPLATE] 无法初始化 TurndownService');
+        alert('Markdown转换组件初始化失败');
+        return '';
     }
-    return turndownService.turndown(element);
+    
+    var markdown = turndownService.turndown(element);
+    console.log('[TEMPLATE] 转换为Markdown:', markdown);
+    return markdown;
+}
+
+// 转换为 Markdown（使用 Turndown）- 同步版本（兼容旧调用）
+function convertToMarkdown(element) {
+    // 确保 TurndownService 已加载
+    if (typeof TurndownService === 'undefined') {
+        console.error('[TEMPLATE] TurndownService 未加载，无法转换为 Markdown');
+        alert('Markdown转换组件未加载，请刷新页面重试');
+        return '';
+    }
+    
+    var turndownService = initTurndownService();
+    if (!turndownService) {
+        console.error('[TEMPLATE] 无法初始化 TurndownService');
+        alert('Markdown转换组件初始化失败');
+        return '';
+    }
+    
+    var markdown = turndownService.turndown(element);
+    console.log('[TEMPLATE] 转换为Markdown:', markdown);
+    return markdown;
 }
 
 // 转换块级组件为 Markdown
@@ -934,7 +1011,7 @@ function convertBlockToMarkdown(type, data) {
 }
 
 // 保存模板
-window.saveTemplate = function() {
+window.saveTemplate = async function() {
     const templateName = document.getElementById('templateName').value;
     const templateDescription = document.getElementById('templateDescription').value;
     const canvas = document.getElementById('canvas');
@@ -944,30 +1021,32 @@ window.saveTemplate = function() {
         return;
     }
 
-    // 转换为 Markdown 格式
-    const markdownContent = convertToMarkdown(canvas);
+    // 转换为 Markdown 格式（异步等待脚本加载）
+    const markdownContent = await convertToMarkdownAsync(canvas);
+    
+    // 如果转换失败，不继续保存
+    if (!markdownContent && markdownContent !== '') {
+        console.error('[TEMPLATE] Markdown 转换结果为空');
+        return;
+    }
     
     const templateData = {
         id: currentTemplateId || null,
         templateName: templateName,
         templateContent: markdownContent,
         description: templateDescription,
-        creatorId: getCurrentUserId()
+        creatorId: Auth.getUserId() || '1'  // 使用公共 Auth 工具类
     };
 
-    console.log('保存模板数据:', templateData);
+    console.log('[TEMPLATE] 保存模板数据，内容格式: Markdown');
+    console.log('[TEMPLATE] Markdown内容:', markdownContent);
 
-    const apiUrl = currentTemplateId ? '/ems/experimentTemplate/update' : '/ems/experimentTemplate/add';
-    fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + localStorage.getItem('token')
-        },
-        body: JSON.stringify(templateData)
-    })
+    // 使用公共 API 工具类
+    const apiUrl = currentTemplateId ? '/experimentTemplate/update' : '/experimentTemplate/add';
+    
+    API.post(apiUrl, templateData)
     .then(result => {
-        console.log('服务器返回结果:', result);
+        console.log('[TEMPLATE] 服务器返回结果:', result);
 
         if (result.code === 200) {
             if (result.data === true) {
@@ -980,41 +1059,53 @@ window.saveTemplate = function() {
         }
     })
     .catch(error => {
-        console.error('请求失败:', error);
+        console.error('[TEMPLATE] 请求失败:', error);
         alert('模板保存失败：' + (error.message || '网络错误'));
     });
 };
 
 // 导出 Markdown
-window.exportTemplateAsMarkdown = function() {
-    const canvas = document.getElementById('canvas');
-    let markdown = `# ${document.getElementById('templateName').value}\n\n`;
-    
+window.exportTemplateAsMarkdown = async function() {
+    const templateName = document.getElementById('templateName').value;
     const description = document.getElementById('templateDescription').value;
+    const canvas = document.getElementById('canvas');
+    
+    if (!templateName.trim()) {
+        alert('请输入模板名称');
+        return;
+    }
+    
+    let markdown = `# ${templateName}\n\n`;
+    
     if (description) {
         markdown += `${description}\n\n`;
     }
     
     markdown += '---\n\n';
     
-    // 转换内容为 Markdown
-    markdown += convertToMarkdown(canvas);
+    // 转换内容为 Markdown（异步等待脚本加载）
+    const contentMarkdown = await convertToMarkdownAsync(canvas);
     
-    const blob = new Blob([markdown], { type: 'text/markdown' });
+    // 如果转换失败，不继续导出
+    if (contentMarkdown === '') {
+        console.error('[TEMPLATE] Markdown 转换结果为空');
+        return;
+    }
+    
+    markdown += contentMarkdown;
+    
+    console.log('[TEMPLATE] 导出Markdown内容:', markdown);
+    
+    const blob = new Blob([markdown], { type: 'text/markdown;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = (document.getElementById('templateName').value || '模板') + '.md';
+    a.download = (templateName || '模板') + '.md';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 };
-
-// 获取当前用户ID
-function getCurrentUserId() {
-    return Auth.getUserId() || '1';
-}
 
 // 将 Markdown 转换为 HTML（使用 Marked）
 function markdownToHtml(markdown) {
@@ -1150,15 +1241,39 @@ function markdownToHtml(markdown) {
     return html;
 }
 
+// 检测内容是否为HTML格式（而非Markdown）
+function isHtmlContent(content) {
+    if (!content) return false;
+    // 检测是否包含HTML标签
+    var htmlTagPattern = /<[a-zA-Z][^>]*>/;
+    // 检测是否包含Markdown特征
+    var markdownPatterns = [
+        /^#{1,6}\s/m,           // 标题
+        /^\|.*\|$/m,            // 表格
+        /^\*{3,}$/m,            // 分割线
+        /^---$/m,               // 分割线
+        /\[.*\]\(.*\)/,         // 链接
+        /!\[.*\]\(.*\)/,        // 图片
+        /\*\[.*\]\*/,           // 填空项
+        /\$[^$\n]+\$/           // 公式
+    ];
+    
+    // 如果包含HTML标签且不包含Markdown特征，认为是HTML
+    if (htmlTagPattern.test(content)) {
+        var hasMarkdown = markdownPatterns.some(function(pattern) {
+            return pattern.test(content);
+        });
+        return !hasMarkdown;
+    }
+    return false;
+}
+
 // 加载模板
-function loadTemplate(templateId) {
-    fetch('/ems/experimentTemplate/get?templateId=' + templateId, {
-        method: 'POST',
-        headers: {
-            'Authorization': 'Bearer ' + localStorage.getItem('token')
-        }
-    })
-    .then(result => {
+async function loadTemplate(templateId) {
+    try {
+        // 使用公共 API 工具类
+        const result = await API.post('/experimentTemplate/get?templateId=' + templateId, {});
+        
         if (result.code === 200 && result.data) {
             const template = result.data;
             currentTemplateId = template.id;
@@ -1167,8 +1282,17 @@ function loadTemplate(templateId) {
             
             const canvas = document.getElementById('canvas');
             
-            // 将 Markdown 内容转换为 HTML
-            const htmlContent = markdownToHtml(template.templateContent);
+            let htmlContent;
+            if (isHtmlContent(template.templateContent)) {
+                // 旧数据是HTML格式，直接使用（兼容旧数据）
+                console.log('[TEMPLATE] 加载的是HTML格式数据（旧格式）');
+                htmlContent = template.templateContent;
+            } else {
+                // 新数据是Markdown格式，转换为HTML
+                console.log('[TEMPLATE] 加载的是Markdown格式数据');
+                htmlContent = markdownToHtml(template.templateContent);
+            }
+            
             canvas.innerHTML = htmlContent || '<p>在此输入内容，使用左侧按钮插入填空或公式...</p>';
             
             // 重新渲染公式
@@ -1176,9 +1300,8 @@ function loadTemplate(templateId) {
                 MathJax.typesetPromise();
             }
         }
-    })
-    .catch(error => {
-        console.error('Error:', error);
+    } catch (error) {
+        console.error('[TEMPLATE] 加载模板失败:', error);
         alert('加载模板失败：' + (error.message || '网络错误'));
-    });
+    }
 }
