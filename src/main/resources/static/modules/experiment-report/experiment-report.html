@@ -2,7 +2,7 @@
 
 <div class="main-content" v-cloak>
     <!-- 标签页切换 -->
-    <div class="report-tabs">
+    <div class="report-tabs" id="reportTabs">
         <div class="report-tab" :class="{ active: currentTab === 'pending' }" @click="switchTab('pending')">
             待提交
             <span class="tab-badge" v-if="pendingCount > 0">{{ pendingCount }}</span>
@@ -58,7 +58,7 @@
             </div>
             <div class="header-right">
                 <button class="btn btn-secondary" onclick="saveDraft()">保存草稿</button>
-                <button class="btn btn-success" onclick="previewReport()">预览</button>
+                <button class="btn btn-success" onclick="exportMarkdown()">导出Markdown</button>
                 <button class="btn btn-primary" onclick="submitReport()">提交报告</button>
             </div>
         </div>

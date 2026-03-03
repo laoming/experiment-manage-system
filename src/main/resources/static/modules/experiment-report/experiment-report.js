@@ -1,10 +1,101 @@
 // 实验报告
 let currentTemplate = null;
 let currentReport = null;
-let reportComponents = [];
 let currentTemplateId = null;
 let pendingReports = [];
 let submittedReports = [];
+
+// 动态加载必要的脚本
+(function() {
+    // 加载 TurndownService (HTML -> Markdown)
+    if (typeof TurndownService === 'undefined') {
+        var turndownScript = document.createElement('script');
+        turndownScript.src = '/ems/common/js/turndown.browser.umd.min.js';
+        turndownScript.onload = function() {
+            console.log('[REPORT] TurndownService 加载成功');
+        };
+        turndownScript.onerror = function() {
+            console.error('[REPORT] TurndownService 加载失败');
+        };
+        document.head.appendChild(turndownScript);
+    }
+    
+    // 加载 Marked (Markdown -> HTML)
+    if (typeof marked === 'undefined') {
+        var markedScript = document.createElement('script');
+        markedScript.src = '/ems/common/js/marked.min.js';
+        markedScript.onload = function() {
+            console.log('[REPORT] Marked 加载成功');
+        };
+        markedScript.onerror = function() {
+            console.error('[REPORT] Marked 加载失败');
+        };
+        document.head.appendChild(markedScript);
+    }
+    
+    // 加载公共 Markdown 转换器
+    if (typeof MarkdownConverter === 'undefined') {
+        var converterScript = document.createElement('script');
+        converterScript.src = '/ems/common/js/markdown-converter.js';
+        converterScript.onload = function() {
+            console.log('[REPORT] MarkdownConverter 加载成功');
+        };
+        converterScript.onerror = function() {
+            console.error('[REPORT] MarkdownConverter 加载失败');
+        };
+        document.head.appendChild(converterScript);
+    }
+})();
+
+// Markdown 转 HTML（使用公共转换器）
+function markdownToHtml(markdown) {
+    if (typeof MarkdownConverter === 'undefined') {
+        console.error('[REPORT] MarkdownConverter 未加载');
+        return '<p>' + (markdown || '') + '</p>';
+    }
+    
+    // 使用公共转换器，配置为报告编辑模式
+    return MarkdownConverter.markdownToHtml(markdown, {
+        editable: true,
+        tableClass: 'report-table',
+        cellClass: 'report-table-cell'
+    });
+}
+
+// 等待 MarkdownConverter 加载完成
+function waitForMarkdownConverter(maxWaitTime) {
+    maxWaitTime = maxWaitTime || 5000;
+    return new Promise(function(resolve, reject) {
+        if (typeof MarkdownConverter !== 'undefined') {
+            resolve();
+            return;
+        }
+        
+        var startTime = Date.now();
+        var checkInterval = setInterval(function() {
+            if (typeof MarkdownConverter !== 'undefined') {
+                clearInterval(checkInterval);
+                resolve();
+            } else if (Date.now() - startTime > maxWaitTime) {
+                clearInterval(checkInterval);
+                reject(new Error('MarkdownConverter 加载超时'));
+            }
+        }, 100);
+    });
+}
+
+// 转换为 Markdown（使用公共转换器）
+async function convertToMarkdownAsync(element) {
+    try {
+        await waitForMarkdownConverter(5000);
+    } catch (error) {
+        console.error('[REPORT] MarkdownConverter 未加载:', error.message);
+        alert('Markdown转换组件加载失败，请刷新页面重试');
+        return '';
+    }
+    
+    return await MarkdownConverter.convertToMarkdownAsync(element);
+}
 
 const app = Vue.createApp({
     data() {
@@ -20,14 +111,7 @@ const app = Vue.createApp({
     },
     methods: {
         checkLogin() {
-            try {
-                const token = Auth.getToken();
-                if (!token) {
-                    window.location.href = '/ems/common/pages/index.html';
-                    return;
-                }
-            } catch (error) {
-                console.error('[REPORT] 检查登录状态失败:', error);
+            if (!Auth.isLoggedIn()) {
                 window.location.href = '/ems/common/pages/index.html';
             }
         },
@@ -46,14 +130,10 @@ function init() {
 }
 
 // 加载报告概览
-function loadReportOverview() {
-    fetch('/ems/experimentReport/overview', {
-        method: 'POST',
-        headers: {
-            'Authorization': 'Bearer ' + localStorage.getItem('token')
-        }
-    })
-    .then(result => {
+async function loadReportOverview() {
+    try {
+        const result = await API.post('/experimentReport/overview', {});
+        
         if (result.code === 200 && result.data) {
             const allReports = result.data || [];
             pendingReports = allReports.filter(r => r.status === 'pending' || r.status === 'draft');
@@ -64,18 +144,20 @@ function loadReportOverview() {
             
             renderPendingList();
             renderSubmittedList();
+        } else if (result.code !== 200) {
+            console.error('[REPORT] 加载报告列表失败:', result.message);
         }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('加载报告列表失败');
-    });
+    } catch (error) {
+        console.error('[REPORT] 加载报告列表失败:', error);
+    }
 }
 
 // 渲染待提交列表
 function renderPendingList() {
     const list = document.getElementById('pendingList');
 
+    if (!list) return;
+    
     if (pendingReports.length === 0) {
         list.innerHTML = '<div class="empty-tip">暂无待提交的实验报告</div>';
         return;
@@ -93,7 +175,7 @@ function renderPendingList() {
         return `
             <div class="report-item">
                 <div class="report-item-info">
-                    <div class="report-item-name">${report.templateName}</div>
+                    <div class="report-item-name">${report.templateName || '未命名模板'}</div>
                     <div class="report-item-meta">
                         课程: ${report.courseName || '未知课程'}
                     </div>
@@ -114,6 +196,8 @@ function renderPendingList() {
 function renderSubmittedList() {
     const list = document.getElementById('submittedList');
 
+    if (!list) return;
+    
     if (submittedReports.length === 0) {
         list.innerHTML = '<div class="empty-tip">暂无已提交的实验报告</div>';
         return;
@@ -131,7 +215,7 @@ function renderSubmittedList() {
         return `
             <div class="report-item">
                 <div class="report-item-info">
-                    <div class="report-item-name">${report.reportName || report.templateName}</div>
+                    <div class="report-item-name">${report.reportName || report.templateName || '未命名报告'}</div>
                     <div class="report-item-meta">
                         提交时间: ${report.submitTime ? formatDate(report.submitTime) : '未知'}
                     </div>
@@ -152,7 +236,7 @@ function renderSubmittedList() {
 }
 
 // 返回列表
-function backToList() {
+window.backToList = function() {
     if (currentReport && confirm('返回将不保存当前编辑内容，确定要返回吗？')) {
         showReportList();
     } else if (!currentReport) {
@@ -167,6 +251,7 @@ function showReportList() {
     document.getElementById('reportPreview').style.display = 'none';
     document.getElementById('pendingContainer').style.display = 'block';
     document.getElementById('submittedContainer').style.display = 'block';
+    document.getElementById('reportTabs').style.display = 'flex';
     currentReport = null;
     currentTemplate = null;
     currentTemplateId = null;
@@ -174,146 +259,162 @@ function showReportList() {
 }
 
 // 开始填写报告
-function startReport(templateId) {
+window.startReport = async function(templateId) {
     currentTemplateId = templateId;
     currentReport = null;
     
-    fetch(`/ems/experimentTemplate/get?templateId=${templateId}`, {
-        method: 'POST',
-        headers: {
-            'Authorization': 'Bearer ' + localStorage.getItem('token')
-        }
-    })
-    .then(result => {
+    try {
+        const result = await API.post(`/experimentTemplate/get?templateId=${templateId}`, {});
+        
         if (result.code === 200 && result.data) {
             currentTemplate = result.data;
-            reportComponents = JSON.parse(result.data.templateContent);
             document.getElementById('reportName').value = result.data.templateName;
-            renderReportEditor();
+            
+            const htmlContent = markdownToHtml(result.data.templateContent);
+            renderReportEditorFromHtml(htmlContent);
             showReportEditor();
+        } else {
+            alert('加载模板失败: ' + (result.message || '未知错误'));
         }
-    })
-    .catch(error => {
-        console.error('Error:', error);
+    } catch (error) {
+        console.error('[REPORT] 加载模板失败:', error);
         alert('加载模板失败');
-    });
+    }
 }
 
 // 根据模板编辑报告
-function editReportByTemplate(templateId, reportId) {
+window.editReportByTemplate = async function(templateId, reportId) {
     currentTemplateId = templateId;
     
-    fetch(`/ems/experimentReport/get?reportId=${reportId}`, {
-        method: 'POST',
-        headers: {
-            'Authorization': 'Bearer ' + localStorage.getItem('token')
-        }
-    })
-    .then(result => {
+    try {
+        const result = await API.post(`/experimentReport/get?reportId=${reportId}`, {});
+        
         if (result.code === 200 && result.data) {
             currentReport = result.data;
-            const contentData = JSON.parse(result.data.reportContent);
-            reportComponents = contentData.components || [];
+            document.getElementById('reportName').value = result.data.reportName;
             
-            fetch(`/ems/experimentTemplate/get?templateId=${templateId}`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': 'Bearer ' + localStorage.getItem('token')
-                }
-            })
-            .then(result => {
-                if (result.code === 200 && result.data) {
-                    currentTemplate = result.data;
-                    document.getElementById('reportName').value = currentReport.reportName || result.data.templateName;
-                    renderReportEditor();
-                    
-                    setTimeout(() => {
-                        restoreInputData(contentData.inputData || {});
-                    }, 100);
-                    
-                    showReportEditor();
-                }
-            });
+            const htmlContent = markdownToHtml(result.data.reportContent);
+            renderReportEditorFromHtml(htmlContent);
+            showReportEditor();
+        } else {
+            alert('加载报告失败: ' + (result.message || '未知错误'));
         }
-    })
-    .catch(error => {
-        console.error('Error:', error);
+    } catch (error) {
+        console.error('[REPORT] 加载报告失败:', error);
         alert('加载报告失败');
-    });
+    }
 }
 
-// 恢复输入数据
-function restoreInputData(inputData) {
-    Object.keys(inputData).forEach(index => {
-        const input = document.querySelector(`[data-component-index="${index}"]`);
-        if (input && inputData[index].value !== undefined) {
-            input.value = inputData[index].value;
+// 渲染报告编辑器（从 HTML 内容）
+function renderReportEditorFromHtml(htmlContent) {
+    const content = document.getElementById('reportContent');
+    
+    if (!content) return;
+    
+    // 创建临时容器解析 HTML
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = htmlContent || '';
+    
+    // 1. 将 inline-input 元素（填空区域）转换为可编辑输入框
+    let inputIndex = 0;
+    tempDiv.querySelectorAll('.inline-input').forEach(el => {
+        const placeholder = el.getAttribute('data-placeholder') || '请输入内容';
+        const existingValue = el.querySelector('.input-content')?.textContent || '';
+        
+        // 创建输入框替换原有的 span
+        const input = document.createElement('textarea');
+        input.className = 'report-form-textarea inline-textarea';
+        input.setAttribute('data-input-index', inputIndex);
+        input.setAttribute('placeholder', placeholder);
+        input.rows = 2;
+        input.style.cssText = 'display: inline-block; vertical-align: middle; min-width: 200px;';
+        
+        // 如果已有内容（可能是已填写的报告），设置值
+        if (existingValue && existingValue !== placeholder) {
+            input.value = existingValue;
         }
         
-        const data = inputData[index];
-        if (data) {
-            Object.keys(data).forEach(key => {
-                if (key.startsWith('cell_')) {
-                    const tableInput = document.querySelector(`[data-cell-key="${key}"]`);
-                    if (tableInput) {
-                        tableInput.value = data[key];
-                    }
-                }
-            });
+        el.replaceWith(input);
+        inputIndex++;
+    });
+    
+    // 2. 处理表格块级组件 - 确保单元格可编辑并添加事件监听
+    tempDiv.querySelectorAll('.block-component[data-type="table"]').forEach(blockEl => {
+        // 支持多种单元格选择器
+        const cells = blockEl.querySelectorAll('.report-table-cell, .preview-table td, td[data-cell-key]');
+        cells.forEach(cell => {
+            cell.setAttribute('contenteditable', 'true');
+            // 添加 report-table-cell 类（如果没有）
+            if (!cell.classList.contains('report-table-cell')) {
+                cell.classList.add('report-table-cell');
+            }
+            // 添加 cell-header 类给表头单元格
+            const cellType = cell.getAttribute('data-cell-type');
+            if (cellType === 'header' && !cell.classList.contains('cell-header')) {
+                cell.classList.add('cell-header');
+            }
+        });
+    });
+    
+    // 3. 处理其他块级组件（分割线、图片等）- 保持不可编辑
+    tempDiv.querySelectorAll('.block-component').forEach(blockEl => {
+        const type = blockEl.getAttribute('data-type');
+        if (type !== 'table') {
+            blockEl.classList.remove('selected');
+            blockEl.removeAttribute('contenteditable');
         }
     });
-}
-
-// 渲染报告编辑器
-function renderReportEditor() {
-    const content = document.getElementById('reportContent');
-
-    content.innerHTML = reportComponents.map((component, index) => {
-        return renderReportComponent(component, index);
-    }).join('');
-}
-
-// 渲染报告组件
-function renderReportComponent(component, index) {
-    const data = component.data;
-    let html = `<div class="report-component" data-index="${index}">`;
-
-    switch (component.type) {
-        case 'text':
-            html += `<label class="report-component-label">文本内容</label>`;
-            html += `<div class="component-content">${data.content || ''}</div>`;
-            break;
-
-        case 'table':
-            html += `<label class="report-component-label">表格</label>`;
-            html += `<div class="component-content">`;
-            const rows = parseInt(data.rows) || 0;
-            const cols = parseInt(data.cols) || 0;
-            if (rows > 0 && cols > 0) {
-                html += `<table border="1" style="border-collapse: collapse; width: 100%;">`;
-                for (let i = 0; i < rows; i++) {
-                    html += '<tr>';
-                    for (let j = 0; j < cols; j++) {
-                        html += `<td style="padding: 8px; min-width: 100px;"><input type="text" data-cell-key="${index}_cell_${i}_${j}" style="width: 100%; border: none; outline: none;" placeholder="填写内容"></td>`;
-                    }
-                    html += '</tr>';
-                }
-                html += '</table>';
-            }
-            html += `</div>`;
-            break;
-
-        case 'input':
-            html += `<label class="report-component-label">${data.label || '问题'}</label>`;
-            html += `<div class="component-content">`;
-            html += `<textarea class="report-form-textarea" rows="4" placeholder="${data.placeholder || '请输入内容'}" data-component-index="${index}"></textarea>`;
-            html += `</div>`;
-            break;
+    
+    // 将处理后的 HTML 设置到编辑器
+    content.innerHTML = tempDiv.innerHTML;
+    
+    // 为整个内容区域添加只读样式
+    content.classList.add('report-read-only');
+    
+    // 4. 添加表格单元格事件监听（必须在DOM插入后）
+    content.querySelectorAll('.block-component[data-type="table"]').forEach(blockEl => {
+        const cells = blockEl.querySelectorAll('.report-table-cell, td[data-cell-key]');
+        cells.forEach(cell => {
+            cell.addEventListener('blur', function() {
+                updateReportTableCell(blockEl, this);
+            });
+        });
+    });
+    
+    // 渲染 MathJax 公式
+    if (window.MathJax) {
+        MathJax.typesetPromise([content]);
     }
+}
 
-    html += '</div>';
-
-    return html;
+// 更新报告表格单元格数据
+function updateReportTableCell(blockEl, cell) {
+    const propsStr = blockEl.getAttribute('data-props') || '{}';
+    let props;
+    try {
+        props = JSON.parse(propsStr);
+    } catch (e) {
+        props = { rows: 3, cols: 3, cells: {} };
+    }
+    
+    if (!props.cells) {
+        props.cells = {};
+    }
+    
+    // 支持多种属性获取单元格键值
+    let cellKey = cell.getAttribute('data-cell-key');
+    if (!cellKey) {
+        const row = cell.getAttribute('data-row');
+        const col = cell.getAttribute('data-col');
+        if (row !== null && col !== null) {
+            cellKey = row + '-' + col;
+        }
+    }
+    
+    if (cellKey) {
+        props.cells[cellKey] = cell.textContent;
+        blockEl.setAttribute('data-props', JSON.stringify(props));
+    }
 }
 
 // 显示报告编辑器
@@ -323,22 +424,23 @@ function showReportEditor() {
     document.getElementById('reportPreview').style.display = 'none';
     document.getElementById('pendingContainer').style.display = 'none';
     document.getElementById('submittedContainer').style.display = 'none';
+    document.getElementById('reportTabs').style.display = 'none';
 }
 
 // 保存草稿
-function saveDraft() {
+window.saveDraft = function() {
     saveReport(false);
 }
 
 // 提交报告
-function submitReport() {
+window.submitReport = function() {
     if (confirm('确定要提交报告吗？提交后将不能修改。')) {
         saveReport(true);
     }
 }
 
-// 保存报告
-function saveReport(isSubmit) {
+// 保存报告（使用 Markdown 格式）
+window.saveReport = async function(isSubmit) {
     const reportName = document.getElementById('reportName').value;
 
     if (!reportName.trim()) {
@@ -346,73 +448,41 @@ function saveReport(isSubmit) {
         return;
     }
 
-    // 收集输入组件的数据
-    const inputs = document.querySelectorAll('[data-component-index]');
-    const inputData = {};
-
-    inputs.forEach(input => {
-        const index = input.dataset.componentIndex;
-        if (!inputData[index]) {
-            inputData[index] = {};
-        }
-        inputData[index].value = input.value;
-    });
-
-    // 收集表格数据
-    const tableInputs = document.querySelectorAll('[data-cell-key]');
-    tableInputs.forEach(input => {
-        const cellKey = input.dataset.cellKey;
-        const parts = cellKey.split('_');
-        const componentIndex = parts[0];
-        
-        if (!inputData[componentIndex]) {
-            inputData[componentIndex] = {};
-        }
-        
-        inputData[componentIndex][cellKey] = input.value;
-    });
+    const reportContentEl = document.getElementById('reportContent');
+    
+    // 转换为 Markdown 格式
+    const markdownContent = await convertToMarkdownAsync(reportContentEl);
+    
+    if (markdownContent === '' && reportContentEl.innerHTML.trim() !== '') {
+        console.error('[REPORT] Markdown 转换失败');
+        alert('保存失败：Markdown 转换错误');
+        return;
+    }
 
     const reportData = {
         id: currentReport ? currentReport.id : null,
         templateId: currentTemplateId,
         reportName: reportName,
-        reportContent: JSON.stringify({
-            components: reportComponents,
-            inputData: inputData
-        }),
-        studentId: getCurrentUserId()
+        reportContent: markdownContent,
+        studentId: Auth.getUserId() || '1'
     };
 
-    const apiUrl = currentReport ? '/ems/experimentReport/update' : '/ems/experimentReport/add';
+    const apiUrl = currentReport ? '/experimentReport/update' : '/experimentReport/add';
 
-    fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + localStorage.getItem('token')
-        },
-        body: JSON.stringify(reportData)
-    })
-    .then(result => {
+    try {
+        const result = await API.post(apiUrl, reportData);
+        
         if (result.code === 200) {
             if (isSubmit) {
                 const reportId = currentReport ? currentReport.id : result.data;
-                fetch('/ems/experimentReport/submit', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + localStorage.getItem('token')
-                    },
-                    body: JSON.stringify({ id: reportId })
-                })
-                .then(result => {
-                    if (result.code === 200) {
-                        alert('报告提交成功');
-                        showReportList();
-                    } else {
-                        alert('提交失败：' + result.message);
-                    }
-                });
+                const submitResult = await API.post('/experimentReport/submit', { id: reportId });
+                
+                if (submitResult.code === 200) {
+                    alert('报告提交成功');
+                    showReportList();
+                } else {
+                    alert('提交失败：' + (submitResult.message || '未知错误'));
+                }
             } else {
                 alert('草稿保存成功');
                 if (!currentReport && result.data) {
@@ -420,116 +490,89 @@ function saveReport(isSubmit) {
                 }
             }
         } else {
-            alert('保存失败：' + result.message);
+            alert('保存失败：' + (result.message || '未知错误'));
         }
-    })
-    .catch(error => {
-        console.error('Error:', error);
+    } catch (error) {
+        console.error('[REPORT] 保存报告失败:', error);
         alert('保存失败');
-    });
+    }
 }
 
 // 预览报告
-function previewReport() {
-    document.getElementById('reportPreview').style.display = 'flex';
+window.previewReport = function() {
+    const previewEl = document.getElementById('reportPreview');
     const previewContent = document.getElementById('previewContent');
+    
+    if (!previewEl || !previewContent) return;
+    
+    previewEl.style.display = 'flex';
     previewContent.innerHTML = `<h1>${document.getElementById('reportName').value}</h1>`;
     previewContent.innerHTML += document.getElementById('reportContent').innerHTML;
+    
+    // 渲染公式
+    if (window.MathJax) {
+        MathJax.typesetPromise([previewContent]);
+    }
 }
 
 // 关闭预览
-function closePreview() {
-    document.getElementById('reportPreview').style.display = 'none';
+window.closePreview = function() {
+    const previewEl = document.getElementById('reportPreview');
+    if (previewEl) {
+        previewEl.style.display = 'none';
+    }
 }
 
 // 打印报告
-function printReport() {
+window.printReport = function() {
     window.print();
 }
 
-// 导出Markdown
-function exportMarkdown() {
-    const reportId = currentReport ? currentReport.id : null;
-    if (!reportId) {
-        alert('请先保存报告');
-        return;
-    }
-
-    fetch(`/ems/experimentReport/exportMarkdown?reportId=${reportId}`, {
-        method: 'POST',
-        headers: {
-            'Authorization': 'Bearer ' + localStorage.getItem('token')
-        }
-    })
-    .then(response => {
-        if (response.ok) {
-            return response.blob();
-        }
-        throw new Error('导出失败');
-    })
-    .then(blob => {
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        const reportName = document.getElementById('reportName').value || '实验报告';
-        a.download = reportName + '.md';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-        alert('导出成功');
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('导出失败');
-    });
+// 导出 Markdown（直接下载当前内容）
+window.exportMarkdown = async function() {
+    const reportName = document.getElementById('reportName').value || '实验报告';
+    const reportContentEl = document.getElementById('reportContent');
+    
+    // 转换为 Markdown 格式
+    const markdownContent = await convertToMarkdownAsync(reportContentEl);
+    
+    let markdown = `# ${reportName}\n\n`;
+    markdown += markdownContent;
+    
+    console.log('[REPORT] 导出Markdown:', markdown);
+    
+    const blob = new Blob([markdown], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = reportName + '.md';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    alert('导出成功');
 }
 
 // 查看报告
-function viewReport(reportId) {
-    fetch(`/ems/experimentReport/get?reportId=${reportId}`, {
-        method: 'POST',
-        headers: {
-            'Authorization': 'Bearer ' + localStorage.getItem('token')
-        }
-    })
-    .then(result => {
+window.viewReport = async function(reportId) {
+    try {
+        const result = await API.post(`/experimentReport/get?reportId=${reportId}`, {});
+        
         if (result.code === 200 && result.data) {
             currentReport = result.data;
-            const contentData = JSON.parse(result.data.reportContent);
             currentTemplateId = result.data.templateId;
-            reportComponents = contentData.components || [];
-
-            fetch(`/ems/experimentTemplate/get?templateId=${currentTemplateId}`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': 'Bearer ' + localStorage.getItem('token')
-                }
-            })
-            .then(result => {
-                if (result.code === 200 && result.data) {
-                    currentTemplate = result.data;
-                    document.getElementById('reportName').value = currentReport.reportName;
-                    renderReportEditor();
-                    
-                    setTimeout(() => {
-                        restoreInputData(contentData.inputData || {});
-                    }, 100);
-                    
-                    showReportEditor();
-                }
-            });
+            document.getElementById('reportName').value = result.data.reportName;
+            
+            const htmlContent = markdownToHtml(result.data.reportContent);
+            renderReportEditorFromHtml(htmlContent);
+            showReportEditor();
+        } else {
+            alert('加载报告失败: ' + (result.message || '未知错误'));
         }
-    })
-    .catch(error => {
-        console.error('Error:', error);
+    } catch (error) {
+        console.error('[REPORT] 加载报告失败:', error);
         alert('加载报告失败');
-    });
-}
-
-// 获取当前用户ID
-function getCurrentUserId() {
-    return Auth.getUserId() || '1';
+    }
 }
 
 // 格式化日期

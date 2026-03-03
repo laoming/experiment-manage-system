@@ -29,6 +29,19 @@ let selectedElement = null;
         };
         document.head.appendChild(markedScript);
     }
+    
+    // 加载公共 Markdown 转换器
+    if (typeof MarkdownConverter === 'undefined') {
+        var converterScript = document.createElement('script');
+        converterScript.src = '/ems/common/js/markdown-converter.js';
+        converterScript.onload = function() {
+            console.log('[TEMPLATE] MarkdownConverter 加载成功');
+        };
+        converterScript.onerror = function() {
+            console.error('[TEMPLATE] MarkdownConverter 加载失败');
+        };
+        document.head.appendChild(converterScript);
+    }
 })();
 
 const app = Vue.createApp({
@@ -112,6 +125,62 @@ function initCanvas() {
         if (target) {
             e.stopPropagation();
             selectElement(target);
+        }
+    });
+
+    // 处理点击块级组件上下区域（通过伪元素扩展的区域）
+    canvas.addEventListener('click', (e) => {
+        const blockComponent = e.target.closest('.block-component');
+        if (blockComponent) {
+            // 如果点击的是表格单元格，不处理，让单元格正常编辑
+            if (e.target.closest('.preview-table td')) {
+                return;
+            }
+            
+            // 判断点击是在组件上方还是下方（伪元素区域）
+            const rect = blockComponent.getBoundingClientRect();
+            const clickY = e.clientY;
+            const blockCenterY = rect.top + rect.height / 2;
+            const parent = blockComponent.parentNode;
+            
+            // 找到前后可编辑的段落
+            let editTarget;
+            if (clickY < blockCenterY) {
+                // 点击在组件上方，定位到前面的段落
+                editTarget = blockComponent.previousElementSibling;
+                // 如果前面没有段落或前面也是块级组件，创建一个新段落
+                if (!editTarget || editTarget.classList.contains('block-component')) {
+                    const newP = document.createElement('p');
+                    newP.innerHTML = '<br>';
+                    parent.insertBefore(newP, blockComponent);
+                    editTarget = newP;
+                }
+            } else {
+                // 点击在组件下方，定位到后面的段落
+                editTarget = blockComponent.nextElementSibling;
+                // 如果后面没有段落或后面也是块级组件，创建一个新段落
+                if (!editTarget || editTarget.classList.contains('block-component')) {
+                    const newP = document.createElement('p');
+                    newP.innerHTML = '<br>';
+                    if (blockComponent.nextSibling) {
+                        parent.insertBefore(newP, blockComponent.nextSibling);
+                    } else {
+                        parent.appendChild(newP);
+                    }
+                    editTarget = newP;
+                }
+            }
+            
+            // 将光标移动到目标段落
+            if (editTarget && (editTarget.tagName === 'P' || editTarget.tagName === 'DIV')) {
+                const range = document.createRange();
+                const selection = window.getSelection();
+                range.selectNodeContents(editTarget);
+                range.collapse(true);
+                selection.removeAllRanges();
+                selection.addRange(range);
+                editTarget.focus();
+            }
         }
     });
 
@@ -309,11 +378,15 @@ function insertBlockComponent(type) {
     var data = {};
     if (type === 'table') {
         data = {
-            rows: '2',
+            rows: '3',
             cols: '3'
         };
     }
     typeConfig.fields.forEach(function(field) {
+        // 如果已经有默认值则跳过
+        if (data[field.name] !== undefined) {
+            return;
+        }
         if (field.type === 'select' && field.options) {
             data[field.name] = field.options[0];
         } else if (field.type === 'input' && field.min !== undefined) {
@@ -332,22 +405,86 @@ function insertBlockComponent(type) {
     if (selection.rangeCount > 0) {
         const range = selection.getRangeAt(0);
         if (canvas.contains(range.commonAncestorContainer)) {
-            // 在光标位置插入
-            range.deleteContents();
+            // 检查是否在块级组件内部，如果是则移到外部
+            let insertNode = range.commonAncestorContainer;
+            let parentBlock = null;
             
-            // 确保在块级组件后面有可编辑的内容
-            const afterNode = document.createElement('p');
-            afterNode.innerHTML = '<br>';
+            // 向上查找最近的块级组件
+            while (insertNode && insertNode !== canvas) {
+                if (insertNode.nodeType === Node.ELEMENT_NODE && 
+                    insertNode.classList && 
+                    insertNode.classList.contains('block-component')) {
+                    parentBlock = insertNode;
+                    break;
+                }
+                insertNode = insertNode.parentNode;
+            }
             
-            range.insertNode(afterNode);
-            range.setStartBefore(afterNode);
-            range.insertNode(component);
+            // 如果在块级组件内部，在块级组件后面插入
+            if (parentBlock) {
+                // 确保在块级组件后面有可编辑的内容
+                const afterNode = document.createElement('p');
+                afterNode.innerHTML = '<br>';
+                
+                // 在父块级组件后面插入（使用 parentBlock.parentNode 而非 canvas）
+                const insertParent = parentBlock.parentNode;
+                if (parentBlock.nextSibling) {
+                    insertParent.insertBefore(afterNode, parentBlock.nextSibling);
+                    insertParent.insertBefore(component, afterNode);
+                } else {
+                    insertParent.appendChild(component);
+                    insertParent.appendChild(afterNode);
+                }
+            } else {
+                // 不在块级组件内部，需要找到合适的插入位置
+                // 查找光标所在的最近块级元素（P, DIV 等）
+                let insertPoint = range.commonAncestorContainer;
+                while (insertPoint && insertPoint !== canvas && insertPoint.parentNode !== canvas) {
+                    insertPoint = insertPoint.parentNode;
+                }
+                
+                // 清理选区内容
+                range.deleteContents();
+                
+                // 确保在块级组件后面有可编辑的内容
+                const afterNode = document.createElement('p');
+                afterNode.innerHTML = '<br>';
+                
+                if (insertPoint === canvas) {
+                    // 光标直接在 canvas 中，直接追加
+                    canvas.appendChild(component);
+                    canvas.appendChild(afterNode);
+                } else {
+                    // 在找到的块级元素后插入
+                    if (insertPoint.nextSibling) {
+                        canvas.insertBefore(afterNode, insertPoint.nextSibling);
+                        canvas.insertBefore(component, afterNode);
+                    } else {
+                        canvas.appendChild(component);
+                        canvas.appendChild(afterNode);
+                    }
+                }
+            }
             
-            // 移动光标到组件后面
-            range.setStartAfter(component);
-            range.collapse(true);
+            // 确保块级组件前面也有可编辑区域（如果是第一个元素）
+            if (!component.previousSibling || component.previousSibling.nodeType !== Node.ELEMENT_NODE) {
+                const beforeNode = document.createElement('p');
+                beforeNode.innerHTML = '<br>';
+                component.parentNode.insertBefore(beforeNode, component);
+            }
+            
+            // 移动光标到组件后面的可编辑区域
+            const editTarget = component.nextSibling;
+            const newRange = document.createRange();
+            if (editTarget && editTarget.tagName === 'P') {
+                newRange.selectNodeContents(editTarget);
+                newRange.collapse(true);
+            } else {
+                newRange.setStartAfter(component);
+                newRange.collapse(true);
+            }
             selection.removeAllRanges();
-            selection.addRange(range);
+            selection.addRange(newRange);
             
             selectElement(component);
             triggerContentChange();
@@ -382,11 +519,15 @@ function insertBlockComponentAtRange(type, range) {
     var data = {};
     if (type === 'table') {
         data = {
-            rows: '2',
+            rows: '3',
             cols: '3'
         };
     }
     typeConfig.fields.forEach(function(field) {
+        // 如果已经有默认值则跳过
+        if (data[field.name] !== undefined) {
+            return;
+        }
         if (field.type === 'select' && field.options) {
             data[field.name] = field.options[0];
         } else if (field.type === 'input' && field.min !== undefined) {
@@ -400,23 +541,87 @@ function insertBlockComponentAtRange(type, range) {
     // 渲染组件
     component.innerHTML = '<div class="component-body">' + renderBlockComponentPreview(type, data) + '</div>';
     
-    // 在指定位置插入
-    range.deleteContents();
+    // 检查是否在块级组件内部，如果是则移到外部
+    let insertNode = range.commonAncestorContainer;
+    let parentBlock = null;
     
-    // 确保在块级组件后面有可编辑的内容
-    const afterNode = document.createElement('p');
-    afterNode.innerHTML = '<br>';
+    // 向上查找最近的块级组件
+    while (insertNode && insertNode !== canvas) {
+        if (insertNode.nodeType === Node.ELEMENT_NODE && 
+            insertNode.classList && 
+            insertNode.classList.contains('block-component')) {
+            parentBlock = insertNode;
+            break;
+        }
+        insertNode = insertNode.parentNode;
+    }
     
-    range.insertNode(afterNode);
-    range.setStartBefore(afterNode);
-    range.insertNode(component);
+    // 如果在块级组件内部，在块级组件后面插入
+    if (parentBlock) {
+        // 确保在块级组件后面有可编辑的内容
+        const afterNode = document.createElement('p');
+        afterNode.innerHTML = '<br>';
+        
+        // 在父块级组件后面插入（使用 parentBlock.parentNode 而非 canvas）
+        const insertParent = parentBlock.parentNode;
+        if (parentBlock.nextSibling) {
+            insertParent.insertBefore(afterNode, parentBlock.nextSibling);
+            insertParent.insertBefore(component, afterNode);
+        } else {
+            insertParent.appendChild(component);
+            insertParent.appendChild(afterNode);
+        }
+    } else {
+        // 不在块级组件内部，需要找到合适的插入位置
+        // 查找光标所在的最近块级元素（P, DIV 等）的父级（canvas 的直接子元素）
+        let insertPoint = range.commonAncestorContainer;
+        while (insertPoint && insertPoint !== canvas && insertPoint.parentNode !== canvas) {
+            insertPoint = insertPoint.parentNode;
+        }
+        
+        // 清理选区内容
+        range.deleteContents();
+        
+        // 确保在块级组件后面有可编辑的内容
+        const afterNode = document.createElement('p');
+        afterNode.innerHTML = '<br>';
+        
+        if (insertPoint === canvas) {
+            // 光标直接在 canvas 中，直接追加
+            canvas.appendChild(component);
+            canvas.appendChild(afterNode);
+        } else {
+            // 在找到的块级元素后插入
+            if (insertPoint.nextSibling) {
+                canvas.insertBefore(afterNode, insertPoint.nextSibling);
+                canvas.insertBefore(component, afterNode);
+            } else {
+                canvas.appendChild(component);
+                canvas.appendChild(afterNode);
+            }
+        }
+    }
     
-    // 移动光标到组件后面
-    range.setStartAfter(component);
-    range.collapse(true);
+    // 确保块级组件前面也有可编辑区域（如果是第一个元素）
+    if (!component.previousSibling || component.previousSibling.nodeType !== Node.ELEMENT_NODE) {
+        const beforeNode = document.createElement('p');
+        beforeNode.innerHTML = '<br>';
+        component.parentNode.insertBefore(beforeNode, component);
+    }
+    
+    // 移动光标到组件后面的可编辑区域
+    const editTarget = component.nextSibling;
+    const newRange = document.createRange();
+    if (editTarget && editTarget.tagName === 'P') {
+        newRange.selectNodeContents(editTarget);
+        newRange.collapse(true);
+    } else {
+        newRange.setStartAfter(component);
+        newRange.collapse(true);
+    }
     const selection = window.getSelection();
     selection.removeAllRanges();
-    selection.addRange(range);
+    selection.addRange(newRange);
     
     selectElement(component);
     triggerContentChange();
@@ -832,183 +1037,68 @@ function getTemplateContent() {
     return content;
 }
 
-// 初始化 Turndown 服务（HTML -> Markdown）
-function initTurndownService() {
-    if (typeof TurndownService === 'undefined') {
-        console.error('[TEMPLATE] TurndownService 未加载');
-        return null;
-    }
-    
-    var turndownService = new TurndownService({
-        headingStyle: 'atx',
-        codeBlockStyle: 'fenced',
-        bulletListMarker: '-'
-    });
-
-    // 添加对下划线的支持
-    turndownService.addRule('underline', {
-        filter: 'u',
-        replacement: function(content) {
-            return '<u>' + content + '</u>';
-        }
-    });
-
-    // 添加对填空的支持
-    turndownService.addRule('inlineInput', {
-        filter: function(node) {
-            return node.classList && node.classList.contains('inline-input');
-        },
-        replacement: function(content, node) {
-            var placeholder = node.getAttribute('data-placeholder') || '请输入';
-            return '*[' + placeholder + ']*';
-        }
-    });
-
-    // 添加对公式的支持
-    turndownService.addRule('inlineFormula', {
-        filter: function(node) {
-            return node.classList && node.classList.contains('inline-formula');
-        },
-        replacement: function(content, node) {
-            var formula = node.getAttribute('data-formula') || '';
-            return '$' + formula + '$';
-        }
-    });
-
-    // 添加对块级组件的支持
-    turndownService.addRule('blockComponent', {
-        filter: function(node) {
-            return node.classList && node.classList.contains('block-component');
-        },
-        replacement: function(content, node) {
-            var type = node.getAttribute('data-type');
-            var data = JSON.parse(node.getAttribute('data-props') || '{}');
-            return '\n\n' + convertBlockToMarkdown(type, data) + '\n\n';
-        }
-    });
-
-    return turndownService;
-}
-
-// 等待 TurndownService 加载完成
-function waitForTurndownService(maxWaitTime) {
+// 等待 MarkdownConverter 加载完成
+function waitForMarkdownConverter(maxWaitTime) {
     maxWaitTime = maxWaitTime || 5000;
     return new Promise(function(resolve, reject) {
-        if (typeof TurndownService !== 'undefined') {
+        if (typeof MarkdownConverter !== 'undefined') {
             resolve();
             return;
         }
         
         var startTime = Date.now();
         var checkInterval = setInterval(function() {
-            if (typeof TurndownService !== 'undefined') {
+            if (typeof MarkdownConverter !== 'undefined') {
                 clearInterval(checkInterval);
                 resolve();
             } else if (Date.now() - startTime > maxWaitTime) {
                 clearInterval(checkInterval);
-                reject(new Error('TurndownService 加载超时'));
+                reject(new Error('MarkdownConverter 加载超时'));
             }
         }, 100);
     });
 }
 
-// 转换为 Markdown（使用 Turndown）- 异步版本
+// 转换为 Markdown（使用公共转换器）
 async function convertToMarkdownAsync(element) {
     try {
-        await waitForTurndownService(5000);
+        await waitForMarkdownConverter(5000);
     } catch (error) {
-        console.error('[TEMPLATE] TurndownService 未加载:', error.message);
+        console.error('[TEMPLATE] MarkdownConverter 未加载:', error.message);
         alert('Markdown转换组件加载失败，请刷新页面重试');
         return '';
     }
     
-    var turndownService = initTurndownService();
-    if (!turndownService) {
-        console.error('[TEMPLATE] 无法初始化 TurndownService');
-        alert('Markdown转换组件初始化失败');
-        return '';
-    }
-    
-    var markdown = turndownService.turndown(element);
-    console.log('[TEMPLATE] 转换为Markdown:', markdown);
-    return markdown;
+    return await MarkdownConverter.convertToMarkdownAsync(element);
 }
 
-// 转换为 Markdown（使用 Turndown）- 同步版本（兼容旧调用）
+// 转换为 Markdown（同步版本，兼容旧调用）
 function convertToMarkdown(element) {
-    // 确保 TurndownService 已加载
-    if (typeof TurndownService === 'undefined') {
-        console.error('[TEMPLATE] TurndownService 未加载，无法转换为 Markdown');
+    if (typeof MarkdownConverter === 'undefined') {
+        console.error('[TEMPLATE] MarkdownConverter 未加载');
         alert('Markdown转换组件未加载，请刷新页面重试');
         return '';
     }
-    
-    var turndownService = initTurndownService();
-    if (!turndownService) {
-        console.error('[TEMPLATE] 无法初始化 TurndownService');
-        alert('Markdown转换组件初始化失败');
-        return '';
-    }
-    
-    var markdown = turndownService.turndown(element);
-    console.log('[TEMPLATE] 转换为Markdown:', markdown);
-    return markdown;
+    return MarkdownConverter.convertToMarkdown(element);
 }
 
-// 转换块级组件为 Markdown
-function convertBlockToMarkdown(type, data) {
-    switch (type) {
-        case 'table':
-            const rows = parseInt(data.rows) || 2;
-            const cols = parseInt(data.cols) || 3;
-            const cells = data.cells || {};
-            
-            let md = '';
-            
-            // 第一行：表头（索引0）
-            md += '|';
-            for (let j = 0; j < cols; j++) {
-                const cellKey = '0-' + j;
-                const cellValue = cells[cellKey] || '  ';
-                md += ' ' + cellValue + ' |';
-            }
-            
-            // 换行
-            md += '\n';
-            
-            // 第二行：分隔线
-            md += '|';
-            for (let j = 0; j < cols; j++) {
-                md += '----|';
-            }
-            
-            // 换行
-            md += '\n';
-            
-            // 数据行（索引1开始）
-            for (let i = 1; i < rows; i++) {
-                md += '|';
-                for (let j = 0; j < cols; j++) {
-                    const cellKey = i + '-' + j;
-                    const cellValue = cells[cellKey] || '  ';
-                    md += ' ' + cellValue + ' |';
-                }
-                md += '\n';
-            }
-            
-            console.log('表格Markdown格式:', JSON.stringify(md));
-            return md;
-        case 'divider':
-            return '---';
-        case 'image':
-            if (data.url) {
-                return '![' + (data.alt || '图片') + '](' + data.url + ')';
-            }
-            return '[图片]';
-        default:
-            return '';
+// 更新表格单元格内容
+window.updateTableCell = function(cell) {
+    var component = cell.closest('.block-component');
+    if (!component) return;
+    
+    var data = JSON.parse(component.getAttribute('data-props') || '{}');
+    if (!data.cells) {
+        data.cells = {};
     }
-}
+    
+    var row = cell.getAttribute('data-row');
+    var col = cell.getAttribute('data-col');
+    var cellKey = row + '-' + col;
+    
+    data.cells[cellKey] = cell.textContent;
+    component.setAttribute('data-props', JSON.stringify(data));
+};
 
 // 保存模板
 window.saveTemplate = async function() {
@@ -1020,6 +1110,13 @@ window.saveTemplate = async function() {
         alert('请输入模板名称');
         return;
     }
+
+    // 调试：检查 canvas 中的块级组件
+    const blockComponents = canvas.querySelectorAll('.block-component');
+    console.log('[TEMPLATE] Canvas 中的块级组件数量:', blockComponents.length);
+    blockComponents.forEach(function(block, index) {
+        console.log('[TEMPLATE] 块级组件 ' + index + ':', block.getAttribute('data-type'), block);
+    });
 
     // 转换为 Markdown 格式（异步等待脚本加载）
     const markdownContent = await convertToMarkdownAsync(canvas);
@@ -1107,165 +1204,47 @@ window.exportTemplateAsMarkdown = async function() {
     URL.revokeObjectURL(url);
 };
 
-// 将 Markdown 转换为 HTML（使用 Marked）
+// 将 Markdown 转换为 HTML（使用公共转换器）
 function markdownToHtml(markdown) {
-    if (!markdown) {
+    if (typeof MarkdownConverter === 'undefined') {
+        console.error('[TEMPLATE] MarkdownConverter 未加载');
+        return '<p>' + (markdown || '在此输入内容，使用左侧按钮插入填空或公式...') + '</p>';
+    }
+    
+    // 使用公共转换器，配置为模板编辑模式
+    var html = MarkdownConverter.markdownToHtml(markdown, {
+        editable: true,
+        tableClass: 'preview-table',
+        onBlurHandler: 'updateTableCell'
+    });
+    
+    if (!html) {
         return '<p>在此输入内容，使用左侧按钮插入填空或公式...</p>';
     }
-
-    var processedMarkdown = markdown;
-
-    // 1. 先处理表格（转换为占位符，避免被 marked 破坏结构）
-    var tablePlaceholders = [];
-    var tablePattern = /(?:^\|.+\|$[\r\n]*)+/gm;
-    processedMarkdown = processedMarkdown.replace(tablePattern, function(match) {
-        var lines = match.trim().split(/[\r\n]+/).filter(function(l) { return l.trim(); });
-        if (lines.length < 2) return match;
-
-        var dividerLine = lines[1];
-        if (!dividerLine.match(/^\|[\s\-:]+\|/)) {
-            return match;
-        }
-
-        var cols = (dividerLine.match(/\|/g) || []).length - 1;
-        if (cols < 1) return match;
-
-        var rows = lines.length - 1;
-        var tableData = { rows: rows, cols: cols, cells: {} };
-
-        var headerParts = lines[0].split('|');
-        for (var j = 1; j <= cols; j++) {
-            tableData.cells['0-' + (j - 1)] = headerParts[j] ? headerParts[j].trim() : '';
-        }
-
-        for (var i = 2; i < lines.length; i++) {
-            var rowParts = lines[i].split('|');
-            for (var k = 1; k <= cols; k++) {
-                tableData.cells[(i - 1) + '-' + (k - 1)] = rowParts[k] ? rowParts[k].trim() : '';
-            }
-        }
-
-        var placeholder = '%%TABLE_' + tablePlaceholders.length + '%%';
-        tablePlaceholders.push(tableData);
-        return '\n' + placeholder + '\n';
-    });
-
-    // 2. 处理填空项（转换为占位符）
-    var inputPlaceholders = [];
-    processedMarkdown = processedMarkdown.replace(/\*\[([^\]]*)\]\*/g, function(match, placeholder) {
-        var inputPlaceholder = '%%INPUT_' + inputPlaceholders.length + '%%';
-        inputPlaceholders.push(placeholder);
-        return inputPlaceholder;
-    });
-
-    // 3. 处理公式（转换为占位符）
-    var formulaPlaceholders = [];
-    processedMarkdown = processedMarkdown.replace(/\$([^$\n]+)\$/g, function(match, formula) {
-        var formulaPlaceholder = '%%FORMULA_' + formulaPlaceholders.length + '%%';
-        formulaPlaceholders.push(formula);
-        return formulaPlaceholder;
-    });
-
-    // 4. 处理图片（转换为占位符）
-    var imagePlaceholders = [];
-    processedMarkdown = processedMarkdown.replace(/!\[([^\]]*)\]\(([^\)]+)\)/g, function(match, alt, url) {
-        var imagePlaceholder = '%%IMAGE_' + imagePlaceholders.length + '%%';
-        imagePlaceholders.push({ alt: alt, url: url });
-        return '\n' + imagePlaceholder + '\n';
-    });
-
-    // 5. 处理分割线（转换为占位符）
-    var dividerPlaceholders = [];
-    processedMarkdown = processedMarkdown.replace(/^---$/gm, function(match) {
-        var dividerPlaceholder = '%%DIVIDER_' + dividerPlaceholders.length + '%%';
-        dividerPlaceholders.push({});
-        return '\n' + dividerPlaceholder + '\n';
-    });
-
-    // 6. 配置 marked
-    if (typeof marked === 'undefined') {
-        console.error('[TEMPLATE] marked 未加载');
-        return '<p>' + markdown + '</p>';
-    }
-    marked.setOptions({
-        breaks: true,
-        gfm: true
-    });
-
-    // 7. 使用 marked 转换
-    var html = marked.parse(processedMarkdown);
-
-    // 8. 还原表格占位符
-    tablePlaceholders.forEach(function(tableData, index) {
-        var tableHtml = '<table class="preview-table">';
-        for (var i = 0; i < tableData.rows; i++) {
-            tableHtml += '<tr>';
-            for (var j = 0; j < tableData.cols; j++) {
-                var cellKey = i + '-' + j;
-                var cellValue = tableData.cells[cellKey] || '';
-                var cellType = i === 0 ? 'header' : 'content';
-                tableHtml += '<td contenteditable="true" data-row="' + i + '" data-col="' + j + '" data-cell-type="' + cellType + '" onblur="updateTableCell(this)">' + cellValue + '</td>';
-            }
-            tableHtml += '</tr>';
-        }
-        tableHtml += '</table>';
-        var blockHtml = '<div class="block-component" contenteditable="false" data-type="table" data-props="' + JSON.stringify(tableData).replace(/"/g, '&quot;') + '"><div class="component-body">' + tableHtml + '</div></div>';
-        html = html.replace('%%TABLE_' + index + '%%', blockHtml);
-    });
-
-    // 9. 还原填空占位符
-    inputPlaceholders.forEach(function(placeholder, index) {
-        var inputHtml = '<span class="inline-input" contenteditable="false" data-placeholder="' + placeholder + '"><span class="input-marker">[</span><span class="input-content">' + placeholder + '</span><span class="input-marker">]</span></span>';
-        html = html.replace('%%INPUT_' + index + '%%', inputHtml);
-    });
-
-    // 10. 还原公式占位符
-    formulaPlaceholders.forEach(function(formula, index) {
-        var formulaHtml = '<span class="inline-formula" contenteditable="false" data-formula="' + formula + '"><span class="formula-display">$ ' + formula + ' $</span></span>';
-        html = html.replace('%%FORMULA_' + index + '%%', formulaHtml);
-    });
-
-    // 11. 还原图片占位符
-    imagePlaceholders.forEach(function(imageData, index) {
-        var props = { url: imageData.url, alt: imageData.alt, size: 'medium' };
-        var imageHtml = '<div class="block-component" contenteditable="false" data-type="image" data-props="' + JSON.stringify(props).replace(/"/g, '&quot;') + '"><div class="component-body"><div class="preview-image img-medium"><img src="' + imageData.url + '" alt="' + imageData.alt + '"></div></div></div>';
-        html = html.replace('%%IMAGE_' + index + '%%', imageHtml);
-    });
-
-    // 12. 还原分割线占位符
-    dividerPlaceholders.forEach(function(dividerData, index) {
-        var dividerHtml = '<div class="block-component" contenteditable="false" data-type="divider" data-props="' + JSON.stringify(dividerData).replace(/"/g, '&quot;') + '"><div class="component-body"><div class="preview-divider"></div></div></div>';
-        html = html.replace('%%DIVIDER_' + index + '%%', dividerHtml);
-    });
-
-    return html;
-}
-
-// 检测内容是否为HTML格式（而非Markdown）
-function isHtmlContent(content) {
-    if (!content) return false;
-    // 检测是否包含HTML标签
-    var htmlTagPattern = /<[a-zA-Z][^>]*>/;
-    // 检测是否包含Markdown特征
-    var markdownPatterns = [
-        /^#{1,6}\s/m,           // 标题
-        /^\|.*\|$/m,            // 表格
-        /^\*{3,}$/m,            // 分割线
-        /^---$/m,               // 分割线
-        /\[.*\]\(.*\)/,         // 链接
-        /!\[.*\]\(.*\)/,        // 图片
-        /\*\[.*\]\*/,           // 填空项
-        /\$[^$\n]+\$/           // 公式
-    ];
     
-    // 如果包含HTML标签且不包含Markdown特征，认为是HTML
-    if (htmlTagPattern.test(content)) {
-        var hasMarkdown = markdownPatterns.some(function(pattern) {
-            return pattern.test(content);
-        });
-        return !hasMarkdown;
-    }
-    return false;
+    // 确保块级组件前后有可编辑区域
+    var tempDiv = document.createElement('div');
+    tempDiv.innerHTML = html;
+    
+    var blockComponents = tempDiv.querySelectorAll('.block-component');
+    blockComponents.forEach(function(block) {
+        if (!block.previousElementSibling || block.previousElementSibling.classList.contains('block-component')) {
+            var beforeP = document.createElement('p');
+            beforeP.innerHTML = '<br>';
+            block.parentNode.insertBefore(beforeP, block);
+        }
+        if (!block.nextElementSibling || block.nextElementSibling.classList.contains('block-component')) {
+            var afterP = document.createElement('p');
+            afterP.innerHTML = '<br>';
+            if (block.nextSibling) {
+                block.parentNode.insertBefore(afterP, block.nextSibling);
+            } else {
+                block.parentNode.appendChild(afterP);
+            }
+        }
+    });
+
+    return tempDiv.innerHTML;
 }
 
 // 加载模板
@@ -1281,18 +1260,7 @@ async function loadTemplate(templateId) {
             document.getElementById('templateDescription').value = template.description || '';
             
             const canvas = document.getElementById('canvas');
-            
-            let htmlContent;
-            if (isHtmlContent(template.templateContent)) {
-                // 旧数据是HTML格式，直接使用（兼容旧数据）
-                console.log('[TEMPLATE] 加载的是HTML格式数据（旧格式）');
-                htmlContent = template.templateContent;
-            } else {
-                // 新数据是Markdown格式，转换为HTML
-                console.log('[TEMPLATE] 加载的是Markdown格式数据');
-                htmlContent = markdownToHtml(template.templateContent);
-            }
-            
+            const htmlContent = markdownToHtml(template.templateContent);
             canvas.innerHTML = htmlContent || '<p>在此输入内容，使用左侧按钮插入填空或公式...</p>';
             
             // 重新渲染公式

@@ -176,6 +176,82 @@
     resize: vertical;
 }
 
+/* ==================== 报告内容只读样式 ==================== */
+
+/* 报告内容区域默认只读 */
+.report-read-only {
+    user-select: text;
+}
+
+/* 所有段落和文本默认不可编辑 */
+.report-read-only p,
+.report-read-only div:not(.inline-textarea):not(.report-table-cell),
+.report-read-only span:not(.inline-textarea) {
+    outline: none;
+}
+
+/* 公式不可编辑 */
+.report-read-only .inline-formula {
+    cursor: default;
+    user-select: none;
+}
+
+/* 块级组件整体不可编辑 */
+.report-read-only .block-component {
+    pointer-events: none;
+    user-select: none;
+}
+
+/* 表格单元格可编辑 */
+.report-read-only .block-component[data-type="table"] {
+    pointer-events: auto;
+}
+
+.report-read-only .report-table {
+    width: 100%;
+    border-collapse: collapse;
+    pointer-events: auto;
+}
+
+.report-read-only .report-table-cell {
+    padding: 12px;
+    border: 1px solid #ddd;
+    background: white;
+    min-width: 50px;
+    min-height: 24px;
+    outline: none;
+    pointer-events: auto;
+}
+
+.report-read-only .report-table-cell:focus {
+    background: #f0f7ff;
+    border-color: #1890ff;
+    box-shadow: inset 0 0 3px rgba(24, 144, 255, 0.3);
+}
+
+.report-read-only .report-table-cell:empty::before {
+    content: '请输入内容';
+    color: #bbb;
+    font-style: italic;
+}
+
+.report-read-only .report-table-cell.cell-header:empty::before {
+    content: '请输入表头';
+}
+
+/* 填空输入框样式增强 */
+.report-read-only .inline-textarea {
+    border: 1px dashed #667eea;
+    background: #f8f9ff;
+    transition: all 0.3s;
+}
+
+.report-read-only .inline-textarea:focus {
+    border-color: #667eea;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
 /* ==================== 报告预览 ==================== */
 
 .report-preview {
@@ -307,4 +383,214 @@
     font-size: 20px;
     font-weight: 600;
     color: #52c41a;
+}
+
+/* ==================== 内联元素样式 ==================== */
+
+/* 填空 */
+.inline-input {
+    display: inline-block;
+    background: #f0f7ff;
+    border: 1px dashed #1890ff;
+    border-radius: 4px;
+    padding: 2px 6px;
+    margin: 0 2px;
+    color: #1890ff;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.inline-input:hover {
+    background: #e6f7ff;
+    border-style: solid;
+    box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+.inline-input .input-marker {
+    opacity: 0.5;
+}
+
+.inline-input .input-content {
+    font-weight: 500;
+}
+
+/* 公式 */
+.inline-formula {
+    display: inline-block;
+    background: #fff7e6;
+    border: 1px dashed #fa8c16;
+    border-radius: 4px;
+    padding: 2px 6px;
+    margin: 0 2px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.inline-formula:hover {
+    background: #fff1cc;
+    border-style: solid;
+    box-shadow: 0 0 0 2px rgba(250, 140, 22, 0.2);
+}
+
+.inline-formula .formula-display {
+    font-family: 'Times New Roman', serif;
+    color: #fa8c16;
+}
+
+/* ==================== 块级组件样式 ==================== */
+
+.block-component {
+    background: #fafafa;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    margin: 16px 0;
+    padding: 16px;
+    position: relative;
+    transition: all 0.25s;
+    pointer-events: auto;
+}
+
+.block-component .component-body {
+    padding: 8px 0;
+}
+
+/* 表格预览 */
+.preview-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.preview-table td {
+    padding: 12px;
+    border: 1px solid #ddd;
+    background: white;
+    min-width: 50px;
+    min-height: 24px;
+    outline: none;
+}
+
+.preview-table td:focus {
+    background: #f0f7ff;
+    border-color: #1890ff;
+    box-shadow: inset 0 0 3px rgba(24, 144, 255, 0.3);
+}
+
+/* 表头单元格占位符 */
+.preview-table td:empty::before {
+    content: '请输入内容';
+    color: #bbb;
+    font-style: italic;
+}
+
+.preview-table td[data-cell-type="header"]:empty::before {
+    content: '请输入表头';
+    color: #bbb;
+    font-style: italic;
+}
+
+/* 分割线预览 */
+.preview-divider {
+    margin: 8px 0;
+    border-top: 2px solid #ddd;
+}
+
+/* 图片预览 */
+.preview-image {
+    text-align: center;
+    padding: 12px;
+    background: white;
+    border-radius: 8px;
+}
+
+.preview-image img {
+    max-width: 100%;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.preview-image.img-small img { max-height: 100px; }
+.preview-image.img-medium img { max-height: 200px; }
+.preview-image.img-large img { max-height: 350px; }
+
+.preview-image-placeholder {
+    padding: 40px 20px;
+    background: #f5f5f5;
+    border-radius: 8px;
+    text-align: center;
+    color: #999;
+}
+
+/* ==================== 报告编辑器中的块级组件样式 ==================== */
+
+/* 块级组件整体样式 */
+.report-read-only .block-component {
+    background: #fafafa;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    margin: 16px 0;
+    padding: 16px;
+}
+
+/* 表格块级组件可交互 */
+.report-read-only .block-component[data-type="table"] {
+    pointer-events: auto;
+}
+
+.report-read-only .block-component[data-type="table"] .preview-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.report-read-only .block-component[data-type="table"] .preview-table td {
+    pointer-events: auto;
+}
+
+/* 分割线、图片不可交互 */
+.report-read-only .block-component[data-type="divider"],
+.report-read-only .block-component[data-type="image"] {
+    pointer-events: none;
+    user-select: none;
+}
+
+/* 标题样式 */
+.report-content h1 {
+    font-size: 28px;
+    font-weight: bold;
+    margin: 24px 0 16px 0;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #e8e8e8;
+    color: #1a1a1a;
+    line-height: 1.3;
+}
+
+.report-content h2 {
+    font-size: 24px;
+    font-weight: bold;
+    margin: 20px 0 12px 0;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #e8e8e8;
+    color: #2a2a2a;
+    line-height: 1.4;
+}
+
+.report-content h3 {
+    font-size: 20px;
+    font-weight: bold;
+    margin: 16px 0 10px 0;
+    color: #3a3a3a;
+    line-height: 1.4;
+}
+
+.report-content h4 {
+    font-size: 18px;
+    font-weight: bold;
+    margin: 14px 0 8px 0;
+    color: #4a4a4a;
+    line-height: 1.5;
+}
+
+.report-content p {
+    min-height: 1.8em;
+    margin: 0.5em 0;
+    line-height: 1.8;
 }

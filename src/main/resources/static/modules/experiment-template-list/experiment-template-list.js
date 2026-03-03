@@ -3,31 +3,6 @@
  */
 
 /**
- * 检测内容是否为HTML格式（而非Markdown）
- */
-function isHtmlContent(content) {
-    if (!content) return false;
-    var htmlTagPattern = /<[a-zA-Z][^>]*>/;
-    var markdownPatterns = [
-        /^#{1,6}\s/m,
-        /^\|.*\|$/m,
-        /^\*{3,}$/m,
-        /^---$/m,
-        /\[.*\]\(.*\)/,
-        /!\[.*\]\(.*\)/,
-        /\*\[.*\]\*/,
-        /\$[^$\n]+\$/
-    ];
-    if (htmlTagPattern.test(content)) {
-        var hasMarkdown = markdownPatterns.some(function(pattern) {
-            return pattern.test(content);
-        });
-        return !hasMarkdown;
-    }
-    return false;
-}
-
-/**
  * 将 Markdown 转换为 HTML（用于模板预览）
  */
 function markdownToHtml(markdown) {
@@ -311,19 +286,7 @@ const app = Vue.createApp({
                 return;
             }
             
-            var content = this.currentTemplate.templateContent;
-            var htmlContent;
-            
-            // 检测内容格式并相应处理
-            if (isHtmlContent(content)) {
-                // 旧数据是 HTML 格式
-                console.log('[TEMPLATE-LIST] 渲染 HTML 格式内容');
-                htmlContent = content;
-            } else {
-                // 新数据是 Markdown 格式
-                console.log('[TEMPLATE-LIST] 渲染 Markdown 格式内容');
-                htmlContent = markdownToHtml(content);
-            }
+            var htmlContent = markdownToHtml(this.currentTemplate.templateContent);
             
             // 渲染模板内容
             canvas.innerHTML = htmlContent;

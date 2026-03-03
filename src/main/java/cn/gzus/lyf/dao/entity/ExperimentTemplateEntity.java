@@ -21,7 +21,7 @@ public class ExperimentTemplateEntity {
     private String templateName;
 
     /**
-     * 模板内容(Markdown格式)
+     * 模板内容(JSON格式,包含拖拽组件配置)
      */
     private String templateContent;
 

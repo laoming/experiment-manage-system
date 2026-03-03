@@ -502,6 +502,41 @@
     padding: 16px;
     position: relative;
     transition: all 0.25s;
+    /* 确保块级元素不阻止点击 */
+    pointer-events: auto;
+}
+
+/* 块级组件左右可点击区域（仅覆盖 margin 区域，不覆盖内容） */
+.block-component::before,
+.block-component::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 16px;
+    pointer-events: auto;
+    cursor: text;
+    z-index: 1;
+}
+
+.block-component::before {
+    top: -16px; /* 向上扩展到 margin 区域 */
+}
+
+.block-component::after {
+    bottom: -16px; /* 向下扩展到 margin 区域 */
+}
+
+/* 块级组件内的内容不可点击选中 */
+.block-component .component-body {
+    pointer-events: none;
+}
+
+/* 表格单元格需要可点击编辑 */
+.block-component .preview-table td {
+    pointer-events: auto;
+    position: relative;
+    z-index: 2;
 }
 
 .block-component:hover,
