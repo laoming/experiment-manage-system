@@ -27,7 +27,7 @@
         var editable = options.editable !== false;
         var tableClass = options.tableClass || 'preview-table';
         var cellClass = options.cellClass || '';
-        var onBlurHandler = options.onBlurHandler || 'updateTableCell';
+        var onBlurHandler = options.onBlurHandler || '';
 
         if (!markdown) {
             return '';
@@ -71,10 +71,24 @@
         });
 
         // 2. 处理填空项（转换为占位符）
+        // 支持两种格式：
+        // - *[内容]* - 原始格式，内容作为占位符
+        // - *[值|占位符]* - 新格式，区分填写值和占位符
         var inputPlaceholders = [];
-        processedMarkdown = processedMarkdown.replace(/\*\[([^\]]*)\]\*/g, function(match, placeholder) {
+        processedMarkdown = processedMarkdown.replace(/\*\[([^\]]*)\]\*/g, function(match, content) {
             var inputPlaceholder = '%%INPUT_' + inputPlaceholders.length + '%%';
-            inputPlaceholders.push(placeholder);
+            // 检查是否包含分隔符 |
+            if (content.indexOf('|') !== -1) {
+                var parts = content.split('|');
+                var value = parts[0];
+                var placeholder = parts.slice(1).join('|');
+                console.log('[MarkdownConverter] 解析填空(新格式): "' + content + '" -> value="' + value + '", placeholder="' + placeholder + '"');
+                inputPlaceholders.push({ value: value, placeholder: placeholder });
+            } else {
+                // 旧格式，内容同时作为占位符和初始值
+                console.log('[MarkdownConverter] 解析填空(旧格式): "' + content + '" -> placeholder="' + content + '"');
+                inputPlaceholders.push({ value: '', placeholder: content });
+            }
             return inputPlaceholder;
         });
 
@@ -115,6 +129,11 @@
         // 7. 使用 marked 转换
         var html = marked.parse(processedMarkdown);
 
+        console.log('[MarkdownConverter] marked.parse() 后的 html (前1000字符):');
+        console.log(html.substring(0, 1000));
+        console.log('[MarkdownConverter] 检查占位符是否存在:');
+        console.log('  - %%INPUT_0%% 存在:', html.indexOf('%%INPUT_0%%') !== -1);
+
         // 8. 还原表格占位符
         tablePlaceholders.forEach(function(tableData, index) {
             var tableHtml = '<table class="' + tableClass + '">';
@@ -136,10 +155,45 @@
             html = html.replace('%%TABLE_' + index + '%%', blockHtml);
         });
 
-        // 9. 还原填空占位符
-        inputPlaceholders.forEach(function(placeholder, index) {
-            var inputHtml = '<span class="inline-input" contenteditable="false" data-placeholder="' + placeholder + '"><span class="input-marker">[</span><span class="input-content">' + placeholder + '</span><span class="input-marker">]</span></span>';
+    // 9. 还原填空占位符
+    inputPlaceholders.forEach(function(item, index) {
+            var placeholder = item.placeholder || item;
+            var value = item.value || '';
+            // 如果没有填写值，显示占位符；否则显示填写值
+            var displayContent = value || placeholder;
+
+            console.log('[MarkdownConverter] 还原填空 #' + index + ':');
+            console.log('  - 原始 item:', JSON.stringify(item));
+            console.log('  - value:', JSON.stringify(value));
+            console.log('  - value 类型:', typeof value);
+            console.log('  - value === "":', value === '');
+            console.log('  - placeholder:', JSON.stringify(placeholder));
+            console.log('  - displayContent:', JSON.stringify(displayContent));
+
+            // 构建 HTML 字符串，确保正确转义特殊字符
+            var escapedValue = value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+            var escapedPlaceholder = placeholder.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+            var escapedDisplayContent = displayContent.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+            // 构建 data-value 属性字符串
+            // 如果值存在（非空），则设置 data-value="value"
+            // 如果值为空，则设置 data-value=""（空字符串），这样可以区分"有值但为空"和"没有值"
+            var dataValueAttr = 'data-value="' + escapedValue + '"';
+
+            var inputHtml = '<span class="inline-input" contenteditable="false" data-placeholder="' + escapedPlaceholder + '" ' + dataValueAttr + '>' +
+                '<span class="input-marker">[</span>' +
+                '<span class="input-content">' + escapedDisplayContent + '</span>' +
+                '<span class="input-marker">]</span>' +
+                '</span>';
+
+            console.log('  - 生成的 HTML:', inputHtml);
+            console.log('  - data-value 属性值 (原始):', JSON.stringify(escapedValue));
+
+            var beforeReplace = html.indexOf('%%INPUT_' + index + '%%');
             html = html.replace('%%INPUT_' + index + '%%', inputHtml);
+            var afterReplace = html.indexOf('%%INPUT_' + index + '%%');
+            console.log('  - 替换前占位符存在:', beforeReplace !== -1);
+            console.log('  - 替换后占位符存在:', afterReplace !== -1);
         });
 
         // 10. 还原公式占位符
@@ -202,7 +256,8 @@
             replacement: function(content, node) {
                 var value = node.value || '';
                 var placeholder = node.getAttribute('placeholder') || '请输入';
-                return value ? '*[' + value + ']*' : '*[' + placeholder + ']*';
+                // 使用新格式 *[值|占位符]*，即使值为空也要使用新格式，便于加载时区分
+                return '*[' + value + '|' + placeholder + ']*';
             }
         });
 
@@ -213,10 +268,31 @@
             },
             replacement: function(content, node) {
                 var placeholder = node.getAttribute('data-placeholder') || '请输入';
+                var dataValue = node.getAttribute('data-value');
+                var displayValue = '';
                 // 检查是否有用户填写的内容
                 var inputContent = node.querySelector('.input-content');
-                var value = inputContent ? inputContent.textContent : '';
-                return value && value !== placeholder ? '*[' + value + ']*' : '*[' + placeholder + ']*';
+                if (inputContent) {
+                    displayValue = inputContent.textContent;
+                }
+                // 优先使用 data-value，否则使用显示内容（但不等于 placeholder 的情况）
+                var value = '';
+                if (dataValue !== null && dataValue !== undefined && dataValue !== '') {
+                    value = dataValue;
+                } else if (displayValue && displayValue !== placeholder) {
+                    value = displayValue;
+                }
+                console.log('[MarkdownConverter] inlineInput 规则触发:');
+                console.log('  - data-value (原始):', dataValue);
+                console.log('  - data-value === null:', dataValue === null);
+                console.log('  - data-value === "":', dataValue === '');
+                console.log('  - placeholder:', placeholder);
+                console.log('  - displayValue:', displayValue);
+                console.log('  - 最终 value:', value);
+                // 使用新格式 *[值|占位符]*，即使值为空也要使用新格式，便于加载时区分
+                var result = '*[' + value + '|' + placeholder + ']*';
+                console.log('  - 输出:', result);
+                return result;
             }
         });
 
@@ -395,6 +471,55 @@
 
         // 临时克隆元素进行转换，避免修改原始 DOM
         var cloneElement = element.cloneNode(true);
+
+        // 重要：cloneNode 不会复制 textarea.value，需要手动同步
+        var originalTextareas = element.querySelectorAll('textarea.inline-textarea');
+        var clonedTextareas = cloneElement.querySelectorAll('textarea.inline-textarea');
+        originalTextareas.forEach(function(original, index) {
+            if (clonedTextareas[index]) {
+                clonedTextareas[index].value = original.value;
+            }
+        });
+
+        // 预处理：将 textarea 转换为 span 元素，便于 TurndownService 处理
+        // TurndownService 对 textarea 的处理可能不稳定，直接转换为 span 更可靠
+        clonedTextareas = cloneElement.querySelectorAll('textarea.inline-textarea');
+        console.log('[MarkdownConverter] 找到 ' + clonedTextareas.length + ' 个 textarea.inline-textarea');
+        clonedTextareas.forEach(function(textarea) {
+            var value = textarea.value || '';
+            var placeholder = textarea.getAttribute('placeholder') || '请输入';
+            console.log('[MarkdownConverter] textarea 值: "' + value + '", placeholder: "' + placeholder + '"');
+            
+            var span = document.createElement('span');
+            span.className = 'inline-input';
+            span.setAttribute('data-placeholder', placeholder);
+            span.setAttribute('data-value', value);
+            span.setAttribute('contenteditable', 'false');
+            
+            // 使用 DOM API 构建结构，避免 innerHTML 特殊字符问题
+            var markerOpen = document.createElement('span');
+            markerOpen.className = 'input-marker';
+            markerOpen.textContent = '[';
+            
+            var contentSpan = document.createElement('span');
+            contentSpan.className = 'input-content';
+            // 显示内容：如果有值则显示值，否则显示占位符
+            contentSpan.textContent = value || placeholder;
+            
+            var markerClose = document.createElement('span');
+            markerClose.className = 'input-marker';
+            markerClose.textContent = ']';
+            
+            span.appendChild(markerOpen);
+            span.appendChild(contentSpan);
+            span.appendChild(markerClose);
+            
+            textarea.parentNode.replaceChild(span, textarea);
+            console.log('[MarkdownConverter] 已将 textarea 转换为 span');
+            console.log('  - data-placeholder:', span.getAttribute('data-placeholder'));
+            console.log('  - data-value:', span.getAttribute('data-value'));
+            console.log('  - 显示内容:', contentSpan.textContent);
+        });
 
         // 清理无效的 HTML 结构：将嵌套在 <p> 标签内的块级组件移出来
         var nestedBlocks = cloneElement.querySelectorAll('p .block-component');

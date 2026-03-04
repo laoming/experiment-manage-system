@@ -55,10 +55,12 @@ function markdownToHtml(markdown) {
     }
     
     // 使用公共转换器，配置为报告编辑模式
+    // 注意：onBlurHandler 设为空字符串，因为事件绑定在 renderReportEditorFromHtml 中通过 addEventListener 处理
     return MarkdownConverter.markdownToHtml(markdown, {
         editable: true,
         tableClass: 'report-table',
-        cellClass: 'report-table-cell'
+        cellClass: 'report-table-cell',
+        onBlurHandler: ''
     });
 }
 
@@ -285,17 +287,29 @@ window.startReport = async function(templateId) {
 // 根据模板编辑报告
 window.editReportByTemplate = async function(templateId, reportId) {
     currentTemplateId = templateId;
-    
+
     try {
         const result = await API.post(`/experimentReport/get?reportId=${reportId}`, {});
-        
+
         if (result.code === 200 && result.data) {
             currentReport = result.data;
             document.getElementById('reportName').value = result.data.reportName;
-            
+
+            // 调试：从数据库加载的 Markdown 内容
+            console.log('[REPORT] ========== 开始加载报告 ==========');
+            console.log('[REPORT] 从数据库加载的 reportContent:');
+            console.log(result.data.reportContent);
+            console.log('[REPORT] reportContent 类型:', typeof result.data.reportContent);
+
             const htmlContent = markdownToHtml(result.data.reportContent);
+
+            // 调试：转换后的 HTML 内容
+            console.log('[REPORT] 转换后的 htmlContent 前1500字符:');
+            console.log(htmlContent.substring(0, 1500));
+
             renderReportEditorFromHtml(htmlContent);
             showReportEditor();
+            console.log('[REPORT] ========== 加载完成 ==========');
         } else {
             alert('加载报告失败: ' + (result.message || '未知错误'));
         }
@@ -311,15 +325,53 @@ function renderReportEditorFromHtml(htmlContent) {
     
     if (!content) return;
     
+    console.log('[REPORT] renderReportEditorFromHtml 开始');
+    console.log('[REPORT] htmlContent 前500字符:', htmlContent ? htmlContent.substring(0, 500) : 'null');
+    
     // 创建临时容器解析 HTML
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = htmlContent || '';
+    
+    // 调试：检查 inline-input 元素
+    const inlineInputs = tempDiv.querySelectorAll('.inline-input');
+    console.log('[REPORT] 找到 ' + inlineInputs.length + ' 个 .inline-input 元素');
+    inlineInputs.forEach((el, idx) => {
+        console.log('[REPORT] .inline-input[' + idx + ']:');
+        console.log('  - outerHTML:', el.outerHTML);
+        console.log('  - data-placeholder:', el.getAttribute('data-placeholder'));
+        console.log('  - data-value:', el.getAttribute('data-value'));
+        console.log('  - .input-content.textContent:', el.querySelector('.input-content')?.textContent);
+    });
     
     // 1. 将 inline-input 元素（填空区域）转换为可编辑输入框
     let inputIndex = 0;
     tempDiv.querySelectorAll('.inline-input').forEach(el => {
         const placeholder = el.getAttribute('data-placeholder') || '请输入内容';
-        const existingValue = el.querySelector('.input-content')?.textContent || '';
+        const savedValue = el.getAttribute('data-value');
+        const displayContent = el.querySelector('.input-content')?.textContent || '';
+        
+        console.log('[REPORT] 加载填空 #' + inputIndex + ':');
+        console.log('  - data-placeholder:', placeholder);
+        console.log('  - data-value (原始):', savedValue);
+        console.log('  - data-value (类型):', typeof savedValue);
+        console.log('  - data-value === null:', savedValue === null);
+        console.log('  - data-value === undefined:', savedValue === undefined);
+        console.log('  - data-value === "":', savedValue === '');
+        console.log('  - displayContent:', displayContent);
+        
+        // 确定实际要显示的值
+        // 当存在值时（data-value 属性存在且不为空字符串），显示值
+        // 当不存在值或值为空时，显示 placeholder 作为提示
+        // 注意：getAttribute 在属性不存在时返回 null，在属性存在但为空时返回空字符串 ''
+        let actualValue = '';
+        if (savedValue !== null && savedValue !== '') {
+            // 如果 data-value 属性存在且不为空字符串，使用它作为实际值
+            actualValue = savedValue;
+            console.log('  -> 使用 data-value:', actualValue);
+        } else {
+            // 如果 data-value 属性不存在或为空字符串，不设置值，让 placeholder 显示
+            console.log('  -> 无值，使用 placeholder 作为提示');
+        }
         
         // 创建输入框替换原有的 span
         const input = document.createElement('textarea');
@@ -329,9 +381,13 @@ function renderReportEditorFromHtml(htmlContent) {
         input.rows = 2;
         input.style.cssText = 'display: inline-block; vertical-align: middle; min-width: 200px;';
         
-        // 如果已有内容（可能是已填写的报告），设置值
-        if (existingValue && existingValue !== placeholder) {
-            input.value = existingValue;
+        // 设置值
+        if (actualValue) {
+            input.value = actualValue;
+            console.log('  -> 最终设置 textarea.value =', actualValue);
+        } else {
+            input.value = '';
+            console.log('  -> 最终设置 textarea.value = (空)');
         }
         
         el.replaceWith(input);
@@ -364,13 +420,28 @@ function renderReportEditorFromHtml(htmlContent) {
             blockEl.removeAttribute('contenteditable');
         }
     });
-    
+
+    // 重要：保存 textarea 的值，因为 innerHTML 会丢失 textarea.value
+    const textareaValues = [];
+    tempDiv.querySelectorAll('textarea.inline-textarea').forEach((textarea, index) => {
+        textareaValues[index] = textarea.value;
+        console.log('[REPORT] 保存 textarea[' + index + '] 的值:', textareaValues[index]);
+    });
+
     // 将处理后的 HTML 设置到编辑器
     content.innerHTML = tempDiv.innerHTML;
-    
+
+    // 恢复 textarea 的值
+    content.querySelectorAll('textarea.inline-textarea').forEach((textarea, index) => {
+        if (textareaValues[index] !== undefined) {
+            textarea.value = textareaValues[index];
+            console.log('[REPORT] 恢复 textarea[' + index + '] 的值:', textareaValues[index]);
+        }
+    });
+
     // 为整个内容区域添加只读样式
     content.classList.add('report-read-only');
-    
+
     // 4. 添加表格单元格事件监听（必须在DOM插入后）
     content.querySelectorAll('.block-component[data-type="table"]').forEach(blockEl => {
         const cells = blockEl.querySelectorAll('.report-table-cell, td[data-cell-key]');
@@ -427,6 +498,41 @@ function showReportEditor() {
     document.getElementById('reportTabs').style.display = 'none';
 }
 
+// 重置报告（重新加载模板内容）
+window.resetReport = async function() {
+    if (!currentTemplateId) {
+        alert('无法重置：未找到模板信息');
+        return;
+    }
+    
+    if (!confirm('确定要重置吗？这将清空所有已填写的内容，恢复为模板初始状态。')) {
+        return;
+    }
+    
+    try {
+        const result = await API.post(`/experimentTemplate/get?templateId=${currentTemplateId}`, {});
+        
+        if (result.code === 200 && result.data) {
+            // 重置报告名称为模板名称
+            document.getElementById('reportName').value = result.data.templateName;
+            
+            // 重新渲染模板内容
+            const htmlContent = markdownToHtml(result.data.templateContent);
+            renderReportEditorFromHtml(htmlContent);
+            
+            // 清除当前报告关联（视为新报告）
+            currentReport = null;
+            
+            alert('已重置为模板初始状态');
+        } else {
+            alert('重置失败: ' + (result.message || '未知错误'));
+        }
+    } catch (error) {
+        console.error('[REPORT] 重置报告失败:', error);
+        alert('重置失败');
+    }
+}
+
 // 保存草稿
 window.saveDraft = function() {
     saveReport(false);
@@ -449,10 +555,24 @@ window.saveReport = async function(isSubmit) {
     }
 
     const reportContentEl = document.getElementById('reportContent');
-    
+
+    // 调试：保存前的 DOM 状态
+    console.log('[REPORT] ========== 开始保存 ==========');
+    console.log('[REPORT] reportContentEl.innerHTML 前1000字符:', reportContentEl.innerHTML.substring(0, 1000));
+    const textareas = reportContentEl.querySelectorAll('textarea.inline-textarea');
+    console.log('[REPORT] 找到 ' + textareas.length + ' 个 textarea.inline-textarea');
+    textareas.forEach((ta, idx) => {
+        console.log('[REPORT] textarea[' + idx + ']: value="' + ta.value + '", placeholder="' + ta.getAttribute('placeholder') + '"');
+    });
+
     // 转换为 Markdown 格式
     const markdownContent = await convertToMarkdownAsync(reportContentEl);
-    
+
+    // 调试：保存后的 Markdown 内容
+    console.log('[REPORT] 保存后的 markdownContent:');
+    console.log(markdownContent);
+    console.log('[REPORT] ========== 保存完成 ==========');
+
     if (markdownContent === '' && reportContentEl.innerHTML.trim() !== '') {
         console.error('[REPORT] Markdown 转换失败');
         alert('保存失败：Markdown 转换错误');
