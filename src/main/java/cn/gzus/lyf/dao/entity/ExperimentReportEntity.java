@@ -21,6 +21,11 @@ public class ExperimentReportEntity {
     private String templateId;
 
     /**
+     * 课程ID
+     */
+    private String courseId;
+
+    /**
      * 报告名称
      */
     private String reportName;
@@ -41,9 +46,19 @@ public class ExperimentReportEntity {
     private Date submitTime;
 
     /**
+     * 报告状态
+     */
+    private String status;
+
+    /**
      * 分数
      */
     private Integer score;
+
+    /**
+     * 评价时间
+     */
+    private Date gradeTime;
 
     /**
      * 评语
@@ -74,6 +89,14 @@ public class ExperimentReportEntity {
 
     public void setTemplateId(String templateId) {
         this.templateId = templateId;
+    }
+
+    public String getCourseId() {
+        return courseId;
+    }
+
+    public void setCourseId(String courseId) {
+        this.courseId = courseId;
     }
 
     public String getReportName() {
@@ -108,12 +131,28 @@ public class ExperimentReportEntity {
         this.submitTime = submitTime;
     }
 
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
     public Integer getScore() {
         return score;
     }
 
     public void setScore(Integer score) {
         this.score = score;
+    }
+
+    public Date getGradeTime() {
+        return gradeTime;
+    }
+
+    public void setGradeTime(Date gradeTime) {
+        this.gradeTime = gradeTime;
     }
 
     public String getComment() {

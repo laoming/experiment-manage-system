@@ -68,7 +68,24 @@ const app = Vue.createApp({
             // 权限缓存
             courseCreatorCache: {},
             // 页面加载状态
-            pageError: null
+            pageError: null,
+            // 报告评分相关
+            courseReports: [],
+            loadingReports: false,
+            showCourseGradeModal: false,
+            currentGradeCourse: null,
+            showGradeModal: false,
+            currentGradingReport: null,
+            grading: false,
+            gradeForm: {
+                score: null,
+                comment: ''
+            },
+            // 报告查看相关
+            showViewReportModal: false,
+            viewingReport: null,
+            viewingReportContent: '',
+            loadingReportContent: false
         };
     },
 
@@ -550,6 +567,304 @@ const app = Vue.createApp({
         closeViewModal: function() {
             this.showViewModal = false;
             this.currentCourse = {};
+        },
+
+        /**
+         * 打开课程评分弹窗
+         */
+        openCourseGradeModal: async function(course) {
+            try {
+                console.log('[COURSE-LIST] 获取课程详情:', course.id);
+                var result = await fetch('/course/get?courseId=' + course.id, {
+                    method: 'POST'
+                });
+                console.log('[COURSE-LIST] 获取课程详情成功:', result);
+
+                if (result.code === 200) {
+                    this.currentGradeCourse = result.data;
+                    // 加载管理者、学生和模板数据
+                    this.currentGradeCourse.adminIds = await this.fetchCourseAdminIds(course.id);
+                    this.currentGradeCourse.studentIds = await this.fetchCourseStudentIds(course.id);
+                    // 获取模板信息列表，并存入templateList以便getTemplateName方法使用
+                    var templateInfos = await this.fetchCourseTemplateInfos(course.id);
+                    this.templateList = templateInfos;
+                    this.currentGradeCourse.templateIds = templateInfos.map(function(t) { return t.id; });
+                    this.showCourseGradeModal = true;
+                    // 加载学生报告列表
+                    this.refreshCourseReports();
+                } else {
+                    this.showError('获取课程详情失败: ' + (result.message || '未知错误'));
+                }
+            } catch (error) {
+                console.error('[COURSE-LIST] 获取课程详情失败:', error);
+                this.showError('获取课程详情失败: ' + error.message);
+            }
+        },
+
+        /**
+         * 关闭课程评分弹窗
+         */
+        closeCourseGradeModal: function() {
+            this.showCourseGradeModal = false;
+            this.currentGradeCourse = null;
+            this.courseReports = [];
+        },
+
+        /**
+         * 刷新课程报告列表
+         */
+        refreshCourseReports: async function() {
+            if (!this.currentGradeCourse || !this.currentGradeCourse.id) {
+                this.courseReports = [];
+                return;
+            }
+
+            this.loadingReports = true;
+            try {
+                // 根据课程ID获取该课程的所有已提交报告
+                var result = await fetch('/experimentReport/getByCourseId?courseId=' + this.currentGradeCourse.id, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (result.code === 200) {
+                    this.courseReports = result.data || [];
+                    console.log('[COURSE-LIST] 加载报告列表成功:', this.courseReports.length, '条');
+                } else {
+                    this.showError('加载报告列表失败: ' + (result.message || '未知错误'));
+                    this.courseReports = [];
+                }
+            } catch (error) {
+                console.error('[COURSE-LIST] 加载报告列表失败:', error);
+                this.showError('加载报告列表失败: ' + error.message);
+                this.courseReports = [];
+            } finally {
+                this.loadingReports = false;
+            }
+        },
+
+        /**
+         * 打开单个报告评分弹窗
+         */
+        openReportGradeModal: function(report) {
+            this.currentGradingReport = report;
+            this.gradeForm = {
+                score: report.score !== null ? report.score : null,
+                comment: report.comment || ''
+            };
+            this.showGradeModal = true;
+        },
+
+        /**
+         * 打开查看报告弹窗
+         */
+        openViewReportModal: async function(report) {
+            this.viewingReport = report;
+            this.loadingReportContent = true;
+            this.viewingReportContent = '';
+
+            try {
+                // 获取报告详情
+                var result = await fetch('/experimentReport/get?reportId=' + report.id, {
+                    method: 'POST'
+                });
+
+                if (result.code === 200 && result.data) {
+                    this.viewingReport = result.data;
+
+                    // 解析报告内容并转换为HTML展示
+                    if (result.data.reportContent) {
+                        try {
+                            var contentObj = JSON.parse(result.data.reportContent);
+                            this.viewingReportContent = this.renderReportContent(contentObj);
+                        } catch (e) {
+                            console.error('[COURSE-LIST] 解析报告内容失败:', e);
+                            this.viewingReportContent = '<p style="color: #999;">无法解析报告内容</p>';
+                        }
+                    } else {
+                        this.viewingReportContent = '<p style="color: #999;">报告内容为空</p>';
+                    }
+                } else {
+                    this.showError('获取报告详情失败: ' + (result.message || '未知错误'));
+                }
+            } catch (error) {
+                console.error('[COURSE-LIST] 获取报告详情失败:', error);
+                this.showError('获取报告详情失败: ' + error.message);
+            } finally {
+                this.loadingReportContent = false;
+            }
+
+            this.showViewReportModal = true;
+        },
+
+        /**
+         * 关闭查看报告弹窗
+         */
+        closeViewReportModal: function() {
+            this.showViewReportModal = false;
+            this.viewingReport = null;
+            this.viewingReportContent = '';
+        },
+
+        /**
+         * 渲染报告内容为HTML
+         */
+        renderReportContent: function(contentObj) {
+            if (!contentObj || !contentObj.components) {
+                return '<p style="color: #999;">报告内容为空</p>';
+            }
+
+            var html = '<div class="report-content-viewer">';
+            var components = contentObj.components;
+            var inputData = contentObj.inputData || {};
+
+            for (var i = 0; i < components.length; i++) {
+                var component = components[i];
+                var componentId = String(i);
+
+                html += '<div class="report-component">';
+                html += '<div class="component-type-label">' + this.getComponentTypeLabel(component.type) + '</div>';
+
+                switch (component.type) {
+                    case 'text':
+                        html += '<div class="component-text">' +
+                            (component.data && component.data.content ? component.data.content.replace(/\n/g, '<br>') : '') +
+                            '</div>';
+                        break;
+
+                    case 'table':
+                        html += this.renderTableComponent(component.data, inputData[componentId]);
+                        break;
+
+                    case 'input':
+                        html += this.renderInputComponent(component.data, inputData[componentId]);
+                        break;
+                }
+
+                html += '</div>';
+            }
+
+            html += '</div>';
+            return html;
+        },
+
+        /**
+         * 获取组件类型标签
+         */
+        getComponentTypeLabel: function(type) {
+            var labels = {
+                'text': '文本',
+                'table': '表格',
+                'input': '输入框'
+            };
+            return labels[type] || type;
+        },
+
+        /**
+         * 渲染表格组件
+         */
+        renderTableComponent: function(data, inputData) {
+            if (!data) return '<p style="color: #999;">表格数据为空</p>';
+
+            var rows = data.rows || 0;
+            var cols = data.cols || 0;
+            var html = '<table class="report-view-table"><thead><tr>';
+
+            // 表头
+            for (var c = 0; c < cols; c++) {
+                html += '<th>' + (data.headers && data.headers[c] ? data.headers[c] : ('列' + (c + 1))) + '</th>';
+            }
+            html += '</tr></thead><tbody>';
+
+            // 表格内容
+            if (inputData) {
+                for (var r = 0; r < rows; r++) {
+                    html += '<tr>';
+                    for (var c = 0; c < cols; c++) {
+                        var cellKey = 'cell_' + r + '_' + c;
+                        var cellValue = inputData && inputData[cellKey] ? inputData[cellKey] : '';
+                        html += '<td>' + cellValue + '</td>';
+                    }
+                    html += '</tr>';
+                }
+            }
+
+            html += '</tbody></table>';
+            return html;
+        },
+
+        /**
+         * 渲染输入框组件
+         */
+        renderInputComponent: function(data, inputData) {
+            if (!data) return '<p style="color: #999;">输入框数据为空</p>';
+
+            var html = '<div class="report-input-view">';
+            html += '<label class="input-label">' + (data.label || '无标签') + '</label>';
+
+            var value = inputData && inputData.value ? inputData.value : '';
+            html += '<div class="input-value">' +
+                (value ? value.replace(/\n/g, '<br>') : '<span style="color: #999;">未填写</span>') +
+                '</div>';
+            html += '</div>';
+
+            return html;
+        },
+
+        /**
+         * 关闭评分弹窗
+         */
+        closeGradeModal: function() {
+            this.showGradeModal = false;
+            this.currentGradingReport = null;
+            this.gradeForm = {
+                score: null,
+                comment: ''
+            };
+        },
+
+        /**
+         * 提交评分
+         */
+        submitGrade: async function() {
+            if (!this.currentGradingReport) {
+                this.showError('未选择报告');
+                return;
+            }
+
+            if (this.gradeForm.score === null || this.gradeForm.score === undefined || this.gradeForm.score === '') {
+                this.showError('请输入分数');
+                return;
+            }
+
+            if (this.gradeForm.score < 0 || this.gradeForm.score > 100) {
+                this.showError('分数必须在 0-100 之间');
+                return;
+            }
+
+            this.grading = true;
+            try {
+                var result = await fetch('/experimentReport/grade?reportId=' + this.currentGradingReport.id +
+                    '&score=' + this.gradeForm.score +
+                    '&comment=' + encodeURIComponent(this.gradeForm.comment || ''), {
+                    method: 'POST'
+                });
+
+                if (result.code === 200) {
+                    this.showSuccess('评分成功');
+                    this.closeGradeModal();
+                    this.refreshCourseReports();
+                } else {
+                    this.showError('评分失败: ' + (result.message || '未知错误'));
+                }
+            } catch (error) {
+                console.error('[COURSE-LIST] 评分失败:', error);
+                this.showError('评分失败: ' + error.message);
+            } finally {
+                this.grading = false;
+            }
         },
 
         /**

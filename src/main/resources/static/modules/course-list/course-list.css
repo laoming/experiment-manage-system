@@ -286,3 +286,320 @@
     opacity: 0.5;
     cursor: not-allowed;
 }
+
+/* ==================== 报告评分相关样式 ==================== */
+
+.view-section {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #e0e0e0;
+}
+
+.view-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.view-section-header .view-label {
+    margin-bottom: 0;
+}
+
+.report-table-container {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.report-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.report-table thead {
+    background-color: #f5f5f5;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.report-table th {
+    padding: 10px 12px;
+    text-align: left;
+    font-weight: 600;
+    color: #333;
+    border-bottom: 2px solid #e0e0e0;
+    font-size: 13px;
+}
+
+.report-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: 13px;
+}
+
+.report-table tbody tr:hover {
+    background-color: #f9f9f9;
+}
+
+.comment-cell {
+    max-width: 200px;
+}
+
+.comment-preview {
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #666;
+}
+
+.score-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    background-color: #e0e0e0;
+    color: #666;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.score-badge.score-graded {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+}
+
+.loading-small {
+    text-align: center;
+    padding: 20px;
+    color: #999;
+}
+
+.empty-text {
+    text-align: center;
+    padding: 20px;
+    color: #999;
+}
+
+/* 评分表单样式 */
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 500;
+    color: #333;
+    font-size: 14px;
+}
+
+.form-value {
+    display: block;
+    padding: 8px 12px;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+    color: #333;
+}
+
+.form-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #4CAF50;
+}
+
+.form-textarea {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    resize: vertical;
+}
+
+.form-textarea:focus {
+    outline: none;
+    border-color: #4CAF50;
+}
+
+/* ==================== 报告查看器样式 ==================== */
+
+.modal-no-padding {
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-no-padding .modal-body {
+    flex: 1;
+    overflow: hidden;
+}
+
+.report-viewer {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}
+
+.report-info-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    padding: 16px 20px;
+    background-color: #f5f5f5;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.report-info-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+}
+
+.info-label {
+    color: #666;
+    font-weight: 500;
+}
+
+.info-value {
+    color: #333;
+}
+
+.info-value.score-graded {
+    color: #2e7d32;
+    font-weight: 600;
+}
+
+.report-content-divider {
+    height: 1px;
+    background-color: #e0e0e0;
+}
+
+.report-content-wrapper {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.report-content-viewer {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.report-component {
+    margin-bottom: 24px;
+    padding: 16px;
+    background-color: #fafafa;
+    border-radius: 6px;
+    border: 1px solid #e0e0e0;
+}
+
+.component-type-label {
+    display: inline-block;
+    padding: 4px 8px;
+    margin-bottom: 12px;
+    background-color: #4CAF50;
+    color: white;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.component-text {
+    white-space: pre-wrap;
+    line-height: 1.6;
+    color: #333;
+    padding: 8px;
+}
+
+/* 报告中的表格样式 */
+.report-view-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.report-view-table thead {
+    background-color: #f5f5f5;
+}
+
+.report-view-table th {
+    padding: 10px 12px;
+    text-align: left;
+    font-weight: 600;
+    color: #333;
+    border-bottom: 2px solid #e0e0e0;
+    font-size: 13px;
+}
+
+.report-view-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: 13px;
+    color: #333;
+}
+
+.report-view-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* 报告中的输入框样式 */
+.report-input-view {
+    background: white;
+    padding: 12px;
+    border-radius: 4px;
+    border: 1px solid #e0e0e0;
+}
+
+.input-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #333;
+    font-size: 14px;
+}
+
+.input-value {
+    min-height: 40px;
+    padding: 8px;
+    background-color: #f9f9f9;
+    border-radius: 4px;
+    line-height: 1.6;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+}
+
+/* 评分按钮样式 */
+.action-btn.btn-grade {
+    background-color: #e3f2fd;
+    color: #1976d2;
+    border: 1px solid #2196f3;
+}
+
+.action-btn.btn-grade:hover {
+    background-color: #2196f3;
+    color: white;
+}
+
+/* 课程评分弹窗样式 */
+.grade-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.grade-section-header .view-label {
+    margin-bottom: 0;
+}

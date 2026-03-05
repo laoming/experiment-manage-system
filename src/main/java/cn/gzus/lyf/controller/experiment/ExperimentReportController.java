@@ -74,7 +74,7 @@ public class ExperimentReportController {
      * 新增报告
      */
     @PostMapping("/add")
-    public Result<Boolean> addReport(@RequestBody ExperimentReportEntity reportEntity) {
+    public Result<String> addReport(@RequestBody ExperimentReportEntity reportEntity) {
         return Result.success(reportService.addReport(reportEntity));
     }
 
@@ -146,6 +146,18 @@ public class ExperimentReportController {
     }
 
     /**
+     * 获取当前用户的报告概览（支持分页和状态过滤）
+     */
+    @PostMapping("/overview/page")
+    public Result<List<ReportOverviewDto>> getReportOverviewByStatus(String status, Integer current, Integer size) {
+        String userId = getCurrentUserId();
+        if (userId == null) {
+            return Result.error("未登录");
+        }
+        return Result.success(reportService.getReportOverviewByStatus(userId, status, current, size));
+    }
+
+    /**
      * 获取当前用户的待提交报告列表
      */
     @PostMapping("/pending")
@@ -167,5 +179,13 @@ public class ExperimentReportController {
             return Result.error("未登录");
         }
         return Result.success(reportService.getSubmittedReports(userId));
+    }
+
+    /**
+     * 根据课程ID获取所有已提交的报告
+     */
+    @PostMapping("/getByCourseId")
+    public Result<List<ExperimentReportEntity>> getReportsByCourseId(String courseId) {
+        return Result.success(reportService.getReportsByCourseId(courseId));
     }
 }

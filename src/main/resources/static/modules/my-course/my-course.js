@@ -23,8 +23,12 @@ const app = Vue.createApp({
             // 课程详情缓存
             courseStudentCache: {},
             courseTemplateCache: {},
+            templateInfoCache: {},
             // 页面加载状态
-            pageError: null
+            pageError: null,
+            // 我的报告列表
+            myReports: [],
+            loadingReports: false
         };
     },
 
@@ -138,18 +142,23 @@ const app = Vue.createApp({
         },
 
         /**
-         * 获取课程绑定的实验模板ID列表
+         * 获取课程绑定的实验模板信息列表
          */
         fetchCourseTemplateIds: async function(courseId) {
             try {
-                var result = await fetch('/course/getTemplateIds?courseId=' + courseId, {
+                var result = await fetch('/course/getTemplateInfos?courseId=' + courseId, {
                     method: 'POST'
                 });
                 if (result.code === 200) {
                     this.courseTemplateCache[courseId] = result.data || [];
+                    // 缓存模板信息以便获取模板名称
+                    for (var i = 0; i < result.data.length; i++) {
+                        var template = result.data[i];
+                        this.templateInfoCache[template.id] = template;
+                    }
                 }
             } catch (error) {
-                console.error('获取课程模板ID列表失败:', error);
+                console.error('获取课程模板信息列表失败:', error);
             }
         },
 
@@ -192,6 +201,8 @@ const app = Vue.createApp({
                 if (result.code === 200) {
                     this.currentCourse = result.data;
                     this.showViewModal = true;
+                    // 加载我的报告列表
+                    this.refreshMyReports();
                 } else {
                     this.showError('获取课程详情失败: ' + (result.message || '未知错误'));
                 }
@@ -207,6 +218,53 @@ const app = Vue.createApp({
         closeViewModal: function() {
             this.showViewModal = false;
             this.currentCourse = {};
+            this.myReports = [];
+        },
+
+        /**
+         * 刷新我的报告列表
+         */
+        refreshMyReports: async function() {
+            this.loadingReports = true;
+            try {
+                var result = await fetch('/experimentReport/submitted', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({})
+                });
+
+                if (result.code === 200 && result.data) {
+                    // 获取当前课程的模板ID列表
+                    var self = this;
+                    var courseTemplates = self.courseTemplateCache[this.currentCourse.id] || [];
+                    var templateIds = courseTemplates.map(function(t) { return t.id; });
+
+                    // 筛选出属于当前课程的报告
+                    this.myReports = result.data.filter(function(report) {
+                        return templateIds.includes(report.templateId);
+                    });
+
+                    console.log('[MY-COURSE] 加载报告列表成功:', this.myReports.length, '条');
+                } else {
+                    this.showError('获取报告列表失败: ' + (result.message || '未知错误'));
+                }
+            } catch (error) {
+                console.error('[MY-COURSE] 获取报告列表失败:', error);
+                this.showError('获取报告列表失败: ' + error.message);
+            } finally {
+                this.loadingReports = false;
+            }
+        },
+
+        /**
+         * 根据模板ID获取模板名称
+         */
+        getTemplateName: function(templateId) {
+            if (!templateId) return '-';
+            var template = this.templateInfoCache[templateId];
+            return template ? template.templateName : templateId;
         },
 
         /**

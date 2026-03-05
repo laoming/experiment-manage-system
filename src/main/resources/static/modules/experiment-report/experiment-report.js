@@ -2,6 +2,7 @@
 let currentTemplate = null;
 let currentReport = null;
 let currentTemplateId = null;
+let currentCourseId = null;
 let pendingReports = [];
 let submittedReports = [];
 
@@ -168,7 +169,7 @@ function renderPendingList() {
     list.innerHTML = pendingReports.map(report => {
         let statusText = '待填写';
         let statusClass = 'pending';
-        
+
         if (report.status === 'draft') {
             statusText = '草稿';
             statusClass = 'draft';
@@ -184,9 +185,9 @@ function renderPendingList() {
                 </div>
                 <div class="report-item-status ${statusClass}">${statusText}</div>
                 <div class="report-item-actions">
-                    ${report.status === 'draft' ? 
+                    ${report.status === 'draft' ?
                         `<button class="btn btn-sm btn-secondary" onclick="editReportByTemplate('${report.templateId}', '${report.reportId}')">继续编辑</button>` :
-                        `<button class="btn btn-sm btn-primary" onclick="startReport('${report.templateId}')">开始填写</button>`
+                        `<button class="btn btn-sm btn-primary" onclick="startReport('${report.templateId}', '${report.courseId}')">开始填写</button>`
                     }
                 </div>
             </div>
@@ -257,21 +258,23 @@ function showReportList() {
     currentReport = null;
     currentTemplate = null;
     currentTemplateId = null;
+    currentCourseId = null;
     loadReportOverview();
 }
 
 // 开始填写报告
-window.startReport = async function(templateId) {
+window.startReport = async function(templateId, courseId) {
     currentTemplateId = templateId;
     currentReport = null;
-    
+    currentCourseId = courseId;
+
     try {
         const result = await API.post(`/experimentTemplate/get?templateId=${templateId}`, {});
-        
+
         if (result.code === 200 && result.data) {
             currentTemplate = result.data;
             document.getElementById('reportName').value = result.data.templateName;
-            
+
             const htmlContent = markdownToHtml(result.data.templateContent);
             renderReportEditorFromHtml(htmlContent);
             showReportEditor();
@@ -293,6 +296,7 @@ window.editReportByTemplate = async function(templateId, reportId) {
 
         if (result.code === 200 && result.data) {
             currentReport = result.data;
+            currentCourseId = result.data.courseId;
             document.getElementById('reportName').value = result.data.reportName;
 
             // 调试：从数据库加载的 Markdown 内容
@@ -582,6 +586,7 @@ window.saveReport = async function(isSubmit) {
     const reportData = {
         id: currentReport ? currentReport.id : null,
         templateId: currentTemplateId,
+        courseId: currentCourseId,
         reportName: reportName,
         reportContent: markdownContent,
         studentId: Auth.getUserId() || '1'
@@ -677,12 +682,13 @@ window.exportMarkdown = async function() {
 window.viewReport = async function(reportId) {
     try {
         const result = await API.post(`/experimentReport/get?reportId=${reportId}`, {});
-        
+
         if (result.code === 200 && result.data) {
             currentReport = result.data;
             currentTemplateId = result.data.templateId;
+            currentCourseId = result.data.courseId;
             document.getElementById('reportName').value = result.data.reportName;
-            
+
             const htmlContent = markdownToHtml(result.data.reportContent);
             renderReportEditorFromHtml(htmlContent);
             showReportEditor();

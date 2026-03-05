@@ -92,6 +92,10 @@
                             <span>👁️</span>
                             查看
                         </button>
+                        <button class="action-btn btn-grade" @click="openCourseGradeModal(course)">
+                            <span>📝</span>
+                            评分
+                        </button>
                         <button class="action-btn btn-edit" @click="openEditModal(course)">
                             <span>✏️</span>
                             编辑
@@ -230,11 +234,168 @@
                     <label class="view-label">课程简介：</label>
                     <p class="view-description">{{ currentCourse.description || '无' }}</p>
                 </div>
+
                 <div class="modal-footer">
                     <button type="button" class="btn btn-primary" @click="closeViewModal">
                         关闭
                     </button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 课程评分弹窗 -->
+    <div class="modal-overlay" v-show="showCourseGradeModal && !pageError" style="display: none;" @click.self="closeCourseGradeModal">
+        <div class="modal-content modal-extra-large">
+            <div class="modal-header">
+                <h2>课程评分 - {{ currentGradeCourse ? currentGradeCourse.courseName : '' }}</h2>
+                <button class="modal-close" @click="closeCourseGradeModal">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="grade-section-header">
+                    <label class="view-label">学生报告 ({{ courseReports.length }})：</label>
+                    <button class="btn btn-sm btn-secondary" @click="refreshCourseReports" v-if="currentGradeCourse && currentGradeCourse.studentIds && currentGradeCourse.studentIds.length > 0">
+                        <span>🔄</span>
+                        <span>刷新</span>
+                    </button>
+                </div>
+                <div class="report-table-container" v-if="currentGradeCourse && currentGradeCourse.studentIds && currentGradeCourse.studentIds.length > 0">
+                    <div v-if="loadingReports" class="loading-small">加载中...</div>
+                    <div v-else-if="courseReports.length === 0" class="empty-text">暂无学生报告</div>
+                    <table v-else class="report-table">
+                        <thead>
+                            <tr>
+                                <th>学生</th>
+                                <th>报告名称</th>
+                                <th>提交时间</th>
+                                <th>分数</th>
+                                <th>评语</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="report in courseReports" :key="report.id">
+                                <td>{{ getCreatorName(report.studentId) }}</td>
+                                <td>{{ report.reportName || getTemplateName(report.templateId) }}</td>
+                                <td>{{ formatDateTime(report.submitTime) }}</td>
+                                <td>
+                                    <span class="score-badge" :class="{ 'score-graded': report.score !== null }">
+                                        {{ report.score !== null && report.score !== undefined ? report.score : '未评分' }}
+                                    </span>
+                                </td>
+                                <td class="comment-cell">
+                                    <div class="comment-preview">{{ report.comment || '-' }}</div>
+                                </td>
+                                <td class="actions">
+                                    <button class="btn btn-sm btn-info" @click="openViewReportModal(report)">
+                                        <span>👁️</span>
+                                        查看
+                                    </button>
+                                    <button class="btn btn-sm btn-primary" @click="openReportGradeModal(report)">
+                                        <span>✏️</span>
+                                        {{ report.score !== null ? '修改评分' : '评分' }}
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div v-else class="empty-text">该课程暂无学生，无法查看报告</div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @click="closeCourseGradeModal">
+                        关闭
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 单个报告评分弹窗 -->
+    <div class="modal-overlay" v-show="showGradeModal && !pageError" style="display: none;" @click.self="closeGradeModal">
+        <div class="modal-content modal-medium">
+            <div class="modal-header">
+                <h2>报告评分</h2>
+                <button class="modal-close" @click="closeGradeModal">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">学生：</label>
+                    <span class="form-value">{{ getCreatorName(currentGradingReport ? currentGradingReport.studentId : '') }}</span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">报告名称：</label>
+                    <span class="form-value">{{ currentGradingReport ? (currentGradingReport.reportName || getTemplateName(currentGradingReport.templateId)) : '' }}</span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">分数 (0-100)：</label>
+                    <input
+                        type="number"
+                        class="form-input"
+                        v-model.number="gradeForm.score"
+                        min="0"
+                        max="100"
+                        placeholder="请输入分数"
+                    >
+                </div>
+                <div class="form-group">
+                    <label class="form-label">评语：</label>
+                    <textarea
+                        class="form-textarea"
+                        v-model="gradeForm.comment"
+                        rows="4"
+                        placeholder="请输入评语（可选）"
+                    ></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @click="closeGradeModal">取消</button>
+                    <button type="button" class="btn btn-primary" @click="submitGrade" :disabled="grading">
+                        {{ grading ? '保存中...' : '保存评分' }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 查看报告弹窗 -->
+    <div class="modal-overlay" v-show="showViewReportModal && !pageError" style="display: none;" @click.self="closeViewReportModal">
+        <div class="modal-content modal-large modal-no-padding">
+            <div class="modal-header">
+                <h2>查看报告</h2>
+                <button class="modal-close" @click="closeViewReportModal">✕</button>
+            </div>
+            <div class="modal-body" style="padding: 0;">
+                <div v-if="loadingReportContent" class="loading-small">加载中...</div>
+                <div v-else class="report-viewer">
+                    <div class="report-info-bar">
+                        <div class="report-info-item">
+                            <span class="info-label">学生：</span>
+                            <span class="info-value">{{ getCreatorName(viewingReport ? viewingReport.studentId : '') }}</span>
+                        </div>
+                        <div class="report-info-item">
+                            <span class="info-label">报告名称：</span>
+                            <span class="info-value">{{ viewingReport ? viewingReport.reportName : '' }}</span>
+                        </div>
+                        <div class="report-info-item">
+                            <span class="info-label">提交时间：</span>
+                            <span class="info-value">{{ formatDateTime(viewingReport ? viewingReport.submitTime : '') }}</span>
+                        </div>
+                        <div class="report-info-item">
+                            <span class="info-label">分数：</span>
+                            <span class="info-value" :class="{ 'score-graded': viewingReport && viewingReport.score !== null }">
+                                {{ viewingReport && viewingReport.score !== null && viewingReport.score !== undefined ? viewingReport.score : '未评分' }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="report-content-divider"></div>
+                    <div class="report-content-wrapper" v-html="viewingReportContent"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" @click="closeViewReportModal">关闭</button>
+                <button type="button" class="btn btn-primary" @click="closeViewReportModal(); openReportGradeModal(viewingReport)">
+                    评分
+                </button>
             </div>
         </div>
     </div>

@@ -149,6 +149,46 @@
                     <label class="view-label">课程简介：</label>
                     <p class="view-description">{{ currentCourse.description || '无' }}</p>
                 </div>
+
+                <!-- 我的报告列表 -->
+                <div class="view-section">
+                    <div class="view-section-header">
+                        <label class="view-label">我的报告 ({{ myReports.length }})：</label>
+                        <button class="btn btn-sm btn-secondary" @click="refreshMyReports">
+                            <span>🔄</span>
+                            <span>刷新</span>
+                        </button>
+                    </div>
+                    <div class="report-table-container">
+                        <div v-if="loadingReports" class="loading-small">加载中...</div>
+                        <div v-else-if="myReports.length === 0" class="empty-text">暂无报告</div>
+                        <table v-else class="report-table">
+                            <thead>
+                                <tr>
+                                    <th>报告名称</th>
+                                    <th>提交时间</th>
+                                    <th>分数</th>
+                                    <th>评语</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="report in myReports" :key="report.id">
+                                    <td>{{ report.reportName || getTemplateName(report.templateId) }}</td>
+                                    <td>{{ formatDateTime(report.submitTime) }}</td>
+                                    <td>
+                                        <span class="score-badge" :class="{ 'score-graded': report.score !== null }">
+                                            {{ report.score !== null && report.score !== undefined ? report.score : '未评分' }}
+                                        </span>
+                                    </td>
+                                    <td class="comment-cell">
+                                        <div class="comment-preview">{{ report.comment || '-' }}</div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
                 <div class="modal-footer">
                     <button type="button" class="btn btn-primary" @click="closeViewModal">
                         关闭
