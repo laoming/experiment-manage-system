@@ -1,6 +1,6 @@
 package cn.gzus.lyf.dao;
 
-import cn.gzus.lyf.common.constant.UserStatusEnum;
+import cn.gzus.lyf.common.enums.UserStatusEnum;
 import cn.gzus.lyf.common.dto.PageDto;
 import cn.gzus.lyf.common.dto.UserQueryDto;
 import cn.gzus.lyf.common.util.BeanCopyUtils;

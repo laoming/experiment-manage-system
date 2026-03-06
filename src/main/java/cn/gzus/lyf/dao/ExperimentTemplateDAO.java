@@ -98,4 +98,14 @@ public class ExperimentTemplateDAO extends ServiceImpl<ExperimentTemplateMapper,
         );
         return BeanCopyUtils.copy(templatePage, PageDto.class);
     }
+
+    /**
+     * 根据创建者ID获取模板数量
+     * @param creatorId 创建者ID
+     * @return 模板数量
+     */
+    public long getTemplateCountByCreator(String creatorId) {
+        return this.count(Wrappers.<ExperimentTemplateEntity>lambdaQuery()
+                .eq(ExperimentTemplateEntity::getCreatorId, creatorId));
+    }
 }

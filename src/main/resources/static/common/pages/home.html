@@ -76,21 +76,9 @@
 
                     <!-- 统计卡片 -->
                     <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-number">12</div>
-                            <div class="stat-label">总用户数</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-number">45</div>
-                            <div class="stat-label">实验项目</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-number">128</div>
-                            <div class="stat-label">实验数据</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-number">99.9%</div>
-                            <div class="stat-label">系统可用性</div>
+                        <div class="stat-card" v-for="(stat, index) in stats" :key="index">
+                            <div class="stat-number">{{ stat.value }}</div>
+                            <div class="stat-label">{{ stat.label }}</div>
                         </div>
                     </div>
                 </div>

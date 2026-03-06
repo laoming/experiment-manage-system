@@ -74,4 +74,13 @@ public class ExperimentTemplateService {
     public PageDto<ExperimentTemplateEntity> getTemplatePage(Integer current, Integer size, ExperimentTemplateQueryDto experimentTemplateQueryDto) {
         return templateDAO.getTemplatePage(current, size, experimentTemplateQueryDto);
     }
+
+    /**
+     * 根据创建者ID获取模板数量
+     * @param creatorId 创建者ID
+     * @return 模板数量
+     */
+    public long getTemplateCountByCreator(String creatorId) {
+        return templateDAO.getTemplateCountByCreator(creatorId);
+    }
 }

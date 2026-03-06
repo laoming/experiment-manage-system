@@ -1,6 +1,6 @@
 package cn.gzus.lyf.common.exception;
 
-import cn.gzus.lyf.common.constant.ResultCode;
+import cn.gzus.lyf.common.enums.ResultCode;
 
 /**
  * 业务异常类

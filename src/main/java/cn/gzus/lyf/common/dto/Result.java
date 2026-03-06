@@ -1,6 +1,6 @@
 package cn.gzus.lyf.common.dto;
 
-import cn.gzus.lyf.common.constant.ResultCode;
+import cn.gzus.lyf.common.enums.ResultCode;
 
 import java.io.Serializable;
 

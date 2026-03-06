@@ -1,6 +1,6 @@
 package cn.gzus.lyf.dao;
 
-import cn.gzus.lyf.common.constant.RoleStatusEnum;
+import cn.gzus.lyf.common.enums.RoleStatusEnum;
 import cn.gzus.lyf.common.dto.PageDto;
 import cn.gzus.lyf.common.dto.RoleQueryDto;
 import cn.gzus.lyf.common.util.BeanCopyUtils;
@@ -15,7 +15,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;

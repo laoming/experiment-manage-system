@@ -282,4 +282,60 @@ public class CourseService {
     public List<String> getTemplateIdsByCourseId(String courseId) {
         return courseTemplateRelationDAO.getTemplateIdsByCourseId(courseId);
     }
+
+    /**
+     * 根据创建者ID获取课程数量
+     * @param creatorId 创建者ID
+     * @return 课程数量
+     */
+    public long getCourseCountByCreator(String creatorId) {
+        return courseDAO.getCourseCountByCreator(creatorId);
+    }
+
+    /**
+     * 根据创建者ID获取课程ID列表
+     * @param creatorId 创建者ID
+     * @return 课程ID列表
+     */
+    public List<String> getCourseIdsByCreator(String creatorId) {
+        return courseDAO.getCourseIdsByCreator(creatorId);
+    }
+
+    /**
+     * 根据学生ID获取课程ID列表
+     * @param studentId 学生ID
+     * @return 课程ID列表
+     */
+    public List<String> getCourseIdsByStudent(String studentId) {
+        return courseUserRelationDAO.getStudentCourseIdsByUserId(studentId);
+    }
+
+    /**
+     * 获取用户管理的所有课程ID（创建的课程 + 作为管理者参与的课程）
+     * @param userId 用户ID
+     * @return 课程ID列表
+     */
+    public List<String> getManagedCourseIds(String userId) {
+        // 获取创建的课程ID
+        List<String> createdCourseIds = courseDAO.getCourseIdsByCreator(userId);
+        
+        // 获取作为管理者参与的课程ID
+        List<String> adminCourseIds = courseUserRelationDAO.getAdminCourseIdsByUserId(userId);
+        
+        // 合并并去重
+        java.util.Set<String> allCourseIds = new java.util.HashSet<>();
+        allCourseIds.addAll(createdCourseIds);
+        allCourseIds.addAll(adminCourseIds);
+        
+        return new java.util.ArrayList<>(allCourseIds);
+    }
+
+    /**
+     * 获取用户管理的课程数量（创建的课程 + 作为管理者参与的课程）
+     * @param userId 用户ID
+     * @return 课程数量
+     */
+    public long getManagedCourseCount(String userId) {
+        return getManagedCourseIds(userId).size();
+    }
 }

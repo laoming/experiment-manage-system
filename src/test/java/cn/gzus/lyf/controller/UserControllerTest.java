@@ -1,7 +1,7 @@
 package cn.gzus.lyf.controller;
 
 import cn.gzus.lyf.BaseTest;
-import cn.gzus.lyf.common.constant.UserStatusEnum;
+import cn.gzus.lyf.common.enums.UserStatusEnum;
 import cn.gzus.lyf.common.dto.PageDto;
 import cn.gzus.lyf.common.dto.UserQueryDto;
 import cn.gzus.lyf.controller.auth.UserController;

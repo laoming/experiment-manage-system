@@ -1,6 +1,6 @@
 package cn.gzus.lyf.common.exception;
 
-import cn.gzus.lyf.common.constant.ResultCode;
+import cn.gzus.lyf.common.enums.ResultCode;
 import cn.gzus.lyf.common.dto.Result;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

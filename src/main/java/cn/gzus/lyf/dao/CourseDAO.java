@@ -186,4 +186,41 @@ public class CourseDAO extends ServiceImpl<CourseMapper, CourseEntity> {
         entity.setUpdateTime(new Date());
         return this.updateById(entity);
     }
+
+    /**
+     * 根据创建者ID获取课程数量
+     * @param creatorId 创建者ID
+     * @return 课程数量
+     */
+    public long getCourseCountByCreator(String creatorId) {
+        return this.count(Wrappers.<CourseEntity>lambdaQuery()
+                .eq(CourseEntity::getCreatorId, creatorId));
+    }
+
+    /**
+     * 根据创建者ID获取课程ID列表
+     * @param creatorId 创建者ID
+     * @return 课程ID列表
+     */
+    public List<String> getCourseIdsByCreator(String creatorId) {
+        return this.list(Wrappers.<CourseEntity>lambdaQuery()
+                .eq(CourseEntity::getCreatorId, creatorId)
+                .select(CourseEntity::getId))
+                .stream()
+                .map(CourseEntity::getId)
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    /**
+     * 根据课程ID列表获取课程
+     * @param courseIds 课程ID列表
+     * @return 课程列表
+     */
+    public List<CourseEntity> getCoursesByIds(List<String> courseIds) {
+        if (courseIds == null || courseIds.isEmpty()) {
+            return new java.util.ArrayList<>();
+        }
+        return this.list(Wrappers.<CourseEntity>lambdaQuery()
+                .in(CourseEntity::getId, courseIds));
+    }
 }

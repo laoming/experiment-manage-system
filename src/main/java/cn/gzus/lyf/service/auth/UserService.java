@@ -1,6 +1,6 @@
 package cn.gzus.lyf.service.auth;
 
-import cn.gzus.lyf.common.constant.UserStatusEnum;
+import cn.gzus.lyf.common.enums.UserStatusEnum;
 import cn.gzus.lyf.common.dto.PageDto;
 import cn.gzus.lyf.common.dto.SimpleUserDto;
 import cn.gzus.lyf.common.dto.UserDto;

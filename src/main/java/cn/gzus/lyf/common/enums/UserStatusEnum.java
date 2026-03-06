@@ -1,4 +1,4 @@
-package cn.gzus.lyf.common.constant;
+package cn.gzus.lyf.common.enums;
 
 public enum UserStatusEnum {
 

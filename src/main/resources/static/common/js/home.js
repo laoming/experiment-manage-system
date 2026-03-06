@@ -24,7 +24,8 @@ const app = createApp({
             currentTabScripts: null,  // 保存当前标签页的脚本HTML（v-html不会执行脚本，所以需要单独处理）
             loadingTab: false,
             tabError: null,
-            previousTabKey: null
+            previousTabKey: null,
+            stats: []  // 首页统计数据
         };
     },
 
@@ -32,6 +33,7 @@ const app = createApp({
         this.checkLogin();
         this.initData();
         this.fetchMenuList();
+        this.fetchStats();
 
         // 设置全局错误处理
         this.setupGlobalErrorHandling();
@@ -1163,6 +1165,70 @@ const app = createApp({
 
             // 可以在这里调用后端 API 获取用户信息
             // this.fetchUserInfo();
+        },
+
+        /**
+         * 获取首页统计数据
+         */
+        async fetchStats() {
+            try {
+                console.log('🔍 [HOME] 开始获取统计数据...');
+                const response = await fetch('/homeStats/getStats', {
+                    method: 'POST'
+                });
+
+                console.log('📦 [HOME] 统计响应:', response);
+                console.log('📦 [HOME] 响应类型:', typeof response);
+                console.log('📦 [HOME] 响应code:', response ? response.code : 'undefined');
+                console.log('📦 [HOME] 响应data:', response ? response.data : 'undefined');
+
+                if (response && response.code === 200 && response.data) {
+                    const data = response.data;
+                    this.stats = [];
+
+                    console.log('🔍 [HOME] 角色编码:', data.roleCode);
+                    
+                    // 将角色编码转为大写进行比较
+                    const roleCodeUpper = (data.roleCode || '').toUpperCase();
+
+                    if (roleCodeUpper === 'TEACHER' || roleCodeUpper === 'ADMIN') {
+                        // 老师和管理员统计
+                        this.stats.push({ label: '管理的课程数', value: data.managedCourseCount || 0 });
+                        this.stats.push({ label: '维护的实验模板数', value: data.maintainedTemplateCount || 0 });
+                        this.stats.push({ label: '已评分的实验报告数', value: data.gradedReportCount || 0 });
+                        this.stats.push({ label: '待评分的实验报告数', value: data.pendingGradeReportCount || 0 });
+                        console.log('✅ [HOME] 老师/管理员统计数据:', this.stats);
+                    } else if (roleCodeUpper === 'STUDENT') {
+                        // 学生统计
+                        this.stats.push({ label: '学的课程数', value: data.enrolledCourseCount || 0 });
+                        this.stats.push({ label: '课程所有报告总和', value: data.totalTemplateCount || 0 });
+                        this.stats.push({ label: '已提交的实验报告数', value: data.submittedReportCount || 0 });
+                        this.stats.push({ label: '待提交的实验报告数', value: data.pendingSubmitReportCount || 0 });
+                        console.log('✅ [HOME] 学生统计数据:', this.stats);
+                    } else {
+                        console.warn('⚠️ [HOME] 未知角色:', data.roleCode);
+                    }
+                    console.log('✅ [HOME] 统计数据加载成功', this.stats);
+                } else {
+                    console.error('❌ [HOME] 统计响应格式错误:', response);
+                    // 设置默认统计数据，确保页面有内容显示
+                    this.stats = [
+                        { label: '数据加载中', value: 0 },
+                        { label: '数据加载中', value: 0 },
+                        { label: '数据加载中', value: 0 },
+                        { label: '数据加载中', value: 0 }
+                    ];
+                }
+            } catch (error) {
+                console.error('❌ [HOME] 获取统计数据失败:', error);
+                // 设置默认统计数据，确保页面有内容显示
+                this.stats = [
+                    { label: '数据加载失败', value: 0 },
+                    { label: '数据加载失败', value: 0 },
+                    { label: '数据加载失败', value: 0 },
+                    { label: '数据加载失败', value: 0 }
+                ];
+            }
         },
 
         /**
