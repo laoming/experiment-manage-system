@@ -674,13 +674,30 @@ const app = Vue.createApp({
                 if (result.code === 200 && result.data) {
                     this.viewingReport = result.data;
 
-                    // 解析报告内容并转换为HTML展示
+                    // 将 Markdown 内容转换为 HTML 展示
                     if (result.data.reportContent) {
                         try {
-                            var contentObj = JSON.parse(result.data.reportContent);
-                            this.viewingReportContent = this.renderReportContent(contentObj);
+                            // 使用 MarkdownConverter 将 Markdown 转换为 HTML（与实验报告页面保持一致）
+                            if (typeof MarkdownConverter !== 'undefined') {
+                                var markdown = result.data.reportContent;
+                                var html = MarkdownConverter.markdownToHtml(markdown, {
+                                    editable: false  // 查看模式下不可编辑
+                                });
+                                this.viewingReportContent = '<div class="markdown-content">' + html + '</div>';
+                            } else if (typeof marked !== 'undefined') {
+                                // 降级方案：使用 marked 将 Markdown 转换为 HTML
+                                var markdown = result.data.reportContent;
+                                var html = marked.parse(markdown);
+                                // 后处理：修复输入框的显示，移除 placeholder 标记
+                                html = this.postProcessMarkdownHtml(html);
+                                this.viewingReportContent = '<div class="markdown-content">' + html + '</div>';
+                            } else {
+                                // 如果都没有加载，直接显示原始内容
+                                this.viewingReportContent = '<pre style="white-space: pre-wrap; word-wrap: break-word;">' +
+                                    this.escapeHtml(result.data.reportContent) + '</pre>';
+                            }
                         } catch (e) {
-                            console.error('[COURSE-LIST] 解析报告内容失败:', e);
+                            console.error('[COURSE-LIST] 转换报告内容失败:', e);
                             this.viewingReportContent = '<p style="color: #999;">无法解析报告内容</p>';
                         }
                     } else {
@@ -697,6 +714,50 @@ const app = Vue.createApp({
             }
 
             this.showViewReportModal = true;
+        },
+
+        /**
+         * 后处理 Markdown HTML，修复输入框显示问题
+         * 移除占位符标记，只显示实际输入的值
+         */
+        postProcessMarkdownHtml: function(html) {
+            // 移除空的输入框占位符（如 "**输入：**" 后面只有空白或空行）
+            // 匹配模式：标题（粗体）"输入：" 后面只有空白或空行
+            html = html.replace(/<strong>\u8f93\u5165\uff1a<\/strong>\s*(\n\s*\n|$)/g, '');
+
+            // 移除空的表格单元格占位符（包括括号内的占位符）
+            html = html.replace(/<td>\s*\[?\u5360\u4f4d\u7b26\]?\s*<\/td>/gi, '<td>-</td>');
+            html = html.replace(/<td>\s*\(\s*\u5360\u4f4d\u7b26\s*\)\s*<\/td>/gi, '<td>-</td>');
+
+            // 移除空的代码块占位符
+            html = html.replace(/<code>\s*\[?\u5360\u4f4d\u7b26\]?\s*<\/code>/gi, '');
+
+            // 移除粗体标签中只有"输入："而没有内容的情况
+            html = html.replace(/<strong>\u8f93\u5165\uff1a\s*<\/strong>\s*(<br\s*\/?>)?/gi, '');
+
+            // 移除只有占位符文本的段落
+            html = html.replace(/<p>\s*\[?\u5360\u4f4d\u7b26\]?\s*<\/p>/gi, '');
+
+            // 移除连续的多个空行（保留最多两个连续的换行）
+            html = html.replace(/(<br\s*\/?>\s*){3,}/gi, '<br><br>');
+
+            // 清理多余的空格
+            html = html.replace(/^\s+|\s+$/gm, '');
+
+            return html;
+        },
+
+        /**
+         * HTML 转义
+         */
+        escapeHtml: function(text) {
+            if (!text) return '';
+            return text
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
         },
 
         /**
