@@ -324,6 +324,101 @@
     word-break: break-word;
 }
 
+/* ==================== 公共组件样式（与编辑页面一致） ==================== */
+
+/* 行内输入框（只读） */
+.template-preview-canvas .inline-input {
+    display: inline-block;
+    background: #e6f7ff;
+    border: 1px dashed #1890ff;
+    border-radius: 4px;
+    padding: 2px 4px;
+    margin: 0 2px;
+    cursor: pointer;
+    color: #333;
+}
+
+.template-preview-canvas .inline-input .input-marker {
+    opacity: 0.5;
+}
+
+.template-preview-canvas .inline-input .input-content {
+    font-weight: 500;
+}
+
+/* 公式 */
+.template-preview-canvas .inline-formula {
+    display: inline-block;
+    background: #fff7e6;
+    border: 1px dashed #fa8c16;
+    border-radius: 4px;
+    padding: 2px 6px;
+    margin: 0 2px;
+    cursor: pointer;
+}
+
+.template-preview-canvas .inline-formula .formula-display {
+    font-family: 'Times New Roman', serif;
+    color: #fa8c16;
+}
+
+/* 块级组件（只读） */
+.template-preview-canvas .block-component {
+    background: #fafafa;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    margin: 16px 0;
+    padding: 16px;
+    position: relative;
+}
+
+.template-preview-canvas .block-component .component-body {
+    padding: 8px 0;
+}
+
+/* 表格预览 */
+.template-preview-canvas .preview-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.template-preview-canvas .preview-table td {
+    padding: 12px;
+    border: 1px solid #ddd;
+    background: white;
+    min-width: 50px;
+    min-height: 24px;
+}
+
+/* 表格单元格为空时的占位符 */
+.template-preview-canvas .preview-table td:empty::before {
+    content: '-';
+    color: #bbb;
+}
+
+.template-preview-canvas .preview-table td[data-cell-type="header"]:empty::before {
+    content: '-';
+    color: #bbb;
+    font-weight: 600;
+}
+
+/* 分割线 */
+.template-preview-canvas .preview-divider {
+    margin: 8px 0;
+    border-top: 2px solid #ddd;
+}
+
+/* 图片预览 */
+.template-preview-canvas .preview-image {
+    text-align: center;
+}
+
+.template-preview-canvas .preview-image img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+}
+
 /* ==================== 响应式设计 ==================== */
 
 @media (max-width: 768px) {

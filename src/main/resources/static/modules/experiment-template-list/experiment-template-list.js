@@ -2,128 +2,6 @@
  * 实验模板管理列表逻辑
  */
 
-/**
- * 将 Markdown 转换为 HTML（用于模板预览）
- */
-function markdownToHtml(markdown) {
-    if (!markdown) return '';
-
-    var processedMarkdown = markdown;
-
-    // 1. 处理表格（转换为占位符）
-    var tablePlaceholders = [];
-    var tablePattern = /(?:^\|.+\|$[\r\n]*)+/gm;
-    processedMarkdown = processedMarkdown.replace(tablePattern, function(match) {
-        var lines = match.trim().split(/[\r\n]+/).filter(function(l) { return l.trim(); });
-        if (lines.length < 2) return match;
-
-        var dividerLine = lines[1];
-        if (!dividerLine.match(/^\|[\s\-:]+\|/)) return match;
-
-        var cols = (dividerLine.match(/\|/g) || []).length - 1;
-        if (cols < 1) return match;
-
-        var rows = lines.length - 1;
-        var tableData = { rows: rows, cols: cols, cells: {} };
-
-        var headerParts = lines[0].split('|');
-        for (var j = 1; j <= cols; j++) {
-            tableData.cells['0-' + (j - 1)] = headerParts[j] ? headerParts[j].trim() : '';
-        }
-
-        for (var i = 2; i < lines.length; i++) {
-            var rowParts = lines[i].split('|');
-            for (var k = 1; k <= cols; k++) {
-                tableData.cells[(i - 1) + '-' + (k - 1)] = rowParts[k] ? rowParts[k].trim() : '';
-            }
-        }
-
-        var placeholder = '%%TABLE_' + tablePlaceholders.length + '%%';
-        tablePlaceholders.push(tableData);
-        return '\n' + placeholder + '\n';
-    });
-
-    // 2. 处理填空项
-    var inputPlaceholders = [];
-    processedMarkdown = processedMarkdown.replace(/\*\[([^\]]*)\]\*/g, function(match, placeholder) {
-        var inputPlaceholder = '%%INPUT_' + inputPlaceholders.length + '%%';
-        inputPlaceholders.push(placeholder);
-        return inputPlaceholder;
-    });
-
-    // 3. 处理公式
-    var formulaPlaceholders = [];
-    processedMarkdown = processedMarkdown.replace(/\$([^$\n]+)\$/g, function(match, formula) {
-        var formulaPlaceholder = '%%FORMULA_' + formulaPlaceholders.length + '%%';
-        formulaPlaceholders.push(formula);
-        return formulaPlaceholder;
-    });
-
-    // 4. 处理图片
-    var imagePlaceholders = [];
-    processedMarkdown = processedMarkdown.replace(/!\[([^\]]*)\]\(([^\)]+)\)/g, function(match, alt, url) {
-        var imagePlaceholder = '%%IMAGE_' + imagePlaceholders.length + '%%';
-        imagePlaceholders.push({ alt: alt, url: url });
-        return '\n' + imagePlaceholder + '\n';
-    });
-
-    // 5. 处理分割线
-    var dividerPlaceholders = [];
-    processedMarkdown = processedMarkdown.replace(/^---$/gm, function(match) {
-        var dividerPlaceholder = '%%DIVIDER_' + dividerPlaceholders.length + '%%';
-        dividerPlaceholders.push({});
-        return '\n' + dividerPlaceholder + '\n';
-    });
-
-    // 6. 使用 marked 转换
-    if (typeof marked !== 'undefined') {
-        marked.setOptions({ breaks: true, gfm: true });
-    }
-    var html = typeof marked !== 'undefined' ? marked.parse(processedMarkdown) : processedMarkdown;
-
-    // 7. 还原表格
-    tablePlaceholders.forEach(function(tableData, index) {
-        var tableHtml = '<table class="preview-table" style="width:100%;border-collapse:collapse;margin:10px 0;">';
-        for (var i = 0; i < tableData.rows; i++) {
-            tableHtml += '<tr>';
-            for (var j = 0; j < tableData.cols; j++) {
-                var cellKey = i + '-' + j;
-                var cellValue = tableData.cells[cellKey] || '';
-                var style = 'padding:8px;border:1px solid #ddd;' + (i === 0 ? 'background:#f5f5f5;font-weight:bold;' : '');
-                tableHtml += '<td style="' + style + '">' + cellValue + '</td>';
-            }
-            tableHtml += '</tr>';
-        }
-        tableHtml += '</table>';
-        html = html.replace('%%TABLE_' + index + '%%', tableHtml);
-    });
-
-    // 8. 还原填空
-    inputPlaceholders.forEach(function(placeholder, index) {
-        var inputHtml = '<span style="display:inline-block;border-bottom:1px solid #333;min-width:80px;margin:0 4px;padding:2px 8px;background:#f9f9f9;">[' + placeholder + ']</span>';
-        html = html.replace('%%INPUT_' + index + '%%', inputHtml);
-    });
-
-    // 9. 还原公式
-    formulaPlaceholders.forEach(function(formula, index) {
-        var formulaHtml = '<span style="margin:0 4px;">\\(' + formula + '\\)</span>';
-        html = html.replace('%%FORMULA_' + index + '%%', formulaHtml);
-    });
-
-    // 10. 还原图片
-    imagePlaceholders.forEach(function(imageData, index) {
-        var imageHtml = '<div style="text-align:center;margin:10px 0;"><img src="' + imageData.url + '" alt="' + imageData.alt + '" style="max-width:100%;"></div>';
-        html = html.replace('%%IMAGE_' + index + '%%', imageHtml);
-    });
-
-    // 11. 还原分割线
-    dividerPlaceholders.forEach(function(dividerData, index) {
-        html = html.replace('%%DIVIDER_' + index + '%%', '<hr style="border:1px solid #ddd;margin:20px 0;">');
-    });
-
-    return html;
-}
-
 const app = Vue.createApp({
     data() {
         return {
@@ -285,12 +163,23 @@ const app = Vue.createApp({
             if (!canvas || !this.currentTemplate.templateContent) {
                 return;
             }
-            
-            var htmlContent = markdownToHtml(this.currentTemplate.templateContent);
-            
+
+            // 使用公共 MarkdownConverter 转换（配置为不可编辑模式，用于查看）
+            var htmlContent;
+            if (typeof MarkdownConverter !== 'undefined') {
+                htmlContent = MarkdownConverter.markdownToHtml(this.currentTemplate.templateContent, {
+                    editable: false,
+                    tableClass: 'preview-table',
+                    cellClass: 'preview-cell'
+                });
+            } else {
+                console.error('[TEMPLATE-LIST] MarkdownConverter 未加载');
+                htmlContent = '<p>无法加载模板内容：MarkdownConverter 未加载</p>';
+            }
+
             // 渲染模板内容
             canvas.innerHTML = htmlContent;
-            
+
             // 重新渲染公式
             if (window.MathJax) {
                 MathJax.typesetPromise([canvas]).catch(function(err) {
