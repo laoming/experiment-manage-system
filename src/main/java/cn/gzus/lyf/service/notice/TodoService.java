@@ -67,4 +67,8 @@ public class TodoService {
     public boolean completeTodo(String id) {
         return todoDAO.updateTodoStatus(id, 1);
     }
+
+    public boolean markAsRead(String id) {
+        return todoDAO.updateTodoStatus(id, 1);
+    }
 }

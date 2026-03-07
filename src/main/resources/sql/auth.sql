@@ -61,8 +61,8 @@ VALUES ('100', '0', '身份管理', 'auth_management', '', 'D', 1),
        ('103', '100', '角色管理', 'role_management', '/ems/modules/role/role.html', 'M', 3),
        ('104', '100', '菜单管理', 'menu_management', '/ems/modules/menu/menu.html', 'M', 4),
        ('200', '0', '系统管理', 'system_management', '', 'D', 2),
-       ('201', '200', '通知与公告管理', 'notice_management', '/ems/modules/notice-manage/notice-manage.html', 'M', 1),
-       ('202', '200', '公告与消息', 'notice_message', '/ems/modules/notice-message/notice-message.html', 'M', 2),
+       ('201', '200', '公告管理', 'notice_management', '/ems/modules/notice-manage/notice-manage.html', 'M', 1),
+       ('202', '200', '消息管理', 'todo_management', '/ems/modules/todo-manage/todo-manage.html', 'M', 2),
        ('300', '0', '课堂管理', 'class_management', '', 'D', 3),
        ('301', '300', '课程管理', 'course_management', '/ems/modules/course-list/course-list.html', 'M', 1),
        ('302', '300', '我的课程', 'my_course', '/ems/modules/my-course/my-course.html', 'M', 2),
@@ -88,8 +88,8 @@ VALUES ('1', '1', '100'),   -- 身份管理（管理员）
        ('4', '1', '103'),   -- 角色管理
        ('5', '1', '104'),   -- 菜单管理
        ('6', '1', '200'),   -- 系统管理
-       ('901', '1', '201'), -- 通知与公告管理
-       ('902', '1', '202'), -- 公告与消息
+       ('901', '1', '201'), -- 公告管理
+       ('902', '1', '202'), -- 消息管理
        ('7', '1', '300'),   -- 课堂管理
        ('8', '1', '400'),   -- 实验管理
        ('301', '1', '301'), -- 课程管理
@@ -103,7 +103,8 @@ INSERT INTO role_menu_relation(id, role_id, menu_id)
 VALUES ('2001', '2', '200'), -- 系统管理（目录）
        ('2002', '2', '300'), -- 课堂管理（目录）
        ('2003', '2', '400'), -- 实验管理（目录）
-       ('903', '2', '202'), -- 公告与消息
+
+       ('202', '2', '202'), -- 消息管理
        ('303', '2', '301'), -- 课程管理
        ('304', '2', '302'), -- 我的课程
        ('404', '2', '401'), -- 实验模板管理
@@ -115,7 +116,7 @@ INSERT INTO role_menu_relation(id, role_id, menu_id)
 VALUES ('3001', '3', '200'), -- 系统管理（目录）
        ('3002', '3', '300'), -- 课堂管理（目录）
        ('3003', '3', '400'), -- 实验管理（目录）
-       ('904', '3', '202'), -- 公告与消息
+
        ('305', '3', '302'), -- 我的课程
        ('407', '3', '402'); -- 实验报告管理
 

@@ -6,9 +6,11 @@ import cn.gzus.lyf.common.dto.Result;
 import cn.gzus.lyf.dao.entity.NoticeEntity;
 import cn.gzus.lyf.service.notice.NoticeService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -58,5 +60,23 @@ public class NoticeController {
     public Result<List<NoticeEntity>> getLatestNotices(Integer limit) {
         int finalLimit = limit == null ? 20 : limit;
         return Result.success(noticeService.getLatestNotices(finalLimit));
+    }
+
+    /**
+     * 获取最新公告（只保留一条）
+     */
+    @GetMapping("/latest")
+    public Result<List<NoticeEntity>> getLatestNotice(@RequestParam(defaultValue = "1") int limit) {
+        return Result.success(noticeService.getLatestNotices(limit));
+    }
+
+    /**
+     * 首页公告列表（分页，按时间倒序）
+     */
+    @GetMapping("/homeList")
+    public Result<PageDto<NoticeEntity>> getNoticeListPage(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return Result.success(noticeService.getNoticePage(page, size, new NoticeQueryDto()));
     }
 }

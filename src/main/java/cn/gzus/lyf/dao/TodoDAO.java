@@ -43,7 +43,7 @@ public class TodoDAO extends ServiceImpl<TodoMapper, TodoEntity> {
                 .eq(StringUtils.isNotEmpty(todoQueryDto.getReceiverId()), TodoEntity::getReceiverId, todoQueryDto.getReceiverId())
                 .eq(todoQueryDto.getStatus() != null, TodoEntity::getStatus, todoQueryDto.getStatus())
                 .orderByAsc(TodoEntity::getStatus)
-                .orderByDesc(TodoEntity::getUpdateTime)
+                .orderByDesc(TodoEntity::getCreateTime)
         );
         return BeanCopyUtils.copy(todoPage, PageDto.class);
     }

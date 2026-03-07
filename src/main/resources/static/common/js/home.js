@@ -25,7 +25,20 @@ const app = createApp({
             loadingTab: false,
             tabError: null,
             previousTabKey: null,
-            stats: []  // 首页统计数据
+            stats: [],  // 首页统计数据
+            // 公告相关
+            noticeList: [],
+            noticeLoading: true,
+            noticePagination: { current: 1, size: 10, total: 0, pages: 0 },
+            showNoticeDetailModal: false,
+            currentNotice: null,
+            // 消息相关
+            todoList: [],
+            todoLoading: true,
+            todoPagination: { current: 1, size: 10, total: 0, pages: 0 },
+            showTodoDetailModal: false,
+            currentTodo: null,
+            unreadCount: 0
         };
     },
 
@@ -34,6 +47,8 @@ const app = createApp({
         this.initData();
         this.fetchMenuList();
         this.fetchStats();
+        this.fetchNoticeList();
+        this.fetchTodoList();
 
         // 设置全局错误处理
         this.setupGlobalErrorHandling();
@@ -1347,6 +1362,153 @@ const app = createApp({
                 }
             } catch (error) {
                 console.error('获取用户信息失败:', error);
+            }
+        },
+
+        /**
+         * 获取公告列表（分页）
+         */
+        async fetchNoticeList() {
+            this.noticeLoading = true;
+            try {
+                const { current, size } = this.noticePagination;
+                const response = await fetch(`/notice/homeList?page=${current}&size=${size}`, {
+                    method: 'GET'
+                });
+                if (response && response.code === 200 && response.data) {
+                    this.noticeList = response.data.records || [];
+                    this.noticePagination.total = response.data.total || 0;
+                    this.noticePagination.pages = response.data.pages || 0;
+                    console.log('✅ [HOME] 公告列表加载成功，共', this.noticeList.length, '条');
+                }
+            } catch (error) {
+                console.error('❌ [HOME] 获取公告列表失败:', error);
+            } finally {
+                this.noticeLoading = false;
+            }
+        },
+
+        /**
+         * 切换公告页码
+         */
+        changeNoticePage(page) {
+            if (page < 1 || page > this.noticePagination.pages) return;
+            this.noticePagination.current = page;
+            this.fetchNoticeList();
+        },
+
+        /**
+         * 显示公告详情
+         */
+        showNoticeDetail(item) {
+            this.currentNotice = item;
+            this.showNoticeDetailModal = true;
+        },
+
+        /**
+         * 关闭公告详情弹窗
+         */
+        closeNoticeDetailModal() {
+            this.showNoticeDetailModal = false;
+            this.currentNotice = null;
+        },
+
+        /**
+         * 获取消息列表（分页）
+         */
+        async fetchTodoList() {
+            this.todoLoading = true;
+            try {
+                const { current, size } = this.todoPagination;
+                const response = await fetch(`/todo/homeList?page=${current}&size=${size}`, {
+                    method: 'GET'
+                });
+                if (response && response.code === 200 && response.data) {
+                    this.todoList = response.data.records || [];
+                    this.todoPagination.total = response.data.total || 0;
+                    this.todoPagination.pages = response.data.pages || 0;
+                    // 计算未读数量
+                    this.unreadCount = this.todoList.filter(item => item.status === 0).length;
+                    console.log('✅ [HOME] 消息列表加载成功，共', this.todoList.length, '条，未读', this.unreadCount, '条');
+                }
+            } catch (error) {
+                console.error('❌ [HOME] 获取消息列表失败:', error);
+            } finally {
+                this.todoLoading = false;
+            }
+        },
+
+        /**
+         * 切换消息页码
+         */
+        changeTodoPage(page) {
+            if (page < 1 || page > this.todoPagination.pages) return;
+            this.todoPagination.current = page;
+            this.fetchTodoList();
+        },
+
+        /**
+         * 显示消息详情
+         */
+        async showTodoDetail(item) {
+            this.currentTodo = item;
+            this.showTodoDetailModal = true;
+            // 如果消息未读，标记为已读
+            if (item.status === 0) {
+                await this.markTodoAsRead(item.id);
+            }
+        },
+
+        /**
+         * 标记消息为已读
+         */
+        async markTodoAsRead(todoId) {
+            try {
+                const response = await fetch('/todo/markRead', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ id: todoId })
+                });
+                if (response && response.code === 200) {
+                    // 更新本地状态
+                    const todo = this.todoList.find(t => t.id === todoId);
+                    if (todo) {
+                        todo.status = 1;
+                        this.unreadCount = this.todoList.filter(item => item.status === 0).length;
+                    }
+                    console.log('✅ [HOME] 消息已标记为已读:', todoId);
+                }
+            } catch (error) {
+                console.error('❌ [HOME] 标记消息已读失败:', error);
+            }
+        },
+
+        /**
+         * 关闭消息详情弹窗
+         */
+        closeTodoDetailModal() {
+            this.showTodoDetailModal = false;
+            this.currentTodo = null;
+        },
+
+        /**
+         * 格式化日期时间
+         */
+        formatDateTime(dateStr) {
+            if (!dateStr) return '-';
+            try {
+                const date = new Date(dateStr);
+                return date.toLocaleString('zh-CN', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            } catch (error) {
+                return dateStr;
             }
         },
 

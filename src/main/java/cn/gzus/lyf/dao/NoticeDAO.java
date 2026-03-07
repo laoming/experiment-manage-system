@@ -19,10 +19,19 @@ import java.util.Objects;
 @Service
 public class NoticeDAO extends ServiceImpl<NoticeMapper, NoticeEntity> {
 
+    /**
+     * 添加公告（只保留一条最新公告）
+     * @param noticeEntity 公告实体
+     * @return 是否成功
+     */
     public boolean addNotice(NoticeEntity noticeEntity) {
         Objects.requireNonNull(noticeEntity, "公告实体不能为空");
         Objects.requireNonNull(noticeEntity.getTitle(), "公告标题不能为空");
         Objects.requireNonNull(noticeEntity.getContent(), "公告内容不能为空");
+        
+        // 先删除所有旧公告，确保只保留一条最新公告
+        this.remove(Wrappers.<NoticeEntity>lambdaQuery().isNotNull(NoticeEntity::getId));
+        
         return this.save(noticeEntity);
     }
 

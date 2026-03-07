@@ -40,6 +40,126 @@
                         </div>
                     </div>
 
+                    <!-- 公告与消息展示区域 -->
+                    <div class="notice-message-section">
+                        <div class="notice-message-container">
+                            <!-- 公告列表 -->
+                            <div class="notice-card">
+                                <div class="card-header">
+                                    <span class="card-icon">📢</span>
+                                    <h3 class="card-title">公告</h3>
+                                </div>
+                                <div class="card-content">
+                                    <div v-if="noticeLoading" class="loading-text">加载中...</div>
+                                    <div v-else-if="noticeList.length === 0" class="empty-text">暂无公告</div>
+                                    <div v-else>
+                                        <div 
+                                            class="list-item" 
+                                            v-for="item in noticeList" 
+                                            :key="item.id"
+                                            @click="showNoticeDetail(item)"
+                                        >
+                                            <div class="list-item-title">{{ item.title }}</div>
+                                            <div class="list-item-time">{{ formatDateTime(item.createTime) }}</div>
+                                        </div>
+                                        <!-- 分页 -->
+                                        <div class="pagination" v-if="noticePagination.pages > 1">
+                                            <button 
+                                                class="page-btn" 
+                                                :disabled="noticePagination.current <= 1"
+                                                @click="changeNoticePage(noticePagination.current - 1)"
+                                            >上一页</button>
+                                            <span class="page-info">第 {{ noticePagination.current }} / {{ noticePagination.pages }} 页</span>
+                                            <button 
+                                                class="page-btn" 
+                                                :disabled="noticePagination.current >= noticePagination.pages"
+                                                @click="changeNoticePage(noticePagination.current + 1)"
+                                            >下一页</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 消息列表 -->
+                            <div class="todo-card">
+                                <div class="card-header">
+                                    <span class="card-icon">📋</span>
+                                    <h3 class="card-title">消息</h3>
+                                    <span class="unread-badge" v-if="unreadCount > 0">{{ unreadCount }}</span>
+                                </div>
+                                <div class="card-content">
+                                    <div v-if="todoLoading" class="loading-text">加载中...</div>
+                                    <div v-else-if="todoList.length === 0" class="empty-text">暂无消息</div>
+                                    <div v-else>
+                                        <div 
+                                            class="list-item" 
+                                            :class="{ 'item-unread': item.status === 0 }"
+                                            v-for="item in todoList" 
+                                            :key="item.id"
+                                            @click="showTodoDetail(item)"
+                                        >
+                                            <div class="list-item-left">
+                                                <span class="status-dot" :class="item.status === 0 ? 'dot-unread' : 'dot-read'"></span>
+                                                <div class="list-item-title">{{ item.title }}</div>
+                                            </div>
+                                            <div class="list-item-time">{{ formatDateTime(item.createTime) }}</div>
+                                        </div>
+                                        <!-- 分页 -->
+                                        <div class="pagination" v-if="todoPagination.pages > 1">
+                                            <button 
+                                                class="page-btn" 
+                                                :disabled="todoPagination.current <= 1"
+                                                @click="changeTodoPage(todoPagination.current - 1)"
+                                            >上一页</button>
+                                            <span class="page-info">第 {{ todoPagination.current }} / {{ todoPagination.pages }} 页</span>
+                                            <button 
+                                                class="page-btn" 
+                                                :disabled="todoPagination.current >= todoPagination.pages"
+                                                @click="changeTodoPage(todoPagination.current + 1)"
+                                            >下一页</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 公告详情弹窗 -->
+                    <div class="modal-overlay" v-show="showNoticeDetailModal" @click.self="closeNoticeDetailModal">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h2>公告详情</h2>
+                                <button class="modal-close" @click="closeNoticeDetailModal">×</button>
+                            </div>
+                            <div class="modal-body" v-if="currentNotice">
+                                <div class="detail-title">{{ currentNotice.title }}</div>
+                                <div class="detail-meta">
+                                    <span>发布人：{{ currentNotice.creatorName }}</span>
+                                    <span>发布时间：{{ formatDateTime(currentNotice.createTime) }}</span>
+                                </div>
+                                <div class="detail-content">{{ currentNotice.content }}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 消息详情弹窗 -->
+                    <div class="modal-overlay" v-show="showTodoDetailModal" @click.self="closeTodoDetailModal">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h2>消息详情</h2>
+                                <button class="modal-close" @click="closeTodoDetailModal">×</button>
+                            </div>
+                            <div class="modal-body" v-if="currentTodo">
+                                <div class="detail-title">{{ currentTodo.title }}</div>
+                                <div class="detail-meta">
+                                    <span>发送人：{{ currentTodo.creatorName }}</span>
+                                    <span>发送时间：{{ formatDateTime(currentTodo.createTime) }}</span>
+                                </div>
+                                <div class="detail-content">{{ currentTodo.content }}</div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- 功能卡片（菜单目录） -->
                     <div v-if="menuDirectories.length > 0" class="menu-section">
                         <div v-for="directory in menuDirectories" :key="directory.id" class="menu-directory-card">

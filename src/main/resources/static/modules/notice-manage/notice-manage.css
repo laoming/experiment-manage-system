@@ -3,47 +3,19 @@
  * 公共样式已在 common.css 中定义，本文件仅定义模块私有样式
  */
 
-/* ==================== 标签栏 ==================== */
-
-.notice-tab-bar {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 20px;
-}
-
-.notice-tab-btn {
-    padding: 10px 20px;
-    border: 1px solid #e0e0e0;
-    background: white;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 14px;
-    color: #666;
-    transition: all 0.3s;
-}
-
-.notice-tab-btn.active {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border-color: transparent;
-}
-
 /* ==================== 公告表格私有样式 ==================== */
 
-.notice-table,
-.todo-table {
+.notice-table {
     width: 100%;
     border-collapse: collapse;
 }
 
-.notice-table thead,
-.todo-table thead {
+.notice-table thead {
     background: #fafafa;
     border-bottom: 2px solid #f0f0f0;
 }
 
-.notice-table th,
-.todo-table th {
+.notice-table th {
     padding: 16px;
     text-align: left;
     font-weight: 600;
@@ -51,21 +23,18 @@
     font-size: 14px;
 }
 
-.notice-table td,
-.todo-table td {
+.notice-table td {
     padding: 16px;
     border-bottom: 1px solid #f0f0f0;
     color: #666;
     font-size: 14px;
 }
 
-.notice-table tbody tr:hover,
-.todo-table tbody tr:hover {
+.notice-table tbody tr:hover {
     background: #fafafa;
 }
 
-.notice-table tbody tr:last-child td,
-.todo-table tbody tr:last-child td {
+.notice-table tbody tr:last-child td {
     border-bottom: none;
 }
 
@@ -78,40 +47,11 @@
     color: #999;
 }
 
-/* 状态徽章 */
-.status-badge {
-    padding: 4px 12px;
-    border-radius: 12px;
-    font-size: 12px;
-    font-weight: 500;
-    display: inline-block;
-}
-
-.status-pending {
-    background: #fffbe6;
-    color: #faad14;
-    border: 1px solid #ffe58f;
-}
-
-.status-done {
-    background: #f6ffed;
-    color: #52c41a;
-    border: 1px solid #b7eb8f;
-}
-
-.status-unknown {
-    background: #f5f5f5;
-    color: #999;
-    border: 1px solid #d9d9d9;
-}
-
 /* ==================== 响应式设计 ==================== */
 
 @media (max-width: 768px) {
     .notice-table th,
-    .notice-table td,
-    .todo-table th,
-    .todo-table td {
+    .notice-table td {
         padding: 12px 8px;
         font-size: 12px;
     }
