@@ -2,7 +2,9 @@ package cn.gzus.lyf.service.auth;
 
 import cn.gzus.lyf.common.dto.PageDto;
 import cn.gzus.lyf.dao.MenuDAO;
+import cn.gzus.lyf.dao.RoleMenuRelationDAO;
 import cn.gzus.lyf.dao.entity.MenuEntity;
+import cn.gzus.lyf.dao.entity.RoleMenuRelationEntity;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -18,10 +20,16 @@ import java.util.Objects;
 public class MenuService {
 
     private MenuDAO menuDAO;
+    private RoleMenuRelationDAO roleMenuRelationDAO;
 
     @Autowired
     public void setMenuDAO(MenuDAO menuDAO) {
         this.menuDAO = menuDAO;
+    }
+
+    @Autowired
+    public void setRoleMenuRelationDAO(RoleMenuRelationDAO roleMenuRelationDAO) {
+        this.roleMenuRelationDAO = roleMenuRelationDAO;
     }
 
     /**
@@ -77,11 +85,37 @@ public class MenuService {
         }
 
         // 检查菜单是否被角色使用
-        if (menuDAO.isMenuUsed(menuId)) {
+        if (isMenuUsed(menuId)) {
             throw new RuntimeException("该菜单已被角色关联，无法删除");
         }
         
         return menuDAO.removeById(menuId);
+    }
+
+    /**
+     * 检查菜单是否被角色使用
+     * @param menuId 菜单ID
+     * @return 是否被使用
+     */
+    private boolean isMenuUsed(String menuId) {
+        Objects.requireNonNull(menuId, "菜单ID不能为空");
+        
+        // 检查是否有子菜单
+        Long count = menuDAO.count(new LambdaQueryWrapper<MenuEntity>()
+                .eq(MenuEntity::getParentId, menuId));
+        
+        // 如果有子菜单，说明被间接使用
+        if (count > 0) {
+            return true;
+        }
+        
+        // 检查是否被角色直接关联
+        Long relationCount = roleMenuRelationDAO.count(
+            new LambdaQueryWrapper<RoleMenuRelationEntity>()
+                .eq(RoleMenuRelationEntity::getMenuId, menuId)
+        );
+        
+        return relationCount > 0;
     }
 
     /**

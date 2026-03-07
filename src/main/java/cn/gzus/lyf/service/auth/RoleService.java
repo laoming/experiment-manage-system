@@ -5,6 +5,7 @@ import cn.gzus.lyf.common.dto.RoleQueryDto;
 import cn.gzus.lyf.dao.MenuDAO;
 import cn.gzus.lyf.dao.RoleMenuRelationDAO;
 import cn.gzus.lyf.dao.RoleDAO;
+import cn.gzus.lyf.dao.UserDAO;
 import cn.gzus.lyf.dao.entity.MenuEntity;
 import cn.gzus.lyf.dao.entity.RoleEntity;
 import cn.gzus.lyf.dao.entity.RoleMenuRelationEntity;
@@ -25,6 +26,7 @@ public class RoleService {
     private RoleDAO roleDAO;
     private RoleMenuRelationDAO roleMenuRelationDAO;
     private MenuDAO menuDAO;
+    private UserDAO userDAO;
 
     @Autowired
     public void setRoleDAO(RoleDAO roleDAO) {
@@ -39,6 +41,11 @@ public class RoleService {
     @Autowired
     public void setMenuDAO(MenuDAO menuDAO) {
         this.menuDAO = menuDAO;
+    }
+
+    @Autowired
+    public void setUserDAO(UserDAO userDAO) {
+        this.userDAO = userDAO;
     }
 
     /**
@@ -74,7 +81,7 @@ public class RoleService {
         Objects.requireNonNull(roleDAO.getById(roleId), "角色id不存在");
 
         // 检查角色是否被用户使用
-        if (roleDAO.isRoleUsed(roleId)) {
+        if (userDAO.isRoleUsed(roleId)) {
             throw new RuntimeException("该角色已被用户使用，无法删除");
         }
 
