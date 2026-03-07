@@ -41,10 +41,18 @@
 .text-strong {
     font-weight: 600;
     color: #333;
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .text-muted {
     color: #999;
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 /* ==================== 响应式设计 ==================== */

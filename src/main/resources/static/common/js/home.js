@@ -1420,7 +1420,7 @@ const app = createApp({
             this.todoLoading = true;
             try {
                 const { current, size } = this.todoPagination;
-                const response = await fetch(`/todo/homeList?page=${current}&size=${size}`, {
+                const response = await fetch(`/message/homeList?page=${current}&size=${size}`, {
                     method: 'GET'
                 });
                 if (response && response.code === 200 && response.data) {
@@ -1464,7 +1464,7 @@ const app = createApp({
          */
         async markTodoAsRead(todoId) {
             try {
-                const response = await fetch('/todo/markRead', {
+                const response = await fetch('/message/markRead', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'

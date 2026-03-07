@@ -5,23 +5,23 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import java.util.Date;
 
 /**
- * 待办表实体类
+ * 消息表实体类
  */
-@TableName("todo")
-public class TodoEntity {
+@TableName("message")
+public class MessageEntity {
 
     /**
-     * 待办ID
+     * 消息ID
      */
     private String id;
 
     /**
-     * 待办标题
+     * 消息标题
      */
     private String title;
 
     /**
-     * 待办内容
+     * 消息内容
      */
     private String content;
 
@@ -36,7 +36,7 @@ public class TodoEntity {
     private String receiverName;
 
     /**
-     * 状态：0-未完成，1-已完成
+     * 状态：0-未读，1-已读
      */
     private Integer status;
 

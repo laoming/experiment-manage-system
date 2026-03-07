@@ -7,7 +7,7 @@ const app = Vue.createApp({
         return {
             pageError: null,
             loading: true,
-            todoList: [],
+            messageList: [],
             userOptions: [],
             queryForm: {
                 title: '',
@@ -35,7 +35,7 @@ const app = Vue.createApp({
     },
 
     errorCaptured(err, vm, info) {
-        console.error('[TODO] Vue组件错误:', err, info);
+        console.error('[MESSAGE] Vue组件错误:', err, info);
         this.pageError = err.message || '页面加载失败';
         return false;
     },
@@ -44,9 +44,9 @@ const app = Vue.createApp({
         async initPage() {
             try {
                 await this.fetchUserOptions();
-                await this.fetchTodoList();
+                await this.fetchMessageList();
             } catch (error) {
-                console.error('[TODO] 初始化页面失败:', error);
+                console.error('[MESSAGE] 初始化页面失败:', error);
                 this.pageError = '初始化页面失败: ' + (error.message || '未知错误');
             }
         },
@@ -58,7 +58,7 @@ const app = Vue.createApp({
                     window.location.href = '/ems/common/pages/index.html';
                 }
             } catch (error) {
-                console.error('[TODO] 检查登录状态失败:', error);
+                console.error('[MESSAGE] 检查登录状态失败:', error);
                 window.location.href = '/ems/common/pages/index.html';
             }
         },
@@ -78,15 +78,15 @@ const app = Vue.createApp({
                     this.showError('获取用户列表失败: ' + (result.message || '未知错误'));
                 }
             } catch (error) {
-                console.error('[TODO] 获取用户列表失败:', error);
+                console.error('[MESSAGE] 获取用户列表失败:', error);
                 this.showError('获取用户列表失败: ' + error.message);
             }
         },
 
-        async fetchTodoList() {
+        async fetchMessageList() {
             this.loading = true;
             try {
-                const result = await fetch(`/todo/page?current=${this.pagination.current}&size=${this.pagination.size}`, {
+                const result = await fetch(`/message/page?current=${this.pagination.current}&size=${this.pagination.size}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -94,14 +94,14 @@ const app = Vue.createApp({
                     body: JSON.stringify(this.queryForm)
                 });
                 if (result.code === 200) {
-                    this.todoList = result.data.records || [];
+                    this.messageList = result.data.records || [];
                     this.pagination.total = result.data.total || 0;
                     this.pagination.pages = result.data.pages || 0;
                 } else {
                     this.showError('获取消息列表失败: ' + (result.message || '未知错误'));
                 }
             } catch (error) {
-                console.error('[TODO] 获取消息列表失败:', error);
+                console.error('[MESSAGE] 获取消息列表失败:', error);
                 this.showError('获取消息列表失败: ' + error.message);
             } finally {
                 this.loading = false;
@@ -110,7 +110,7 @@ const app = Vue.createApp({
 
         handleSearch() {
             this.pagination.current = 1;
-            this.fetchTodoList();
+            this.fetchMessageList();
         },
 
         handleReset() {
@@ -120,12 +120,12 @@ const app = Vue.createApp({
                 status: null
             };
             this.pagination.current = 1;
-            this.fetchTodoList();
+            this.fetchMessageList();
         },
 
         handlePageChange(page) {
             this.pagination.current = page;
-            this.fetchTodoList();
+            this.fetchMessageList();
         },
 
         openModal() {
@@ -162,7 +162,7 @@ const app = Vue.createApp({
             const receiverName = receiver ? (receiver.displayName || receiver.username) : '';
 
             try {
-                const result = await fetch('/todo/add', {
+                const result = await fetch('/message/add', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -179,36 +179,36 @@ const app = Vue.createApp({
                 if (result.code === 200) {
                     this.showSuccess('发送消息成功');
                     this.closeModal();
-                    this.fetchTodoList();
+                    this.fetchMessageList();
                 } else {
                     this.showError('发送消息失败: ' + (result.message || '未知错误'));
                 }
             } catch (error) {
-                console.error('[TODO] 发送消息失败:', error);
+                console.error('[MESSAGE] 发送消息失败:', error);
                 this.showError('发送消息失败: ' + error.message);
             }
         },
 
-        async handleDelete(todo) {
-            if (!confirm(`确定要删除消息 "${todo.title}" 吗？`)) {
+        async handleDelete(message) {
+            if (!confirm(`确定要删除消息 "${message.title}" 吗？`)) {
                 return;
             }
             try {
-                const result = await fetch('/todo/delete', {
+                const result = await fetch('/message/delete', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ id: todo.id })
+                    body: JSON.stringify({ id: message.id })
                 });
                 if (result.code === 200) {
                     this.showSuccess('删除消息成功');
-                    this.fetchTodoList();
+                    this.fetchMessageList();
                 } else {
                     this.showError('删除消息失败: ' + (result.message || '未知错误'));
                 }
             } catch (error) {
-                console.error('[TODO] 删除消息失败:', error);
+                console.error('[MESSAGE] 删除消息失败:', error);
                 this.showError('删除消息失败: ' + error.message);
             }
         },

@@ -62,7 +62,7 @@ VALUES ('100', '0', '身份管理', 'auth_management', '', 'D', 1),
        ('104', '100', '菜单管理', 'menu_management', '/ems/modules/menu/menu.html', 'M', 4),
        ('200', '0', '系统管理', 'system_management', '', 'D', 2),
        ('201', '200', '公告管理', 'notice_management', '/ems/modules/notice-manage/notice-manage.html', 'M', 1),
-       ('202', '200', '消息管理', 'todo_management', '/ems/modules/todo-manage/todo-manage.html', 'M', 2),
+       ('202', '200', '消息管理', 'message_management', '/ems/modules/message-manage/message-manage.html', 'M', 2),
        ('300', '0', '课堂管理', 'class_management', '', 'D', 3),
        ('301', '300', '课程管理', 'course_management', '/ems/modules/course-list/course-list.html', 'M', 1),
        ('302', '300', '我的课程', 'my_course', '/ems/modules/my-course/my-course.html', 'M', 2),
@@ -157,17 +157,17 @@ CREATE TABLE notice
     update_time  DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL COMMENT '更新时间'
 ) COMMENT '公告表';
 
--- 7. 待办表
-CREATE TABLE todo
+-- 7. 消息表
+CREATE TABLE message
 (
-    id            VARCHAR(64) PRIMARY KEY COMMENT '待办ID',
-    title         VARCHAR(200)                       NOT NULL COMMENT '待办标题',
-    content       TEXT                               NOT NULL COMMENT '待办内容',
+    id            VARCHAR(64) PRIMARY KEY COMMENT '消息ID',
+    title         VARCHAR(200)                       NOT NULL COMMENT '消息标题',
+    content       TEXT                               NOT NULL COMMENT '消息内容',
     receiver_id   VARCHAR(64)                        NOT NULL COMMENT '接收人ID',
     receiver_name VARCHAR(50)                        NOT NULL COMMENT '接收人名称',
-    status        INT         DEFAULT 0              NOT NULL COMMENT '状态：0-未完成，1-已完成',
+    status        INT         DEFAULT 0              NOT NULL COMMENT '状态：0-未读，1-已读',
     creator_id    VARCHAR(64)                        NOT NULL COMMENT '创建人ID',
     creator_name  VARCHAR(50)                        NOT NULL COMMENT '创建人名称',
     create_time   DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL COMMENT '创建时间',
     update_time   DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL COMMENT '更新时间'
-) COMMENT '待办表';
+) COMMENT '消息表';

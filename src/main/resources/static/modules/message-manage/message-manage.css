@@ -5,17 +5,17 @@
 
 /* ==================== 消息表格私有样式 ==================== */
 
-.todo-table {
+.message-table {
     width: 100%;
     border-collapse: collapse;
 }
 
-.todo-table thead {
+.message-table thead {
     background: #fafafa;
     border-bottom: 2px solid #f0f0f0;
 }
 
-.todo-table th {
+.message-table th {
     padding: 16px;
     text-align: left;
     font-weight: 600;
@@ -23,28 +23,36 @@
     font-size: 14px;
 }
 
-.todo-table td {
+.message-table td {
     padding: 16px;
     border-bottom: 1px solid #f0f0f0;
     color: #666;
     font-size: 14px;
 }
 
-.todo-table tbody tr:hover {
+.message-table tbody tr:hover {
     background: #fafafa;
 }
 
-.todo-table tbody tr:last-child td {
+.message-table tbody tr:last-child td {
     border-bottom: none;
 }
 
 .text-strong {
     font-weight: 600;
     color: #333;
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .text-muted {
     color: #999;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 /* 状态徽章 */
@@ -77,8 +85,8 @@
 /* ==================== 响应式设计 ==================== */
 
 @media (max-width: 768px) {
-    .todo-table th,
-    .todo-table td {
+    .message-table th,
+    .message-table td {
         padding: 12px 8px;
         font-size: 12px;
     }
