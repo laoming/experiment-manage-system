@@ -66,6 +66,11 @@ public class ExperimentReportEntity {
     private String comment;
 
     /**
+     * PDF报告文件URL
+     */
+    private String pdfUrl;
+
+    /**
      * 创建时间
      */
     private Date createTime;
@@ -161,6 +166,14 @@ public class ExperimentReportEntity {
 
     public void setComment(String comment) {
         this.comment = comment;
+    }
+
+    public String getPdfUrl() {
+        return pdfUrl;
+    }
+
+    public void setPdfUrl(String pdfUrl) {
+        this.pdfUrl = pdfUrl;
     }
 
     public Date getCreateTime() {

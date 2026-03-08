@@ -57,6 +57,9 @@
                 </div>
             </div>
             <div class="header-right">
+                <button class="btn btn-info" onclick="uploadPdfReport()">
+                    <span>📤</span> 上传报告
+                </button>
                 <button class="btn btn-danger" onclick="resetReport()">重置</button>
                 <button class="btn btn-secondary" onclick="saveDraft()">保存草稿</button>
                 <button class="btn btn-success" onclick="exportMarkdown()">导出Markdown</button>
@@ -66,6 +69,20 @@
 
         <div class="report-content" id="reportContent">
             <!-- 报告内容将通过JS动态生成 -->
+        </div>
+
+        <!-- PDF报告预览区域 -->
+        <div class="pdf-preview-area" id="pdfPreviewArea" style="display: none;">
+            <div class="pdf-preview-header">
+                <span class="pdf-preview-title">已上传的PDF报告</span>
+                <div class="pdf-preview-actions">
+                    <a id="pdfOpenLink" href="" target="_blank" class="btn btn-sm btn-info">新窗口打开</a>
+                    <button class="btn btn-sm btn-danger" onclick="removePdfReport()">删除</button>
+                </div>
+            </div>
+            <div class="pdf-preview-container">
+                <embed id="pdfPreviewEmbed" src="" type="application/pdf" width="100%" height="100%">
+            </div>
         </div>
     </div>
 

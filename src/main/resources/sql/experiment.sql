@@ -37,6 +37,7 @@ CREATE TABLE experiment_report
     status      VARCHAR(20) DEFAULT 'draft' COMMENT '报告状态：draft-待提交, submitted-已提交, graded-已评价',
     score       INT COMMENT '分数',
     comment     TEXT COMMENT '评语',
+    pdf_url     VARCHAR(500) COMMENT 'PDF报告文件URL',
     grade_time  DATETIME COMMENT '评价时间',
     create_time DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL COMMENT '创建时间',
     update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL COMMENT '更新时间',

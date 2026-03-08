@@ -3,6 +3,7 @@ let currentTemplate = null;
 let currentReport = null;
 let currentTemplateId = null;
 let currentCourseId = null;
+let currentPdfUrl = null; // 当前PDF文件URL
 let pendingReports = [];
 let submittedReports = [];
 
@@ -259,6 +260,8 @@ function showReportList() {
     currentTemplate = null;
     currentTemplateId = null;
     currentCourseId = null;
+    currentPdfUrl = null;
+    hidePdfPreview();
     loadReportOverview();
 }
 
@@ -297,6 +300,7 @@ window.editReportByTemplate = async function(templateId, reportId) {
         if (result.code === 200 && result.data) {
             currentReport = result.data;
             currentCourseId = result.data.courseId;
+            currentPdfUrl = result.data.pdfUrl || null; // 加载已保存的PDF URL
             document.getElementById('reportName').value = result.data.reportName;
 
             // 调试：从数据库加载的 Markdown 内容
@@ -304,6 +308,7 @@ window.editReportByTemplate = async function(templateId, reportId) {
             console.log('[REPORT] 从数据库加载的 reportContent:');
             console.log(result.data.reportContent);
             console.log('[REPORT] reportContent 类型:', typeof result.data.reportContent);
+            console.log('[REPORT] pdfUrl:', currentPdfUrl);
 
             const htmlContent = markdownToHtml(result.data.reportContent);
 
@@ -570,6 +575,13 @@ function showReportEditor() {
     document.getElementById('pendingContainer').style.display = 'none';
     document.getElementById('submittedContainer').style.display = 'none';
     document.getElementById('reportTabs').style.display = 'none';
+
+    // 显示已上传的PDF预览（同时隐藏模板编辑区域），或显示模板编辑区域
+    if (currentPdfUrl) {
+        showPdfPreview(currentPdfUrl);
+    } else {
+        hidePdfPreview();
+    }
 }
 
 // 重置报告（重新加载模板内容）
@@ -578,25 +590,29 @@ window.resetReport = async function() {
         alert('无法重置：未找到模板信息');
         return;
     }
-    
-    if (!confirm('确定要重置吗？这将清空所有已填写的内容，恢复为模板初始状态。')) {
+
+    if (!confirm('确定要重置吗？这将清空所有已填写的内容和已上传的PDF报告，恢复为模板初始状态。')) {
         return;
     }
-    
+
     try {
         const result = await API.post(`/experimentTemplate/get?templateId=${currentTemplateId}`, {});
-        
+
         if (result.code === 200 && result.data) {
             // 重置报告名称为模板名称
             document.getElementById('reportName').value = result.data.templateName;
-            
+
             // 重新渲染模板内容
             const htmlContent = markdownToHtml(result.data.templateContent);
             renderReportEditorFromHtml(htmlContent);
-            
+
             // 清除当前报告关联（视为新报告）
             currentReport = null;
-            
+
+            // 清除PDF URL并隐藏PDF预览，显示模板编辑区域
+            currentPdfUrl = null;
+            hidePdfPreview();
+
             alert('已重置为模板初始状态');
         } else {
             alert('重置失败: ' + (result.message || '未知错误'));
@@ -659,7 +675,8 @@ window.saveReport = async function(isSubmit) {
         courseId: currentCourseId,
         reportName: reportName,
         reportContent: markdownContent,
-        studentId: Auth.getUserId() || '1'
+        studentId: Auth.getUserId() || '1',
+        pdfUrl: currentPdfUrl
     };
 
     const apiUrl = currentReport ? '/experimentReport/update' : '/experimentReport/add';
@@ -757,6 +774,7 @@ window.viewReport = async function(reportId) {
             currentReport = result.data;
             currentTemplateId = result.data.templateId;
             currentCourseId = result.data.courseId;
+            currentPdfUrl = result.data.pdfUrl || null;
             document.getElementById('reportName').value = result.data.reportName;
 
             const htmlContent = markdownToHtml(result.data.reportContent);
@@ -813,3 +831,94 @@ function formatDate(dateStr) {
         minute: '2-digit'
     });
 }
+
+// 上传PDF报告
+window.uploadPdfReport = function() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.pdf,application/pdf';
+
+    input.onchange = async function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        if (file.type !== 'application/pdf') {
+            alert('请选择PDF文件');
+            return;
+        }
+
+        // 检查文件大小（限制10MB）
+        if (file.size > 10 * 1024 * 1024) {
+            alert('PDF文件大小不能超过10MB');
+            return;
+        }
+
+        try {
+            const result = await API.uploadFile(file);
+
+            if (result.code === 200 && result.data && result.data.url) {
+                currentPdfUrl = result.data.url;
+                showPdfPreview(currentPdfUrl);
+                alert('PDF报告上传成功');
+            } else {
+                alert('上传失败：' + (result.message || '未知错误'));
+            }
+        } catch (error) {
+            console.error('[REPORT] 上传PDF失败:', error);
+            alert('上传失败：' + error.message);
+        }
+    };
+
+    input.click();
+};
+
+// 显示PDF预览
+function showPdfPreview(pdfUrl) {
+    const pdfArea = document.getElementById('pdfPreviewArea');
+    const pdfEmbed = document.getElementById('pdfPreviewEmbed');
+    const pdfOpenLink = document.getElementById('pdfOpenLink');
+    const reportContent = document.getElementById('reportContent');
+
+    if (pdfArea && pdfEmbed && pdfUrl) {
+        // 添加参数隐藏工具栏，避免触发下载插件
+        pdfEmbed.src = pdfUrl + '#toolbar=0&navpanes=0';
+        pdfArea.style.display = 'block';
+        // 设置新窗口打开链接
+        if (pdfOpenLink) {
+            pdfOpenLink.href = pdfUrl;
+        }
+        // 隐藏实验模板编辑区域
+        if (reportContent) {
+            reportContent.style.display = 'none';
+        }
+    }
+}
+
+// 隐藏PDF预览
+function hidePdfPreview() {
+    const pdfArea = document.getElementById('pdfPreviewArea');
+    const pdfEmbed = document.getElementById('pdfPreviewEmbed');
+    const pdfOpenLink = document.getElementById('pdfOpenLink');
+    const reportContent = document.getElementById('reportContent');
+
+    if (pdfArea && pdfEmbed) {
+        pdfEmbed.src = '';
+        pdfArea.style.display = 'none';
+    }
+    // 清除新窗口打开链接
+    if (pdfOpenLink) {
+        pdfOpenLink.href = '';
+    }
+    // 显示实验模板编辑区域
+    if (reportContent) {
+        reportContent.style.display = 'block';
+    }
+}
+
+// 删除PDF报告
+window.removePdfReport = function() {
+    if (confirm('确定要删除已上传的PDF报告吗？')) {
+        currentPdfUrl = null;
+        hidePdfPreview();
+    }
+};
