@@ -35,3 +35,10 @@ jwt:
   secret: xK3j9vN2m5q8w1e4r7t0y3u6i9o2p5a8s1d4f7g0h3j6k9l2n5m8q1w4e7r0t3
   expire: 1800000 # 30分钟
   enabled: true # 是否启用Token验证，默认开启，方便测试时可以关闭
+
+# MinIO 文件存储配置
+minio:
+  endpoint: http://localhost:9000  # MinIO服务地址
+  access-key: admin123             # 访问密钥
+  secret-key: admin12345678        # 秘密密钥
+  bucket-name: ems                 # 存储桶名称
