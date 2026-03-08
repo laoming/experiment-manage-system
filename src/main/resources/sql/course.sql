@@ -1,4 +1,3 @@
--- 课程管理相关表
 
 -- 课程表
 CREATE TABLE course

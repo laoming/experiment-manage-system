@@ -2,12 +2,15 @@ package cn.gzus.lyf.service.file;
 
 import cn.gzus.lyf.common.config.MinioConfig;
 import cn.gzus.lyf.common.exception.BusinessException;
+import cn.gzus.lyf.dao.FileDAO;
+import cn.gzus.lyf.dao.entity.FileEntity;
 import io.minio.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
+import java.util.Date;
 import java.util.UUID;
 
 @Service
@@ -15,6 +18,7 @@ public class FileService {
 
     private MinioClient minioClient;
     private MinioConfig minioConfig;
+    private FileDAO fileDAO;
 
     @Autowired
     public void setMinioClient(MinioClient minioClient) {
@@ -26,13 +30,19 @@ public class FileService {
         this.minioConfig = minioConfig;
     }
 
+    @Autowired
+    public void setFileDAO(FileDAO fileDAO) {
+        this.fileDAO = fileDAO;
+    }
+
     /**
      * 上传文件
      *
      * @param file 文件
+     * @param uploaderId 上传者ID
      * @return 文件对象名称（用于后续通过 /file/access 或 /file/download 访问）
      */
-    public String upload(MultipartFile file) {
+    public String upload(MultipartFile file, String uploaderId) {
         String bucketName = minioConfig.getBucketName();
         try {
             // 检查存储桶是否存在，不存在则创建
@@ -65,11 +75,32 @@ public class FileService {
                 throw new BusinessException("文件上传失败: " + e.getMessage());
             }
 
+            // 保存文件信息到数据库
+            FileEntity fileEntity = new FileEntity();
+            fileEntity.setId(UUID.randomUUID().toString().replace("-", ""));
+            fileEntity.setObjectName(objectName);
+            fileEntity.setOriginalName(originalFilename);
+            fileEntity.setFileSize(file.getSize());
+            fileEntity.setContentType(file.getContentType());
+            fileEntity.setUploaderId(uploaderId);
+            fileEntity.setCreateTime(new Date());
+            fileDAO.save(fileEntity);
+
             // 返回文件对象名称，通过后端 /file/access 或 /file/download 接口访问（永久有效）
             return objectName;
         } catch (Exception e) {
             throw new BusinessException("文件上传失败: " + e.getMessage());
         }
+    }
+
+    /**
+     * 根据对象名称获取文件信息
+     *
+     * @param objectName 文件对象名称
+     * @return 文件信息实体
+     */
+    public FileEntity getFileInfoByObjectName(String objectName) {
+        return fileDAO.getByObjectName(objectName);
     }
 
 
