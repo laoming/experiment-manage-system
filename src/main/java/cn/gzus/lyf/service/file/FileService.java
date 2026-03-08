@@ -55,13 +55,17 @@ public class FileService {
             }
             String objectName = UUID.randomUUID().toString().replace("-", "") + extension;
 
-            // 上传文件
-            minioClient.putObject(PutObjectArgs.builder()
-                    .bucket(bucketName)
-                    .object(objectName)
-                    .stream(file.getInputStream(), file.getSize(), -1)
-                    .contentType(file.getContentType())
-                    .build());
+            // 上传文件 - 使用 try-with-resources 确保输入流正确关闭
+            try (InputStream inputStream = file.getInputStream()) {
+                minioClient.putObject(PutObjectArgs.builder()
+                        .bucket(bucketName)
+                        .object(objectName)
+                        .stream(inputStream, file.getSize(), -1)
+                        .contentType(file.getContentType())
+                        .build());
+            } catch (Exception e) {
+                throw new BusinessException("文件上传失败: " + e.getMessage());
+            }
 
             // 返回文件访问URL（设置为最大有效期，7天）
             // 注意：MinIO预签名URL最长有效期为7天

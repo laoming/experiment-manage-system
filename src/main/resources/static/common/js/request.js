@@ -26,8 +26,9 @@
         };
 
         // 只在需要的时候添加 Content-Type（POST/PUT/PATCH 请求）
+        // 注意：如果请求体是 FormData，则不设置 Content-Type，让浏览器自动设置 multipart/form-data
         const method = (options.method || 'GET').toUpperCase();
-        if (['POST', 'PUT', 'PATCH'].includes(method)) {
+        if (['POST', 'PUT', 'PATCH'].includes(method) && !(options.body instanceof FormData)) {
             newOptions.headers['Content-Type'] = 'application/json';
         }
 

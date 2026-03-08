@@ -504,13 +504,10 @@
 
 .preview-image img {
     max-width: 100%;
+    max-height: 300px;
     border-radius: 6px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
-
-.preview-image.img-small img { max-height: 100px; }
-.preview-image.img-medium img { max-height: 200px; }
-.preview-image.img-large img { max-height: 350px; }
 
 .preview-image-placeholder {
     padding: 40px 20px;
@@ -518,6 +515,45 @@
     border-radius: 8px;
     text-align: center;
     color: #999;
+}
+
+/* 图片上传区域 */
+.image-upload-area {
+    text-align: center;
+    padding: 20px;
+}
+
+.upload-placeholder {
+    display: inline-block;
+    padding: 30px;
+    background: #f8f9ff;
+    border: 2px dashed #667eea;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.upload-placeholder:hover {
+    background: #eef0ff;
+    border-color: #5a6fd8;
+}
+
+.upload-placeholder p {
+    margin: 0;
+    color: #667eea;
+    font-size: 14px;
+}
+
+.image-upload-input {
+    display: none;
+}
+
+/* 图片描述文本 */
+.image-alt-text {
+    margin-top: 8px;
+    font-size: 12px;
+    color: #666;
+    text-align: center;
 }
 
 /* ==================== 报告编辑器中的块级组件样式 ==================== */
@@ -545,11 +581,22 @@
     pointer-events: auto;
 }
 
-/* 分割线、图片不可交互 */
-.report-read-only .block-component[data-type="divider"],
+/* 图片块级组件样式 */
 .report-read-only .block-component[data-type="image"] {
+    background: white;
+    text-align: center;
+    padding: 24px;
+}
+
+/* 分割线不可交互 */
+.report-read-only .block-component[data-type="divider"] {
     pointer-events: none;
     user-select: none;
+}
+
+/* 图片组件可交互（用于上传功能） */
+.report-read-only .block-component[data-type="image"] {
+    pointer-events: auto;
 }
 
 /* 标题样式 */

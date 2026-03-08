@@ -467,11 +467,44 @@
     max-height: 80vh;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
 }
 
 .modal-no-padding .modal-body {
     flex: 1;
+    min-height: 0;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* 大型弹窗样式 - 查看报告用 */
+.modal-large {
+    max-width: 900px;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.modal-large .modal-header {
+    flex-shrink: 0;
+}
+
+.modal-large .modal-body {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-large .modal-footer {
+    flex-shrink: 0;
+    margin-top: 0;
+    padding: 16px 24px;
+    border-top: 1px solid #f0f0f0;
+    background: white;
 }
 
 .report-viewer {
@@ -479,6 +512,7 @@
     flex-direction: column;
     height: 100%;
     overflow: hidden;
+    min-height: 0;
 }
 
 .report-info-bar {
@@ -518,6 +552,7 @@
 
 .report-content-wrapper {
     flex: 1;
+    min-height: 0;
     padding: 20px;
     overflow-y: auto;
 }
@@ -908,20 +943,7 @@
 }
 
 /* 查看报告弹窗 - 更大的尺寸 */
-.modal-no-padding {
+.modal-no-padding.modal-large {
     max-width: 95vw;
-    max-height: 92vh;
-}
-
-/* 查看报告弹窗内容区域 */
-.modal-no-padding .modal-body {
-    height: calc(92vh - 160px);
-    overflow: hidden;
-}
-
-/* 报告内容包装器 */
-.report-content-wrapper {
-    height: 100%;
-    overflow-y: auto;
-    padding: 24px;
+    max-height: 90vh;
 }

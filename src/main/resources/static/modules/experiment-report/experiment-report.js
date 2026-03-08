@@ -423,6 +423,49 @@ function renderReportEditorFromHtml(htmlContent) {
             blockEl.classList.remove('selected');
             blockEl.removeAttribute('contenteditable');
         }
+        
+        // 特别处理图片组件 - 如果没有URL，提供上传功能
+        if (type === 'image') {
+            const propsStr = blockEl.getAttribute('data-props') || '{}';
+            let props;
+            try {
+                props = JSON.parse(propsStr);
+            } catch (e) {
+                props = {};
+            }
+            
+            // 如果图片没有URL，为学生提供上传功能
+            if (!props.url || props.url === '') {
+                // 创建上传区域，显示图片描述
+                const body = blockEl.querySelector('.component-body');
+                if (body) {
+                    const altText = props.alt || '图片';
+                    body.innerHTML = `
+                        <div class="image-upload-area">
+                            <div class="upload-placeholder">
+                                <p>点击上传图片</p>
+                                <input type="file" accept="image/*" class="image-upload-input" style="display: none;">
+                            </div>
+                            <div class="image-alt-text">图片描述: ${altText}</div>
+                        </div>
+                    `;
+                    // 标记需要绑定事件，在 DOM 插入后处理
+                    blockEl.setAttribute('data-needs-upload-event', 'true');
+                }
+            } else {
+                // 有图片URL，显示图片和描述
+                const body = blockEl.querySelector('.component-body');
+                if (body) {
+                    const altText = props.alt || '';
+                    body.innerHTML = `
+                        <div class="preview-image">
+                            <img src="${props.url}" alt="${altText}">
+                        </div>
+                        ${altText ? `<div class="image-alt-text">图片描述: ${altText}</div>` : ''}
+                    `;
+                }
+            }
+        }
     });
 
     // 重要：保存 textarea 的值，因为 innerHTML 会丢失 textarea.value
@@ -445,6 +488,33 @@ function renderReportEditorFromHtml(htmlContent) {
 
     // 为整个内容区域添加只读样式
     content.classList.add('report-read-only');
+
+    // 绑定图片上传事件（必须在 DOM 插入后）
+    content.querySelectorAll('.block-component[data-type="image"][data-needs-upload-event]').forEach(blockEl => {
+        blockEl.removeAttribute('data-needs-upload-event');
+        const uploadPlaceholder = blockEl.querySelector('.upload-placeholder');
+        const uploadInput = blockEl.querySelector('.image-upload-input');
+        
+        if (uploadPlaceholder && uploadInput) {
+            uploadPlaceholder.addEventListener('click', function() {
+                uploadInput.click();
+            });
+            
+            uploadInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file && file.type.startsWith('image/')) {
+                    const propsStr = blockEl.getAttribute('data-props') || '{}';
+                    let props;
+                    try {
+                        props = JSON.parse(propsStr);
+                    } catch (ex) {
+                        props = {};
+                    }
+                    uploadReportImage(file, blockEl, props);
+                }
+            });
+        }
+    });
 
     // 4. 添加表格单元格事件监听（必须在DOM插入后）
     content.querySelectorAll('.block-component[data-type="table"]').forEach(blockEl => {
@@ -699,6 +769,36 @@ window.viewReport = async function(reportId) {
         console.error('[REPORT] 加载报告失败:', error);
         alert('加载报告失败');
     }
+}
+
+// 上传图片文件
+function uploadReportImage(file, blockEl, props) {
+    // 使用公共 API 工具类上传文件
+    API.uploadFile(file)
+    .then(result => {
+        if (result.code === 200 && result.data && result.data.url) {
+            // 更新组件属性
+            props.url = result.data.url;
+            blockEl.setAttribute('data-props', JSON.stringify(props));
+            
+            // 更新显示
+            const body = blockEl.querySelector('.component-body');
+            if (body) {
+                body.innerHTML = `
+                    <div class="preview-image">
+                        <img src="${props.url}" alt="${props.alt || '图片'}">
+                    </div>
+                    <div class="image-alt-text">图片描述: ${props.alt || ''}</div>
+                `;
+            }
+        } else {
+            alert('图片上传失败: ' + (result.message || '未知错误'));
+        }
+    })
+    .catch(error => {
+        console.error('图片上传失败:', error);
+        alert('图片上传失败: ' + error.message);
+    });
 }
 
 // 格式化日期

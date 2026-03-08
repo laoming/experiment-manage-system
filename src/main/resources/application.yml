@@ -38,7 +38,7 @@ jwt:
 
 # MinIO 文件存储配置
 minio:
-  endpoint: http://localhost:9000  # MinIO服务地址
+  endpoint: http://localhost:9005  # MinIO服务地址
   access-key: admin123             # 访问密钥
-  secret-key: admin12345678        # 秘密密钥
+  secret-key: sam12345678        # 秘密密钥
   bucket-name: ems                 # 存储桶名称

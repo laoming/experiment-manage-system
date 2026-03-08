@@ -101,10 +101,11 @@
         });
 
         // 4. 处理图片（转换为占位符）
+        // 注意：正则使用 * 而非 +，允许匹配空 URL 的情况，如 ![图片描述]()
         var imagePlaceholders = [];
-        processedMarkdown = processedMarkdown.replace(/!\[([^\]]*)\]\(([^\)]+)\)/g, function(match, alt, url) {
+        processedMarkdown = processedMarkdown.replace(/!\[([^\]]*)\]\(([^\)]*)\)/g, function(match, alt, url) {
             var imagePlaceholder = '%%IMAGE_' + imagePlaceholders.length + '%%';
-            imagePlaceholders.push({ alt: alt, url: url });
+            imagePlaceholders.push({ alt: alt, url: url || '' });
             return '\n' + imagePlaceholder + '\n';
         });
 
@@ -204,8 +205,15 @@
 
         // 11. 还原图片占位符
         imagePlaceholders.forEach(function(imageData, index) {
-            var props = { url: imageData.url, alt: imageData.alt, size: 'medium' };
-            var imageHtml = '<div class="block-component" contenteditable="false" data-type="image" data-props="' + JSON.stringify(props).replace(/"/g, '&quot;') + '"><div class="component-body"><div class="preview-image img-medium"><img src="' + imageData.url + '" alt="' + imageData.alt + '"></div></div></div>';
+            var props = { url: imageData.url || '', alt: imageData.alt || '' };
+            var imageHtml;
+            if (imageData.url) {
+                // 有 URL，显示图片
+                imageHtml = '<div class="block-component" contenteditable="false" data-type="image" data-props="' + JSON.stringify(props).replace(/"/g, '&quot;') + '"><div class="component-body"><div class="preview-image"><img src="' + imageData.url + '" alt="' + (imageData.alt || '') + '"></div></div></div>';
+            } else {
+                // 无 URL，显示占位符（模板编辑时学生可上传）
+                imageHtml = '<div class="block-component" contenteditable="false" data-type="image" data-props="' + JSON.stringify(props).replace(/"/g, '&quot;') + '"><div class="component-body"><div class="preview-image-placeholder">请上传图片或输入图片URL<br><small>(此图片将在学生填写报告时上传)</small></div></div></div>';
+            }
             html = html.replace('%%IMAGE_' + index + '%%', imageHtml);
         });
 
@@ -415,10 +423,9 @@
             case 'divider':
                 return '\n\n---\n\n';
             case 'image':
-                if (data.url) {
-                    return '![' + (data.alt || '图片') + '](' + data.url + ')';
-                }
-                return '[图片]';
+                // 无论是否有 URL，都使用标准 Markdown 图片格式
+                // 未上传图片时 url 为空，生成 ![alt]() 格式
+                return '![' + (data.alt || '图片') + '](' + (data.url || '') + ')';
             default:
                 return '';
         }

@@ -102,8 +102,7 @@ const blockComponentTypes = {
         icon: '🖼️',
         fields: [
             { type: 'textarea', name: 'url', label: '图片URL' },
-            { type: 'input', name: 'alt', label: '图片描述' },
-            { type: 'select', name: 'size', label: '尺寸', options: ['small', 'medium', 'large'] }
+            { type: 'input', name: 'alt', label: '图片描述' }
         ]
     }
 };
@@ -652,14 +651,29 @@ function renderBlockComponentPreview(type, data) {
         case 'divider':
             return '<div class="preview-divider"></div>';
         case 'image':
-            const size = data.size || 'medium';
             if (data.url) {
-                return '<div class="preview-image img-' + size + '"><img src="' + data.url + '" alt="' + (data.alt || '') + '"></div>';
+                return '<div class="preview-image"><img src="' + data.url + '" alt="' + (data.alt || '') + '"></div><div class="image-alt-text">图片描述: ' + (data.alt || '') + '</div>';
             }
-            return '<div class="preview-image-placeholder img-' + size + '">点击设置图片</div>';
+            return '<div class="preview-image-placeholder">请上传图片或输入图片URL<br><small>(此图片将在学生填写报告时上传)</small></div>';
         default:
             return '';
     }
+}
+
+// 上传图片文件
+function uploadImageFile(file, callback) {
+    // 使用公共 API 工具类上传文件
+    API.uploadFile(file)
+    .then(result => {
+        if (result.code === 200 && result.data && result.data.url) {
+            callback(null, result.data.url);
+        } else {
+            callback(new Error(result.message || '上传失败'));
+        }
+    })
+    .catch(error => {
+        callback(error);
+    });
 }
 
 // 选中元素
@@ -720,35 +734,64 @@ function renderPropertiesPanel(element) {
         let html = '<h3>' + typeConfig.icon + ' ' + typeConfig.name + '</h3>';
         html += '<div class="properties-form">';
         
-        typeConfig.fields.forEach(field => {
-            const value = data[field.name] || '';
+        // 特殊处理图片组件
+        if (type === 'image') {
+            const url = data.url || '';
+            const alt = data.alt || '';
+            
             html += '<div class="form-group">';
-            html += '<label class="form-label">' + field.label + '</label>';
-            
-            switch (field.type) {
-                case 'input':
-                    // 如果有最小值限制，使用 number 类型输入框
-                    if (field.min !== undefined) {
-                        html += '<input type="number" class="form-input" name="' + field.name + '" value="' + value + '" min="' + field.min + '" oninput="updateBlockComponent(\'' + field.name + '\', this.value)">';
-                    } else {
-                        html += '<input type="text" class="form-input" value="' + value + '" oninput="updateBlockComponent(\'' + field.name + '\', this.value)">';
-                    }
-                    break;
-                case 'textarea':
-                    html += '<textarea class="form-textarea" oninput="updateBlockComponent(\'' + field.name + '\', this.value)">' + value + '</textarea>';
-                    break;
-                case 'select':
-                    html += '<select class="form-select" onchange="updateBlockComponent(\'' + field.name + '\', this.value)">';
-                    field.options.forEach(opt => {
-                        const selected = value === opt ? 'selected' : '';
-                        html += '<option value="' + opt + '" ' + selected + '>' + opt + '</option>';
-                    });
-                    html += '</select>';
-                    break;
-            }
-            
+            html += '<label class="form-label">图片描述</label>';
+            html += '<input type="text" class="form-input" value="' + alt + '" oninput="updateImageAlt(this.value)">';
             html += '</div>';
-        });
+            
+            html += '<div class="form-group">';
+            html += '<label class="form-label">上传图片</label>';
+            html += '<input type="file" accept="image/*" class="form-input" onchange="handleImageUpload(this.files[0])">';
+            html += '</div>';
+            
+            html += '<div class="form-group">';
+            html += '<label class="form-label">或输入图片URL</label>';
+            html += '<input type="text" class="form-input" value="' + url + '" placeholder="https://" oninput="updateImageUrl(this.value)">';
+            html += '</div>';
+            
+            if (url) {
+                html += '<div class="form-group">';
+                html += '<label class="form-label">当前图片</label>';
+                html += '<div><img src="' + url + '" style="max-width: 100%; max-height: 200px;" alt="' + alt + '"></div>';
+                html += '</div>';
+            }
+        } else {
+            // 其他组件类型的通用处理
+            typeConfig.fields.forEach(field => {
+                const value = data[field.name] || '';
+                html += '<div class="form-group">';
+                html += '<label class="form-label">' + field.label + '</label>';
+                
+                switch (field.type) {
+                    case 'input':
+                        // 如果有最小值限制，使用 number 类型输入框
+                        if (field.min !== undefined) {
+                            html += '<input type="number" class="form-input" name="' + field.name + '" value="' + value + '" min="' + field.min + '" oninput="updateBlockComponent(\'' + field.name + '\', this.value)">';
+                        } else {
+                            html += '<input type="text" class="form-input" value="' + value + '" oninput="updateBlockComponent(\'' + field.name + '\', this.value)">';
+                        }
+                        break;
+                    case 'textarea':
+                        html += '<textarea class="form-textarea" oninput="updateBlockComponent(\'' + field.name + '\', this.value)">' + value + '</textarea>';
+                        break;
+                    case 'select':
+                        html += '<select class="form-select" onchange="updateBlockComponent(\'' + field.name + '\', this.value)">';
+                        field.options.forEach(opt => {
+                            const selected = value === opt ? 'selected' : '';
+                            html += '<option value="' + opt + '" ' + selected + '>' + opt + '</option>';
+                        });
+                        html += '</select>';
+                        break;
+                }
+                
+                html += '</div>';
+            });
+        }
         
         html += `<div class="form-group">
             <button class="btn btn-delete-full" onclick="deleteSelectedElement()">删除此组件</button>
@@ -824,6 +867,65 @@ window.updateBlockComponent = function(fieldName, value) {
         const body = selectedElement.querySelector('.component-body');
         body.innerHTML = renderBlockComponentPreview(type, data);
     }
+};
+
+// 更新图片描述
+window.updateImageAlt = function(alt) {
+    if (selectedElement && selectedElement.classList.contains('block-component') && 
+        selectedElement.getAttribute('data-type') === 'image') {
+        const data = JSON.parse(selectedElement.getAttribute('data-props') || '{}');
+        data.alt = alt;
+        selectedElement.setAttribute('data-props', JSON.stringify(data));
+        
+        const body = selectedElement.querySelector('.component-body');
+        body.innerHTML = renderBlockComponentPreview('image', data);
+    }
+};
+
+// 更新图片URL
+window.updateImageUrl = function(url) {
+    if (selectedElement && selectedElement.classList.contains('block-component') && 
+        selectedElement.getAttribute('data-type') === 'image') {
+        const data = JSON.parse(selectedElement.getAttribute('data-props') || '{}');
+        data.url = url;
+        selectedElement.setAttribute('data-props', JSON.stringify(data));
+        
+        const body = selectedElement.querySelector('.component-body');
+        body.innerHTML = renderBlockComponentPreview('image', data);
+    }
+};
+
+// 处理图片上传
+window.handleImageUpload = function(file) {
+    if (!file) return;
+    
+    if (!file.type.startsWith('image/')) {
+        alert('请选择图片文件');
+        return;
+    }
+    
+    // 上传图片
+    uploadImageFile(file, function(error, imageUrl) {
+        if (error) {
+            console.error('图片上传失败:', error);
+            alert('图片上传失败: ' + error.message);
+            return;
+        }
+        
+        // 成功上传后更新组件
+        if (selectedElement && selectedElement.classList.contains('block-component') && 
+            selectedElement.getAttribute('data-type') === 'image') {
+            const data = JSON.parse(selectedElement.getAttribute('data-props') || '{}');
+            data.url = imageUrl;
+            selectedElement.setAttribute('data-props', JSON.stringify(data));
+            
+            const body = selectedElement.querySelector('.component-body');
+            body.innerHTML = renderBlockComponentPreview('image', data);
+            
+            // 更新属性面板显示
+            renderPropertiesPanel(selectedElement);
+        }
+    });
 };
 
 // 更新表格单元格内容

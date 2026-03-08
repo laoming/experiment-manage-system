@@ -641,13 +641,10 @@
 
 .preview-image img {
     max-width: 100%;
+    max-height: 300px;
     border-radius: 6px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
-
-.preview-image.img-small img { max-height: 100px; }
-.preview-image.img-medium img { max-height: 200px; }
-.preview-image.img-large img { max-height: 350px; }
 
 .preview-image-placeholder {
     padding: 40px 20px;
@@ -655,6 +652,14 @@
     border-radius: 8px;
     text-align: center;
     color: #999;
+}
+
+/* 图片描述文本 */
+.image-alt-text {
+    margin-top: 8px;
+    font-size: 12px;
+    color: #666;
+    text-align: center;
 }
 
 /* ==================== 右侧属性面板样式 ==================== */

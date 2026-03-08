@@ -195,111 +195,10 @@ const API = {
     },
 
     /**
-     * 用户登录
-     */
-    async login(username, password) {
-        const response = await this.post('/auth/login', {
-            username,
-            password
-        });
-
-        // 保存 Token
-        if (response.code === 200) {
-            this.setToken(response.data);
-        }
-
-        return response;
-    },
-
-    /**
      * 获取用户信息
      */
     async getUserInfo() {
         return this.get('/user/info');
-    },
-
-    /**
-     * 获取当前用户的菜单列表
-     */
-    async getMenuList() {
-        return this.get('/menu/list');
-    },
-
-    /**
-     * 分页查询用户
-     */
-    async getUserPage(current, size, userQueryDto) {
-        return this.post(`/user/page?current=${current}&size=${size}`, userQueryDto);
-    },
-
-    /**
-     * 分页查询角色
-     */
-    async getRolePage(current, size, roleQueryDto) {
-        return this.post(`/role/page?current=${current}&size=${size}`, roleQueryDto);
-    },
-
-    /**
-     * 分页查询组织
-     */
-    async getOrganizationPage(current, size, organizationQueryDto) {
-        return this.post(`/organization/page?current=${current}&size=${size}`, organizationQueryDto);
-    },
-
-    /**
-     * 获取所有组织列表（用于父组织选择）
-     */
-    async getOrganizationList() {
-        return this.post('/organization/list', {});
-    },
-
-    /**
-     * 新增组织
-     */
-    async addOrganization(organizationEntity) {
-        return this.post('/organization/add', organizationEntity);
-    },
-
-    /**
-     * 更新组织信息
-     */
-    async updateOrganization(organizationEntity) {
-        return this.post('/organization/update', organizationEntity);
-    },
-
-    /**
-     * 删除组织
-     */
-    async deleteOrganization(organizationEntity) {
-        return this.post('/organization/delete', organizationEntity);
-    },
-
-    /**
-     * 新增用户
-     */
-    async addUser(userEntity) {
-        return this.post('/user/add', userEntity);
-    },
-
-    /**
-     * 更新用户信息
-     */
-    async updateUser(userEntity) {
-        return this.post('/user/update', userEntity);
-    },
-
-    /**
-     * 重置用户密码
-     */
-    async resetPassword(userEntity) {
-        return this.post('/user/resetPassword', userEntity);
-    },
-
-    /**
-     * 删除用户
-     */
-    async deleteUser(userEntity) {
-        return this.post('/user/delete', userEntity);
     },
 
     /**
@@ -308,6 +207,34 @@ const API = {
     logout() {
         this.removeToken();
         window.location.href = '/ems/common/pages/index.html';
+    },
 
+    /**
+     * 上传文件
+     */
+    async uploadFile(file) {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const config = {
+            method: 'POST',
+            body: formData
+        };
+
+        const token = this.getToken();
+        if (token) {
+            config.headers = {
+                'Authorization': `Bearer ${token}`
+            };
+        }
+
+        try {
+            // request.js 拦截器会自动解析 JSON 响应
+            const data = await fetch(this.BASE_URL + '/file/upload', config);
+            return data;
+        } catch (error) {
+            console.error('文件上传错误:', error);
+            throw error;
+        }
     }
 };
