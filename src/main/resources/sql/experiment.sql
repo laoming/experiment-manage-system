@@ -3,7 +3,7 @@ CREATE TABLE experiment_template
 (
     id          VARCHAR(64) PRIMARY KEY COMMENT '模板ID',
     template_name VARCHAR(100) NOT NULL COMMENT '模板名称',
-    template_content TEXT NOT NULL COMMENT '模板内容(JSON格式,包含拖拽组件配置)',
+    template_content TEXT NOT NULL COMMENT '模板内容',
     description VARCHAR(500) COMMENT '模板描述',
     creator_id  VARCHAR(64) NOT NULL COMMENT '创建者ID',
     create_time DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL COMMENT '创建时间',
@@ -31,7 +31,7 @@ CREATE TABLE experiment_report
     template_id VARCHAR(64) NOT NULL COMMENT '使用的模板ID',
     course_id   VARCHAR(36) COMMENT '课程ID',
     report_name VARCHAR(100) NOT NULL COMMENT '报告名称',
-    report_content TEXT NOT NULL COMMENT '报告内容(JSON格式)',
+    report_content TEXT NOT NULL COMMENT '报告内容',
     student_id  VARCHAR(64) NOT NULL COMMENT '学生ID',
     submit_time DATETIME COMMENT '提交时间',
     status      VARCHAR(20) DEFAULT 'draft' COMMENT '报告状态：draft-待提交, submitted-已提交, graded-已评价',
