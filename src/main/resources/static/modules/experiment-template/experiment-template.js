@@ -665,8 +665,10 @@ function uploadImageFile(file, callback) {
     // 使用公共 API 工具类上传文件
     API.uploadFile(file)
     .then(result => {
-        if (result.code === 200 && result.data && result.data.url) {
-            callback(null, result.data.url);
+        if (result.code === 200 && result.data && result.data.objectName) {
+            // 使用后端代理接口访问文件（永久有效）
+            const accessUrl = API.BASE_URL + '/file/access?objectName=' + encodeURIComponent(result.data.objectName);
+            callback(null, accessUrl);
         } else {
             callback(new Error(result.message || '上传失败'));
         }

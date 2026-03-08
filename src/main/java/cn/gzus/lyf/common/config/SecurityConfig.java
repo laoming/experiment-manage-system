@@ -10,6 +10,7 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -63,6 +64,8 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 // 关闭Session（JWT无状态）
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // 配置HTTP安全头，允许同源页面在iframe中显示
+                .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin))
                 // 权限配置
                 .authorizeRequests();
         if (jwtEnabled) {
@@ -70,6 +73,8 @@ public class SecurityConfig {
             http.authorizeRequests()
                     // 登录接口白名单
                     .antMatchers("/auth/login").permitAll()
+                    // 文件访问白名单（objectName为UUID，难以猜测，安全性可控）
+                    .antMatchers("/file/access", "/file/download").permitAll()
                     // 静态资源白名单
                     .antMatchers("/common/**", "/modules/**").permitAll()
                     // 其余请求需认证

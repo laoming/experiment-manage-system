@@ -3,14 +3,12 @@ package cn.gzus.lyf.service.file;
 import cn.gzus.lyf.common.config.MinioConfig;
 import cn.gzus.lyf.common.exception.BusinessException;
 import io.minio.*;
-import io.minio.http.Method;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 @Service
 public class FileService {
@@ -32,7 +30,7 @@ public class FileService {
      * 上传文件
      *
      * @param file 文件
-     * @return 文件访问路径
+     * @return 文件对象名称（用于后续通过 /file/access 或 /file/download 访问）
      */
     public String upload(MultipartFile file) {
         String bucketName = minioConfig.getBucketName();
@@ -67,14 +65,8 @@ public class FileService {
                 throw new BusinessException("文件上传失败: " + e.getMessage());
             }
 
-            // 返回文件访问URL（设置为最大有效期，7天）
-            // 注意：MinIO预签名URL最长有效期为7天
-            return minioClient.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
-                    .method(Method.GET)
-                    .bucket(bucketName)
-                    .object(objectName)
-                    .expiry(7, TimeUnit.DAYS) // 最大允许的过期时间
-                    .build());
+            // 返回文件对象名称，通过后端 /file/access 或 /file/download 接口访问（永久有效）
+            return objectName;
         } catch (Exception e) {
             throw new BusinessException("文件上传失败: " + e.getMessage());
         }

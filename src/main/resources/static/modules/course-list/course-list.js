@@ -1288,6 +1288,16 @@ const app = Vue.createApp({
         },
 
         /**
+         * 获取PDF文件访问URL
+         */
+        getPdfAccessUrl: function(objectName) {
+            if (!objectName) {
+                return '';
+            }
+            return API.BASE_URL + '/file/access?objectName=' + encodeURIComponent(objectName);
+        },
+
+        /**
          * 根据用户ID获取用户名称
          */
         getUserName: function(userId) {

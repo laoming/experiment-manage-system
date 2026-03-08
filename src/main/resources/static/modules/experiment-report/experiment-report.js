@@ -458,13 +458,15 @@ function renderReportEditorFromHtml(htmlContent) {
                     blockEl.setAttribute('data-needs-upload-event', 'true');
                 }
             } else {
-                // 有图片URL，显示图片和描述
+                // 有图片URL（objectName），显示图片和描述
                 const body = blockEl.querySelector('.component-body');
                 if (body) {
                     const altText = props.alt || '';
+                    // 使用后端代理接口访问文件
+                    const accessUrl = API.BASE_URL + '/file/access?objectName=' + encodeURIComponent(props.url);
                     body.innerHTML = `
                         <div class="preview-image">
-                            <img src="${props.url}" alt="${altText}">
+                            <img src="${accessUrl}" alt="${altText}">
                         </div>
                         ${altText ? `<div class="image-alt-text">图片描述: ${altText}</div>` : ''}
                     `;
@@ -794,9 +796,11 @@ function uploadReportImage(file, blockEl, props) {
     // 使用公共 API 工具类上传文件
     API.uploadFile(file)
     .then(result => {
-        if (result.code === 200 && result.data && result.data.url) {
-            // 更新组件属性
-            props.url = result.data.url;
+        if (result.code === 200 && result.data && result.data.objectName) {
+            // 使用后端代理接口访问文件（永久有效）
+            const accessUrl = API.BASE_URL + '/file/access?objectName=' + encodeURIComponent(result.data.objectName);
+            // 更新组件属性，存储 objectName
+            props.url = result.data.objectName;
             blockEl.setAttribute('data-props', JSON.stringify(props));
             
             // 更新显示
@@ -804,7 +808,7 @@ function uploadReportImage(file, blockEl, props) {
             if (body) {
                 body.innerHTML = `
                     <div class="preview-image">
-                        <img src="${props.url}" alt="${props.alt || '图片'}">
+                        <img src="${accessUrl}" alt="${props.alt || '图片'}">
                     </div>
                     <div class="image-alt-text">图片描述: ${props.alt || ''}</div>
                 `;
@@ -856,8 +860,9 @@ window.uploadPdfReport = function() {
         try {
             const result = await API.uploadFile(file);
 
-            if (result.code === 200 && result.data && result.data.url) {
-                currentPdfUrl = result.data.url;
+            if (result.code === 200 && result.data && result.data.objectName) {
+                // 存储objectName（用于后续通过后端接口访问）
+                currentPdfUrl = result.data.objectName;
                 showPdfPreview(currentPdfUrl);
                 alert('PDF报告上传成功');
             } else {
@@ -873,19 +878,21 @@ window.uploadPdfReport = function() {
 };
 
 // 显示PDF预览
-function showPdfPreview(pdfUrl) {
+function showPdfPreview(objectName) {
     const pdfArea = document.getElementById('pdfPreviewArea');
     const pdfEmbed = document.getElementById('pdfPreviewEmbed');
     const pdfOpenLink = document.getElementById('pdfOpenLink');
     const reportContent = document.getElementById('reportContent');
 
-    if (pdfArea && pdfEmbed && pdfUrl) {
+    if (pdfArea && pdfEmbed && objectName) {
+        // 使用后端代理接口访问文件（永久有效）
+        const accessUrl = API.BASE_URL + '/file/access?objectName=' + encodeURIComponent(objectName);
         // 添加参数隐藏工具栏，避免触发下载插件
-        pdfEmbed.src = pdfUrl + '#toolbar=0&navpanes=0';
+        pdfEmbed.src = accessUrl + '#toolbar=0&navpanes=0';
         pdfArea.style.display = 'block';
         // 设置新窗口打开链接
         if (pdfOpenLink) {
-            pdfOpenLink.href = pdfUrl;
+            pdfOpenLink.href = accessUrl;
         }
         // 隐藏实验模板编辑区域
         if (reportContent) {
@@ -914,6 +921,30 @@ function hidePdfPreview() {
         reportContent.style.display = 'block';
     }
 }
+
+// 下载PDF报告
+window.downloadPdfReport = function() {
+    if (!currentPdfUrl) {
+        alert('暂无可下载的PDF报告');
+        return;
+    }
+
+    const reportName = document.getElementById('reportName').value || '实验报告';
+    
+    // 使用后端下载接口
+    const downloadUrl = API.BASE_URL + '/file/download?objectName=' + encodeURIComponent(currentPdfUrl);
+    
+    // 创建隐藏的 iframe 触发下载，避免页面跳转
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    iframe.src = downloadUrl;
+    document.body.appendChild(iframe);
+    
+    // 延迟移除 iframe
+    setTimeout(() => {
+        document.body.removeChild(iframe);
+    }, 5000);
+};
 
 // 删除PDF报告
 window.removePdfReport = function() {

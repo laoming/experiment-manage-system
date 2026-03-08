@@ -32,13 +32,13 @@ public class FileController {
      * 上传文件
      *
      * @param file 文件
-     * @return 文件访问URL
+     * @return 文件对象名称（用于后续通过 /file/access 或 /file/download 访问）
      */
     @PostMapping("/upload")
     public Result<Map<String, String>> upload(@RequestParam("file") MultipartFile file) {
-        String url = fileService.upload(file);
+        String objectName = fileService.upload(file);
         Map<String, String> data = new HashMap<>();
-        data.put("url", url);
+        data.put("objectName", objectName);
         data.put("fileName", file.getOriginalFilename());
         return Result.success(data);
     }
