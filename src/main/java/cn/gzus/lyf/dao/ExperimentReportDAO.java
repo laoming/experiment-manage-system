@@ -2,6 +2,7 @@ package cn.gzus.lyf.dao;
 
 import cn.gzus.lyf.common.dto.PageDto;
 import cn.gzus.lyf.common.enums.ReportStatusEnum;
+import cn.gzus.lyf.common.exception.BusinessException;
 import cn.gzus.lyf.common.util.BeanCopyUtils;
 import cn.gzus.lyf.dao.entity.ExperimentReportEntity;
 import cn.gzus.lyf.dao.mapper.ExperimentReportMapper;
@@ -91,10 +92,41 @@ public class ExperimentReportDAO extends ServiceImpl<ExperimentReportMapper, Exp
         ExperimentReportEntity reportEntity = this.getById(reportId);
         Objects.requireNonNull(reportEntity, "报告不存在");
 
+        // 只有已提交状态的报告才能评分
+        if (!ReportStatusEnum.SUBMITTED.getCode().equals(reportEntity.getStatus())) {
+            throw new BusinessException("只有已提交的报告才能进行评价");
+        }
+
         reportEntity.setStatus(ReportStatusEnum.GRADED.getCode());
         reportEntity.setScore(score);
         reportEntity.setComment(comment);
         reportEntity.setGradeTime(new Date());
+        reportEntity.setUpdateTime(new Date());
+        return this.updateById(reportEntity);
+    }
+
+    /**
+     * 退回报告
+     * @param reportId 报告ID
+     * @param comment 退回意见
+     * @return 是否成功
+     */
+    public boolean returnReport(String reportId, String comment) {
+        Objects.requireNonNull(reportId, "报告ID不能为空");
+
+        ExperimentReportEntity reportEntity = this.getById(reportId);
+        Objects.requireNonNull(reportEntity, "报告不存在");
+
+        // 只有已提交或已评价状态的报告才能退回
+        String status = reportEntity.getStatus();
+        if (!ReportStatusEnum.SUBMITTED.getCode().equals(status) && 
+            !ReportStatusEnum.GRADED.getCode().equals(status)) {
+            throw new BusinessException("只有已提交或已评价的报告才能退回");
+        }
+
+        reportEntity.setStatus(ReportStatusEnum.RETURNED.getCode());
+        reportEntity.setSubmitTime(null);  // 清除提交时间，让学生重新提交
+        reportEntity.setComment(comment);
         reportEntity.setUpdateTime(new Date());
         return this.updateById(reportEntity);
     }
@@ -190,7 +222,7 @@ public class ExperimentReportDAO extends ServiceImpl<ExperimentReportMapper, Exp
 
     /**
      * 根据学生ID、课程ID和模板ID获取报告
-     * 优先返回已提交的报告，如果没有则返回草稿
+     * 优先返回已提交的报告，如果没有则返回草稿或已退回的报告
      * @param studentId 学生ID
      * @param courseId 课程ID
      * @param templateId 模板ID
@@ -215,12 +247,12 @@ public class ExperimentReportDAO extends ServiceImpl<ExperimentReportMapper, Exp
             return submittedReport;
         }
 
-        // 如果没有已提交或已评分的报告，返回草稿
+        // 如果没有已提交或已评分的报告，返回草稿或已退回的报告
         return this.getOne(new LambdaQueryWrapper<ExperimentReportEntity>()
                 .eq(ExperimentReportEntity::getStudentId, studentId)
                 .eq(ExperimentReportEntity::getCourseId, courseId)
                 .eq(ExperimentReportEntity::getTemplateId, templateId)
-                .eq(ExperimentReportEntity::getStatus, ReportStatusEnum.DRAFT.getCode())
+                .in(ExperimentReportEntity::getStatus, ReportStatusEnum.DRAFT.getCode(), ReportStatusEnum.RETURNED.getCode())
                 .orderByDesc(ExperimentReportEntity::getUpdateTime)
                 .last("LIMIT 1")
         );

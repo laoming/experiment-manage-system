@@ -21,6 +21,11 @@ public enum ReportStatusEnum {
     SUBMITTED("submitted", "已提交"),
 
     /**
+     * 已退回
+     */
+    RETURNED("returned", "已退回"),
+
+    /**
      * 已评价
      */
     GRADED("graded", "已评价");

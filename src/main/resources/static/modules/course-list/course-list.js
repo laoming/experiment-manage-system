@@ -929,6 +929,46 @@ const app = Vue.createApp({
         },
 
         /**
+         * 退回报告
+         */
+        returnReport: async function() {
+            if (!this.currentGradingReport) {
+                this.showError('未选择报告');
+                return;
+            }
+
+            if (!this.gradeForm.comment || this.gradeForm.comment.trim() === '') {
+                this.showError('退回时必须填写退回意见');
+                return;
+            }
+
+            if (!confirm('确定要退回此报告吗？\n退回后学生可以根据意见修改并重新提交。')) {
+                return;
+            }
+
+            this.grading = true;
+            try {
+                var result = await fetch('/experimentReport/return?reportId=' + this.currentGradingReport.id +
+                    '&comment=' + encodeURIComponent(this.gradeForm.comment), {
+                    method: 'POST'
+                });
+
+                if (result.code === 200) {
+                    this.showSuccess('报告已退回');
+                    this.closeGradeModal();
+                    this.refreshCourseReports();
+                } else {
+                    this.showError('退回失败: ' + (result.message || '未知错误'));
+                }
+            } catch (error) {
+                console.error('[COURSE-LIST] 退回报告失败:', error);
+                this.showError('退回失败: ' + error.message);
+            } finally {
+                this.grading = false;
+            }
+        },
+
+        /**
          * 删除课程（只有创建者可以删除）
          */
         handleDelete: async function(course) {
@@ -1338,6 +1378,43 @@ const app = Vue.createApp({
                 console.error('日期格式化失败:', error);
                 return dateStr;
             }
+        },
+
+        /**
+         * 判断报告是否可以评价
+         * 只有已提交或已评价状态的报告才能评价
+         */
+        canGrade: function(report) {
+            if (!report || !report.status) return false;
+            return report.status === 'submitted' || report.status === 'graded';
+        },
+
+        /**
+         * 获取报告状态文本
+         */
+        getStatusText: function(status) {
+            var statusMap = {
+                'pending': '待提交',
+                'draft': '草稿',
+                'submitted': '已提交',
+                'returned': '已退回',
+                'graded': '已评价'
+            };
+            return statusMap[status] || status || '未知';
+        },
+
+        /**
+         * 获取报告状态样式类
+         */
+        getStatusClass: function(status) {
+            var classMap = {
+                'pending': 'status-pending',
+                'draft': 'status-draft',
+                'submitted': 'status-submitted',
+                'returned': 'status-returned',
+                'graded': 'status-graded'
+            };
+            return classMap[status] || '';
         },
 
         /**

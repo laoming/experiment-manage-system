@@ -140,7 +140,7 @@ async function loadReportOverview() {
         
         if (result.code === 200 && result.data) {
             const allReports = result.data || [];
-            pendingReports = allReports.filter(r => r.status === 'pending' || r.status === 'draft');
+            pendingReports = allReports.filter(r => r.status === 'pending' || r.status === 'draft' || r.status === 'returned');
             submittedReports = allReports.filter(r => r.status === 'submitted' || r.status === 'graded');
             
             vueApp.pendingCount = pendingReports.length;
@@ -174,6 +174,9 @@ function renderPendingList() {
         if (report.status === 'draft') {
             statusText = '草稿';
             statusClass = 'draft';
+        } else if (report.status === 'returned') {
+            statusText = '已退回';
+            statusClass = 'returned';
         }
 
         return `
@@ -182,11 +185,12 @@ function renderPendingList() {
                     <div class="report-item-name">${report.templateName || '未命名模板'}</div>
                     <div class="report-item-meta">
                         课程: ${report.courseName || '未知课程'}
+                        ${report.comment ? `<br><span style="color: #e65100;">退回意见: ${report.comment}</span>` : ''}
                     </div>
                 </div>
                 <div class="report-item-status ${statusClass}">${statusText}</div>
                 <div class="report-item-actions">
-                    ${report.status === 'draft' ?
+                    ${(report.status === 'draft' || report.status === 'returned') ?
                         `<button class="btn btn-sm btn-secondary" onclick="editReportByTemplate('${report.templateId}', '${report.reportId}')">继续编辑</button>` :
                         `<button class="btn btn-sm btn-primary" onclick="startReport('${report.templateId}', '${report.courseId}')">开始填写</button>`
                     }

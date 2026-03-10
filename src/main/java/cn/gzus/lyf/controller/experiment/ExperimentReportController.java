@@ -111,6 +111,14 @@ public class ExperimentReportController {
     }
 
     /**
+     * 退回报告
+     */
+    @PostMapping("/return")
+    public Result<Boolean> returnReport(String reportId, String comment) {
+        return Result.success(reportService.returnReport(reportId, comment));
+    }
+
+    /**
      * 导出报告为Markdown
      */
     @PostMapping("/exportMarkdown")

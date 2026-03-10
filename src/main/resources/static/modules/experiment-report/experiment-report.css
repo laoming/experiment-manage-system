@@ -354,6 +354,11 @@
     color: #ff4d4f;
 }
 
+.report-item-status.returned {
+    background: #ffebee;
+    color: #c62828;
+}
+
 .report-item-status.submitted {
     background: #e6f7ff;
     color: #1890ff;

@@ -104,6 +104,16 @@ public class ExperimentReportService {
     }
 
     /**
+     * 退回报告
+     * @param reportId 报告ID
+     * @param comment 退回意见
+     * @return 是否成功
+     */
+    public boolean returnReport(String reportId, String comment) {
+        return reportDAO.returnReport(reportId, comment);
+    }
+
+    /**
      * 根据ID获取报告
      * @param reportId 报告ID
      * @return 报告实体
@@ -384,7 +394,7 @@ public class ExperimentReportService {
     public List<ReportOverviewDto> getPendingReports(String userId) {
         List<ReportOverviewDto> allReports = getReportOverview(userId);
         return allReports.stream()
-                .filter(r -> "pending".equals(r.getStatus()) || "draft".equals(r.getStatus()))
+                .filter(r -> "pending".equals(r.getStatus()) || "draft".equals(r.getStatus()) || "returned".equals(r.getStatus()))
                 .collect(Collectors.toList());
     }
 
