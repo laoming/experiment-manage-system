@@ -1215,7 +1215,7 @@ const app = createApp({
                         console.log('✅ [HOME] 老师/管理员统计数据:', this.stats);
                     } else if (roleCodeUpper === 'STUDENT') {
                         // 学生统计
-                        this.stats.push({ label: '学的课程数', value: data.enrolledCourseCount || 0 });
+                        this.stats.push({ label: '学习的课程数', value: data.enrolledCourseCount || 0 });
                         this.stats.push({ label: '课程所有报告总和', value: data.totalTemplateCount || 0 });
                         this.stats.push({ label: '已提交的实验报告数', value: data.submittedReportCount || 0 });
                         this.stats.push({ label: '待提交的实验报告数', value: data.pendingSubmitReportCount || 0 });
