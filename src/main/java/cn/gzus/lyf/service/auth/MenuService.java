@@ -8,11 +8,10 @@ import cn.gzus.lyf.dao.entity.RoleMenuRelationEntity;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
@@ -133,8 +132,8 @@ public class MenuService {
         Page<MenuEntity> page = menuDAO.page(
             new Page<>(current, size),
             Wrappers.<MenuEntity>lambdaQuery()
-                .like(org.apache.commons.lang3.StringUtils.isNotEmpty(menuName), MenuEntity::getMenuName, menuName)
-                .eq(org.apache.commons.lang3.StringUtils.isNotEmpty(menuType), MenuEntity::getMenuType, menuType)
+                .like(StringUtils.isNotEmpty(menuName), MenuEntity::getMenuName, menuName)
+                .eq(StringUtils.isNotEmpty(menuType), MenuEntity::getMenuType, menuType)
                 .orderByAsc(MenuEntity::getSort)
                 .orderByDesc(MenuEntity::getUpdateTime)
         );
