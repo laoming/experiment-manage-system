@@ -71,8 +71,8 @@
                 </tr>
                 <tr v-for="(message, index) in messageList" :key="message.id">
                     <td>{{ (pagination.current - 1) * pagination.size + index + 1 }}</td>
-                    <td class="text-strong">{{ message.title }}</td>
-                    <td class="text-muted">{{ message.content }}</td>
+                    <td class="text-strong" :title="message.title">{{ message.title }}</td>
+                    <td class="text-muted" :title="message.content">{{ message.content }}</td>
                     <td>{{ message.receiverName }}</td>
                     <td>
                         <span class="status-badge" :class="getStatusClass(message.status)">

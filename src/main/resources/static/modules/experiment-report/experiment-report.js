@@ -257,9 +257,6 @@ function showReportList() {
     document.getElementById('templateSelector').style.display = 'none';
     document.getElementById('reportEditor').style.display = 'none';
     document.getElementById('reportPreview').style.display = 'none';
-    // 清除内联样式，让 Vue 的 v-show 指令控制容器显示
-    document.getElementById('pendingContainer').style.removeProperty('display');
-    document.getElementById('submittedContainer').style.removeProperty('display');
     document.getElementById('reportTabs').style.display = 'flex';
     currentReport = null;
     currentTemplate = null;
@@ -267,6 +264,20 @@ function showReportList() {
     currentCourseId = null;
     currentPdfUrl = null;
     hidePdfPreview();
+    
+    // 根据当前 Vue tab 状态设置正确的容器显示
+    var pendingContainer = document.getElementById('pendingContainer');
+    var submittedContainer = document.getElementById('submittedContainer');
+    var currentTab = vueApp ? vueApp.currentTab : 'pending';
+    
+    if (currentTab === 'pending') {
+        pendingContainer.style.display = 'block';
+        submittedContainer.style.display = 'none';
+    } else {
+        pendingContainer.style.display = 'none';
+        submittedContainer.style.display = 'block';
+    }
+    
     loadReportOverview();
 }
 

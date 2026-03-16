@@ -43,8 +43,8 @@
                     </td>
                 </tr>
                 <tr v-for="notice in noticeList" :key="notice.id">
-                    <td class="text-strong">{{ notice.title }}</td>
-                    <td class="text-muted">{{ notice.content }}</td>
+                    <td class="text-strong" :title="notice.title">{{ notice.title }}</td>
+                    <td class="text-muted" :title="notice.content">{{ notice.content }}</td>
                     <td>{{ notice.creatorName }}</td>
                     <td>{{ formatDateTime(notice.createTime) }}</td>
                     <td class="actions">
