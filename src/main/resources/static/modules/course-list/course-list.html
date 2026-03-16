@@ -134,6 +134,12 @@
         >
             下一页
         </button>
+        <div class="pagination-jump">
+            <span>跳至</span>
+            <input type="number" class="pagination-jump-input" v-model.number="jumpPage" min="1" :max="pagination.pages" @keyup.enter="handleJumpPage">
+            <span>页</span>
+            <button class="pagination-jump-btn" @click="handleJumpPage">跳转</button>
+        </div>
     </div>
 
     <!-- 新增/编辑课程弹窗 -->
@@ -480,6 +486,12 @@
                             <button class="pagination-btn-sm" :disabled="adminPagination.current === 1" @click="handleAdminPageChange(adminPagination.current - 1)">上一页</button>
                             <span>{{ adminPagination.current }} / {{ adminPagination.pages }}</span>
                             <button class="pagination-btn-sm" :disabled="adminPagination.current >= adminPagination.pages" @click="handleAdminPageChange(adminPagination.current + 1)">下一页</button>
+                            <div class="pagination-jump">
+                                <span>跳至</span>
+                                <input type="number" class="pagination-jump-input" v-model.number="adminJumpPage" min="1" :max="adminPagination.pages" @keyup.enter="handleAdminJumpPage">
+                                <span>页</span>
+                                <button class="pagination-jump-btn" @click="handleAdminJumpPage">跳转</button>
+                            </div>
                         </div>
                         <div class="bind-actions" v-if="selectedAdminIds.length > 0">
                             <button type="button" class="btn btn-success btn-sm" @click="addAdmins">
@@ -542,6 +554,12 @@
                             <button class="pagination-btn-sm" :disabled="studentPagination.current === 1" @click="handleStudentPageChange(studentPagination.current - 1)">上一页</button>
                             <span>{{ studentPagination.current }} / {{ studentPagination.pages }}</span>
                             <button class="pagination-btn-sm" :disabled="studentPagination.current >= studentPagination.pages" @click="handleStudentPageChange(studentPagination.current + 1)">下一页</button>
+                            <div class="pagination-jump">
+                                <span>跳至</span>
+                                <input type="number" class="pagination-jump-input" v-model.number="studentJumpPage" min="1" :max="studentPagination.pages" @keyup.enter="handleStudentJumpPage">
+                                <span>页</span>
+                                <button class="pagination-jump-btn" @click="handleStudentJumpPage">跳转</button>
+                            </div>
                         </div>
                         <div class="bind-actions" v-if="selectedStudentIds.length > 0">
                             <button type="button" class="btn btn-success btn-sm" @click="addStudents">
@@ -604,6 +622,12 @@
                             <button class="pagination-btn-sm" :disabled="templatePagination.current === 1" @click="handleTemplatePageChange(templatePagination.current - 1)">上一页</button>
                             <span>{{ templatePagination.current }} / {{ templatePagination.pages }}</span>
                             <button class="pagination-btn-sm" :disabled="templatePagination.current >= templatePagination.pages" @click="handleTemplatePageChange(templatePagination.current + 1)">下一页</button>
+                            <div class="pagination-jump">
+                                <span>跳至</span>
+                                <input type="number" class="pagination-jump-input" v-model.number="templateJumpPage" min="1" :max="templatePagination.pages" @keyup.enter="handleTemplateJumpPage">
+                                <span>页</span>
+                                <button class="pagination-jump-btn" @click="handleTemplateJumpPage">跳转</button>
+                            </div>
                         </div>
                         <div class="bind-actions" v-if="selectedTemplateIds.length > 0">
                             <button type="button" class="btn btn-success btn-sm" @click="addTemplates">

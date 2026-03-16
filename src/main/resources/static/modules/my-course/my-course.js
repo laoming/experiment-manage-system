@@ -17,6 +17,7 @@ const app = Vue.createApp({
                 total: 0,
                 pages: 0
             },
+            jumpPage: 1,
             // 查看弹窗
             showViewModal: false,
             currentCourse: {},
@@ -187,6 +188,18 @@ const app = Vue.createApp({
         handlePageChange: function(page) {
             this.pagination.current = page;
             this.fetchCourseList();
+        },
+
+        /**
+         * 跳转指定页
+         */
+        handleJumpPage: function() {
+            var page = parseInt(this.jumpPage);
+            if (isNaN(page) || page < 1 || page > this.pagination.pages) {
+                alert('请输入有效的页码（1-' + this.pagination.pages + '）');
+                return;
+            }
+            this.handlePageChange(page);
         },
 
         /**

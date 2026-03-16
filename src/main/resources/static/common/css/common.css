@@ -1058,6 +1058,44 @@ textarea.form-control {
     margin-left: 8px;
 }
 
+/* 分页跳转 */
+.tab-content-embed .pagination-jump {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    color: #666;
+}
+
+.tab-content-embed .pagination-jump-input {
+    width: 50px;
+    padding: 4px 8px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    text-align: center;
+    font-size: 14px;
+}
+
+.tab-content-embed .pagination-jump-input:focus {
+    outline: none;
+    border-color: #4a90d9;
+}
+
+.tab-content-embed .pagination-jump-btn {
+    padding: 4px 10px;
+    background: #4a90d9;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: background 0.2s;
+}
+
+.tab-content-embed .pagination-jump-btn:hover {
+    background: #3a7bc8;
+}
+
 /* 大弹窗 */
 .tab-content-embed .modal-large {
     max-width: 800px;

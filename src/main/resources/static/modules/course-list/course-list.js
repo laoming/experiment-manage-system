@@ -17,6 +17,7 @@ const app = Vue.createApp({
                 total: 0,
                 pages: 0
             },
+            jumpPage: 1,
             // 表单弹窗
             showFormModal: false,
             isEditMode: false,
@@ -43,6 +44,7 @@ const app = Vue.createApp({
                 pages: 0
             },
             adminSearchKeyword: '',
+            adminJumpPage: 1,
             // 学生相关
             selectedStudentIds: [],
             boundStudentIds: [],
@@ -54,6 +56,7 @@ const app = Vue.createApp({
                 pages: 0
             },
             studentSearchKeyword: '',
+            studentJumpPage: 1,
             // 模板相关
             selectedTemplateIds: [],
             boundTemplateIds: [],
@@ -65,6 +68,7 @@ const app = Vue.createApp({
                 pages: 0
             },
             templateSearchKeyword: '',
+            templateJumpPage: 1,
             // 权限缓存
             courseCreatorCache: {},
             // 页面加载状态
@@ -215,6 +219,18 @@ const app = Vue.createApp({
         },
 
         /**
+         * 管理者跳转指定页
+         */
+        handleAdminJumpPage: function() {
+            var page = parseInt(this.adminJumpPage);
+            if (isNaN(page) || page < 1 || page > this.adminPagination.pages) {
+                alert('请输入有效的页码（1-' + this.adminPagination.pages + '）');
+                return;
+            }
+            this.handleAdminPageChange(page);
+        },
+
+        /**
          * 管理者搜索
          */
         handleAdminSearch: function() {
@@ -256,6 +272,18 @@ const app = Vue.createApp({
         },
 
         /**
+         * 学生跳转指定页
+         */
+        handleStudentJumpPage: function() {
+            var page = parseInt(this.studentJumpPage);
+            if (isNaN(page) || page < 1 || page > this.studentPagination.pages) {
+                alert('请输入有效的页码（1-' + this.studentPagination.pages + '）');
+                return;
+            }
+            this.handleStudentPageChange(page);
+        },
+
+        /**
          * 学生搜索
          */
         handleStudentSearch: function() {
@@ -294,6 +322,18 @@ const app = Vue.createApp({
         handleTemplatePageChange: function(page) {
             this.templatePagination.current = page;
             this.searchTemplates();
+        },
+
+        /**
+         * 模板跳转指定页
+         */
+        handleTemplateJumpPage: function() {
+            var page = parseInt(this.templateJumpPage);
+            if (isNaN(page) || page < 1 || page > this.templatePagination.pages) {
+                alert('请输入有效的页码（1-' + this.templatePagination.pages + '）');
+                return;
+            }
+            this.handleTemplatePageChange(page);
         },
 
         /**
@@ -446,6 +486,18 @@ const app = Vue.createApp({
         handlePageChange: function(page) {
             this.pagination.current = page;
             this.fetchCourseList();
+        },
+
+        /**
+         * 跳转指定页
+         */
+        handleJumpPage: function() {
+            var page = parseInt(this.jumpPage);
+            if (isNaN(page) || page < 1 || page > this.pagination.pages) {
+                alert('请输入有效的页码（1-' + this.pagination.pages + '）');
+                return;
+            }
+            this.handlePageChange(page);
         },
 
         /**

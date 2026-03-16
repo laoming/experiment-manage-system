@@ -18,6 +18,7 @@ const app = Vue.createApp({
                 total: 0,
                 pages: 0
             },
+            jumpPage: 1,
             showMenuModal: false,
             menuModalMode: 'add',
             menuForm: {
@@ -169,6 +170,18 @@ const app = Vue.createApp({
         handlePageChange(page) {
             this.pagination.current = page;
             this.fetchMenuList();
+        },
+
+        /**
+         * 跳转指定页
+         */
+        handleJumpPage() {
+            const page = parseInt(this.jumpPage);
+            if (isNaN(page) || page < 1 || page > this.pagination.pages) {
+                alert('请输入有效的页码（1-' + this.pagination.pages + '）');
+                return;
+            }
+            this.handlePageChange(page);
         },
 
         /**

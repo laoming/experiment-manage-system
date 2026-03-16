@@ -129,6 +129,12 @@
         >
             下一页
         </button>
+        <div class="pagination-jump">
+            <span>跳至</span>
+            <input type="number" class="pagination-jump-input" v-model.number="jumpPage" min="1" :max="pagination.pages" @keyup.enter="handleJumpPage">
+            <span>页</span>
+            <button class="pagination-jump-btn" @click="handleJumpPage">跳转</button>
+        </div>
     </div>
 
     <!-- 用户编辑弹窗 -->

@@ -6,8 +6,15 @@
 
 /* ==================== 课程表格私有样式 ==================== */
 
+/* 表格容器 - 支持横向滚动 */
+.table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
 .course-table {
-    width: 100%;
+    width: max-content;
+    min-width: 100%;
     border-collapse: collapse;
 }
 
@@ -21,11 +28,64 @@
     font-weight: 600;
     color: #333;
     border-bottom: 2px solid #e0e0e0;
+    vertical-align: bottom;
+    white-space: nowrap;
 }
 
 .course-table td {
     padding: 12px 16px;
     border-bottom: 1px solid #e0e0e0;
+    vertical-align: middle;
+}
+
+/* 设置各列宽度 */
+.course-table th:nth-child(1),
+.course-table td:nth-child(1) {
+    width: 60px;
+    text-align: center;
+}
+
+.course-table th:nth-child(2),
+.course-table td:nth-child(2) {
+    width: 140px;
+}
+
+.course-table th:nth-child(3),
+.course-table td:nth-child(3) {
+    width: 180px;
+}
+
+.course-table th:nth-child(4),
+.course-table td:nth-child(4) {
+    width: 80px;
+}
+
+.course-table th:nth-child(5),
+.course-table td:nth-child(5) {
+    width: 80px;
+    text-align: center;
+}
+
+.course-table th:nth-child(6),
+.course-table td:nth-child(6) {
+    width: 80px;
+    text-align: center;
+}
+
+.course-table th:nth-child(7),
+.course-table td:nth-child(7) {
+    width: 90px;
+    text-align: center;
+}
+
+.course-table th:nth-child(8),
+.course-table td:nth-child(8) {
+    width: 140px;
+}
+
+.course-table th:nth-child(9),
+.course-table td:nth-child(9) {
+    min-width: 240px;
 }
 
 .course-table tbody tr:hover {
@@ -285,6 +345,41 @@
 .pagination-btn-sm:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+}
+
+.pagination-sm .pagination-jump {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+}
+
+.pagination-sm .pagination-jump-input {
+    width: 40px;
+    padding: 2px 6px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    text-align: center;
+    font-size: 12px;
+}
+
+.pagination-sm .pagination-jump-input:focus {
+    outline: none;
+    border-color: #4CAF50;
+}
+
+.pagination-sm .pagination-jump-btn {
+    padding: 2px 8px;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.pagination-sm .pagination-jump-btn:hover {
+    background: #388E3C;
 }
 
 /* ==================== 报告评分相关样式 ==================== */

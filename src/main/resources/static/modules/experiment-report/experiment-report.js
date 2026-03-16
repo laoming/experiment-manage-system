@@ -257,8 +257,9 @@ function showReportList() {
     document.getElementById('templateSelector').style.display = 'none';
     document.getElementById('reportEditor').style.display = 'none';
     document.getElementById('reportPreview').style.display = 'none';
-    document.getElementById('pendingContainer').style.display = 'block';
-    document.getElementById('submittedContainer').style.display = 'block';
+    // 清除内联样式，让 Vue 的 v-show 指令控制容器显示
+    document.getElementById('pendingContainer').style.removeProperty('display');
+    document.getElementById('submittedContainer').style.removeProperty('display');
     document.getElementById('reportTabs').style.display = 'flex';
     currentReport = null;
     currentTemplate = null;

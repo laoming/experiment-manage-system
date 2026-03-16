@@ -20,6 +20,7 @@ const app = Vue.createApp({
                 total: 0,
                 pages: 0
             },
+            jumpPage: 1,
             showUserModal: false,
             userModalMode: 'add',
             userForm: {
@@ -146,6 +147,15 @@ const app = Vue.createApp({
         handlePageChange(page) {
             this.pagination.current = page;
             this.fetchUserList();
+        },
+
+        handleJumpPage() {
+            const page = parseInt(this.jumpPage);
+            if (isNaN(page) || page < 1 || page > this.pagination.pages) {
+                alert('请输入有效的页码（1-' + this.pagination.pages + '）');
+                return;
+            }
+            this.handlePageChange(page);
         },
 
         openAddModal() {

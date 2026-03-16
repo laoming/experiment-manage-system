@@ -9,7 +9,7 @@ const HeaderComponent = {
                     <div class="logo" @click="goHome">
                         <div class="logo-icon">EMS</div>
                         <div>
-                            <div class="logo-text">实验管理系统</div>
+                            <div class="logo-text">实验报告管理系统</div>
                         </div>
                     </div>
                     <div class="user-info">
@@ -382,7 +382,7 @@ const HeaderComponent = {
                     }
 
                     // 当前页面不在标签页中，需要添加
-                    const pageTitle = document.title ? document.title.replace('实验管理系统 - ', '') : '页面';
+                    const pageTitle = document.title ? document.title.replace('实验报告管理系统 - ', '') : '页面';
                     this.addTabForCurrentPage(pageTitle, currentPath);
                 }
             } catch (error) {
