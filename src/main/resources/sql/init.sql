@@ -21,8 +21,178 @@ CREATE TABLE user
 
 INSERT INTO `USER` (`id`, `username`, `password`, `display_name`, `role_id`, `org_id`, `status`)
 VALUES ('1', 'admin', '$2a$10$iuFatogHkRpBbDJMllKluejzho/7Favm0zBQ.PUEeDTC1Bs301hZW', '超级管理员', '1', '0', '1'),
-       ('2', 'lm', '$2a$10$rZS9riAbYP.cjHgGSbl2f.dsNChdE.ZgQvQDg5caoELbHGdVJuvFu', '刘明', '2', '1100000', '1'),
-       ('3', 'feifei', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '菲菲', '3', '1100001', '1');
+       -- 计算机学院老师
+       ('10001', 'zhangwei', '$2a$10$rZS9riAbYP.cjHgGSbl2f.dsNChdE.ZgQvQDg5caoELbHGdVJuvFu', '张伟', '2', '1000000', '1'),
+       ('10002', 'lina', '$2a$10$rZS9riAbYP.cjHgGSbl2f.dsNChdE.ZgQvQDg5caoELbHGdVJuvFu', '李娜', '2', '1000000', '1'),
+       -- 软件学院老师
+       ('10003', 'wangqiang', '$2a$10$rZS9riAbYP.cjHgGSbl2f.dsNChdE.ZgQvQDg5caoELbHGdVJuvFu', '王强', '2', '2000000', '1'),
+       ('10004', 'liufang', '$2a$10$rZS9riAbYP.cjHgGSbl2f.dsNChdE.ZgQvQDg5caoELbHGdVJuvFu', '刘芳', '2', '2000000', '1'),
+       -- 电子信息学院老师
+       ('10005', 'chenming', '$2a$10$rZS9riAbYP.cjHgGSbl2f.dsNChdE.ZgQvQDg5caoELbHGdVJuvFu', '陈明', '2', '3000000', '1'),
+       -- 数字媒体学院老师
+       ('10006', 'zhaoli', '$2a$10$rZS9riAbYP.cjHgGSbl2f.dsNChdE.ZgQvQDg5caoELbHGdVJuvFu', '赵丽', '2', '4000000', '1'),
+       ('10007', 'sunhao', '$2a$10$rZS9riAbYP.cjHgGSbl2f.dsNChdE.ZgQvQDg5caoELbHGdVJuvFu', '孙浩', '2', '4000000', '1'),
+       -- 管理学院老师
+       ('10008', 'zhoujun', '$2a$10$rZS9riAbYP.cjHgGSbl2f.dsNChdE.ZgQvQDg5caoELbHGdVJuvFu', '周军', '2', '5000000', '1'),
+       -- 外语学院老师
+       ('10009', 'wuxia', '$2a$10$rZS9riAbYP.cjHgGSbl2f.dsNChdE.ZgQvQDg5caoELbHGdVJuvFu', '吴霞', '2', '6000000', '1'),
+       ('10010', 'zhengyu', '$2a$10$rZS9riAbYP.cjHgGSbl2f.dsNChdE.ZgQvQDg5caoELbHGdVJuvFu', '郑宇', '2', '6000000', '1'),
+       -- 艺术学院老师
+       ('10011', 'huangying', '$2a$10$rZS9riAbYP.cjHgGSbl2f.dsNChdE.ZgQvQDg5caoELbHGdVJuvFu', '黄莺', '2', '7000000', '1'),
+       -- 会计学院老师
+       ('10012', 'linjie', '$2a$10$rZS9riAbYP.cjHgGSbl2f.dsNChdE.ZgQvQDg5caoELbHGdVJuvFu', '林杰', '2', '8000000', '1'),
+       ('10013', 'heping', '$2a$10$rZS9riAbYP.cjHgGSbl2f.dsNChdE.ZgQvQDg5caoELbHGdVJuvFu', '何平', '2', '8000000', '1'),
+       -- 继续教育学院老师
+       ('10014', 'xujing', '$2a$10$rZS9riAbYP.cjHgGSbl2f.dsNChdE.ZgQvQDg5caoELbHGdVJuvFu', '徐静', '2', '9000000', '1'),
+       -- 计算机学院学生（计科2601班）
+       ('20001', 'cs260101', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '陈思远', '3', '1000001', '1'),
+       ('20002', 'cs260102', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '王建国', '3', '1000001', '1'),
+       ('20003', 'cs260103', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '李晓峰', '3', '1000001', '1'),
+       ('20004', 'cs260104', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '张美玲', '3', '1000001', '1'),
+       ('20005', 'cs260105', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '刘志强', '3', '1000001', '1'),
+       -- 计算机学院学生（计科2602班）
+       ('20006', 'cs260201', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '赵明辉', '3', '1000002', '1'),
+       ('20007', 'cs260202', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '孙丽娜', '3', '1000002', '1'),
+       ('20008', 'cs260203', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '周文斌', '3', '1000002', '1'),
+       ('20009', 'cs260204', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '吴晓燕', '3', '1000002', '1'),
+       ('20010', 'cs260205', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '郑海涛', '3', '1000002', '1'),
+       -- 计算机学院学生（计科2603班）
+       ('20011', 'cs260301', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '黄志伟', '3', '1000003', '1'),
+       ('20012', 'cs260302', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '林小红', '3', '1000003', '1'),
+       ('20013', 'cs260303', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '何俊杰', '3', '1000003', '1'),
+       ('20014', 'cs260304', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '徐婉婷', '3', '1000003', '1'),
+       ('20015', 'cs260305', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '马天宇', '3', '1000003', '1'),
+       -- 计算机学院学生（计科2604班）
+       ('20016', 'cs260401', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '杨晨曦', '3', '1000004', '1'),
+       ('20017', 'cs260402', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '朱晓雯', '3', '1000004', '1'),
+       ('20018', 'cs260403', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '胡志远', '3', '1000004', '1'),
+       ('20019', 'cs260404', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '高雨欣', '3', '1000004', '1'),
+       -- 计算机学院学生（计科2605班）
+       ('20020', 'cs260501', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '罗伟民', '3', '1000005', '1'),
+       ('20021', 'cs260502', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '谢婷婷', '3', '1000005', '1'),
+       ('20022', 'cs260503', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '邓志强', '3', '1000005', '1'),
+       ('20023', 'cs260504', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '唐晓丽', '3', '1000005', '1'),
+       ('20024', 'cs260505', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '冯浩然', '3', '1000005', '1'),
+       -- 软件学院学生（软工2601班）
+       ('20025', 'se260101', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '韩志刚', '3', '2000001', '1'),
+       ('20026', 'se260102', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '曹雨薇', '3', '2000001', '1'),
+       ('20027', 'se260103', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '彭伟强', '3', '2000001', '1'),
+       ('20028', 'se260104', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '董小芳', '3', '2000001', '1'),
+       ('20029', 'se260105', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '蒋浩宇', '3', '2000001', '1'),
+       -- 软件学院学生（软工2602班）
+       ('20030', 'se260201', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '沈明华', '3', '2000002', '1'),
+       ('20031', 'se260202', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '余思琪', '3', '2000002', '1'),
+       ('20032', 'se260203', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '潘志明', '3', '2000002', '1'),
+       ('20033', 'se260204', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '范雨萱', '3', '2000002', '1'),
+       -- 软件学院学生（软工2603班）
+       ('20034', 'se260301', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '石伟杰', '3', '2000003', '1'),
+       ('20035', 'se260302', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '姚晓红', '3', '2000003', '1'),
+       ('20036', 'se260303', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '廖志华', '3', '2000003', '1'),
+       ('20037', 'se260304', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '邹丽萍', '3', '2000003', '1'),
+       ('20038', 'se260305', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '熊志远', '3', '2000003', '1'),
+       -- 电子信息学院学生（电信2601班）
+       ('20039', 'ei260101', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '金伟明', '3', '3000001', '1'),
+       ('20040', 'ei260102', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '陆小燕', '3', '3000001', '1'),
+       ('20041', 'ei260103', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '郝志强', '3', '3000001', '1'),
+       ('20042', 'ei260104', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '孔晓敏', '3', '3000001', '1'),
+       ('20043', 'ei260105', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '白志伟', '3', '3000001', '1'),
+       -- 电子信息学院学生（电信2602班）
+       ('20044', 'ei260201', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '崔浩然', '3', '3000002', '1'),
+       ('20045', 'ei260202', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '康雨涵', '3', '3000002', '1'),
+       ('20046', 'ei260203', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '毛志杰', '3', '3000002', '1'),
+       ('20047', 'ei260204', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '邱小丽', '3', '3000002', '1'),
+       -- 数字媒体学院学生（数媒2601班）
+       ('20048', 'dm260101', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '秦志刚', '3', '4000001', '1'),
+       ('20049', 'dm260102', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '江雨婷', '3', '4000001', '1'),
+       ('20050', 'dm260103', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '史志伟', '3', '4000001', '1'),
+       ('20051', 'dm260104', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '顾晓芳', '3', '4000001', '1'),
+       -- 数字媒体学院学生（数媒2602班）
+       ('20052', 'dm260201', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '侯志明', '3', '4000002', '1'),
+       ('20053', 'dm260202', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '龚雨薇', '3', '4000002', '1'),
+       ('20054', 'dm260203', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '邵志强', '3', '4000002', '1'),
+       ('20055', 'dm260204', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '孟小燕', '3', '4000002', '1'),
+       ('20056', 'dm260205', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '龙志华', '3', '4000002', '1'),
+       -- 数字媒体学院学生（数媒2603班）
+       ('20057', 'dm260301', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '万志杰', '3', '4000003', '1'),
+       ('20058', 'dm260302', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '段雨涵', '3', '4000003', '1'),
+       ('20059', 'dm260303', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '钱志伟', '3', '4000003', '1'),
+       ('20060', 'dm260304', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '汤晓丽', '3', '4000003', '1'),
+       -- 管理学院学生（管理2601班）
+       ('20061', 'mg260101', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '尹志刚', '3', '5000001', '1'),
+       ('20062', 'mg260102', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '黎雨萱', '3', '5000001', '1'),
+       ('20063', 'mg260103', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '易志强', '3', '5000001', '1'),
+       ('20064', 'mg260104', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '常小芳', '3', '5000001', '1'),
+       ('20065', 'mg260105', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '武志伟', '3', '5000001', '1'),
+       -- 管理学院学生（管理2602班）
+       ('20066', 'mg260201', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '乔志明', '3', '5000002', '1'),
+       ('20067', 'mg260202', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '贺雨涵', '3', '5000002', '1'),
+       ('20068', 'mg260203', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '赖志杰', '3', '5000002', '1'),
+       ('20069', 'mg260204', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '龚晓敏', '3', '5000002', '1'),
+       -- 外语学院学生（英语2601班）
+       ('20070', 'en260101', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '文志刚', '3', '6000001', '1'),
+       ('20071', 'en260102', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '庞雨薇', '3', '6000001', '1'),
+       ('20072', 'en260103', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '樊志强', '3', '6000001', '1'),
+       ('20073', 'en260104', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '霍小燕', '3', '6000001', '1'),
+       -- 外语学院学生（英语2602班）
+       ('20074', 'en260201', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '殷志华', '3', '6000002', '1'),
+       ('20075', 'en260202', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '詹雨涵', '3', '6000002', '1'),
+       ('20076', 'en260203', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '甄志伟', '3', '6000002', '1'),
+       ('20077', 'en260204', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '仇晓丽', '3', '6000002', '1'),
+       ('20078', 'en260205', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '祖志杰', '3', '6000002', '1'),
+       -- 外语学院学生（英语2603班）
+       ('20079', 'en260301', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '巫志刚', '3', '6000003', '1'),
+       ('20080', 'en260302', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '伍雨萱', '3', '6000003', '1'),
+       ('20081', 'en260303', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '符志强', '3', '6000003', '1'),
+       ('20082', 'en260304', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '严小芳', '3', '6000003', '1'),
+       -- 艺术学院学生（艺术2601班）
+       ('20083', 'art260101', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '焦志明', '3', '7000001', '1'),
+       ('20084', 'art260102', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '舒雨涵', '3', '7000001', '1'),
+       ('20085', 'art260103', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '屈志伟', '3', '7000001', '1'),
+       ('20086', 'art260104', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '闵晓敏', '3', '7000001', '1'),
+       -- 艺术学院学生（艺术2602班）
+       ('20087', 'art260201', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '景志杰', '3', '7000002', '1'),
+       ('20088', 'art260202', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '晋雨薇', '3', '7000002', '1'),
+       ('20089', 'art260203', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '柳志刚', '3', '7000002', '1'),
+       ('20090', 'art260204', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '邢小燕', '3', '7000002', '1'),
+       ('20091', 'art260205', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '路志华', '3', '7000002', '1'),
+       -- 会计学院学生（会计2601班）
+       ('20092', 'ac260101', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '岳志强', '3', '8000001', '1'),
+       ('20093', 'ac260102', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '齐雨涵', '3', '8000001', '1'),
+       ('20094', 'ac260103', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '左志伟', '3', '8000001', '1'),
+       ('20095', 'ac260104', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '梅晓丽', '3', '8000001', '1'),
+       ('20096', 'ac260105', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '麻志杰', '3', '8000001', '1'),
+       -- 会计学院学生（会计2602班）
+       ('20097', 'ac260201', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '简志刚', '3', '8000002', '1'),
+       ('20098', 'ac260202', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '焦雨萱', '3', '8000002', '1'),
+       ('20099', 'ac260203', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '童志明', '3', '8000002', '1'),
+       ('20100', 'ac260204', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '苗小芳', '3', '8000002', '1'),
+       -- 会计学院学生（会计2603班）
+       ('20101', 'ac260301', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '燕志强', '3', '8000003', '1'),
+       ('20102', 'ac260302', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '熊雨涵', '3', '8000003', '1'),
+       ('20103', 'ac260303', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '石志伟', '3', '8000003', '1'),
+       ('20104', 'ac260304', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '秦晓敏', '3', '8000003', '1'),
+       -- 会计学院学生（会计2604班）
+       ('20105', 'ac260401', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '乌志杰', '3', '8000004', '1'),
+       ('20106', 'ac260402', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '狄雨薇', '3', '8000004', '1'),
+       ('20107', 'ac260403', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '耿志刚', '3', '8000004', '1'),
+       ('20108', 'ac260404', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '祝小燕', '3', '8000004', '1'),
+       ('20109', 'ac260405', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '路志华', '3', '8000004', '1'),
+       -- 继续教育学院学生（继教2601班）
+       ('20110', 'ce260101', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '甄志明', '3', '9000001', '1'),
+       ('20111', 'ce260102', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '曲雨涵', '3', '9000001', '1'),
+       ('20112', 'ce260103', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '项志伟', '3', '9000001', '1'),
+       ('20113', 'ce260104', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '祝晓丽', '3', '9000001', '1'),
+       -- 继续教育学院学生（继教2602班）
+       ('20114', 'ce260201', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '柯志刚', '3', '9000002', '1'),
+       ('20115', 'ce260202', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '管雨萱', '3', '9000002', '1'),
+       ('20116', 'ce260203', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '卢志强', '3', '9000002', '1'),
+       ('20117', 'ce260204', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '莫小芳', '3', '9000002', '1'),
+       ('20118', 'ce260205', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '房志华', '3', '9000002', '1'),
+       -- 继续教育学院学生（继教2603班）
+       ('20119', 'ce260301', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '裘志杰', '3', '9000003', '1'),
+       ('20120', 'ce260302', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '缪雨薇', '3', '9000003', '1'),
+       ('20121', 'ce260303', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '潘志明', '3', '9000003', '1'),
+       ('20122', 'ce260304', '$2a$10$8DplGzd1drRR8bfGTZvY5.1E.Nq6HXI0fu3N6HWQDOQo.vRUnjVSK', '戴晓敏', '3', '9000003', '1');
 
 
 -- 2. 角色表
@@ -139,13 +309,53 @@ CREATE TABLE organization
 -- 插入组织数据
 INSERT INTO organization(id, parent_id, org_name, org_code, full_path, description)
 VALUES ('0', null, '广州软件学院', 'gzus', '/广州软件学院', '根组织'),
-       ('1100000', '0', '计算机学院', 'cs', '/广州软件学院/计算机学院', ''),
-       ('1200000', '0', '物理学院', 'ph', '/广州软件学院/物理学院', ''),
-       ('1100001', '1100000', '计科2601班', 'cs2601', '/广州软件学院/计算机学院/计科2601班', ''),
-       ('1100002', '1100000', '计科2602班', 'cs2602', '/广州软件学院/计算机学院/计科2602班', ''),
-       ('1100003', '1100000', '计科2603班', 'cs2603', '/广州软件学院/计算机学院/计科2603班', ''),
-       ('1200001', '1200000', '物理2601班', 'ph2601', '/广州软件学院/物理学院/物理2601班', ''),
-       ('1200002', '1200000', '物理2602班', 'ph2602', '/广州软件学院/物理学院/物理2602班', '');
+       -- 学院
+       ('1000000', '0', '计算机学院', 'cs', '/广州软件学院/计算机学院', ''),
+       ('2000000', '0', '软件学院', 'se', '/广州软件学院/软件学院', ''),
+       ('3000000', '0', '电子信息学院', 'ei', '/广州软件学院/电子信息学院', ''),
+       ('4000000', '0', '数字媒体学院', 'dm', '/广州软件学院/数字媒体学院', ''),
+       ('5000000', '0', '管理学院', 'mg', '/广州软件学院/管理学院', ''),
+       ('6000000', '0', '外语学院', 'fl', '/广州软件学院/外语学院', ''),
+       ('7000000', '0', '艺术学院', 'art', '/广州软件学院/艺术学院', ''),
+       ('8000000', '0', '会计学院', 'ac', '/广州软件学院/会计学院', ''),
+       ('9000000', '0', '继续教育学院', 'ce', '/广州软件学院/继续教育学院', ''),
+       -- 班级
+       -- 计算机学院班级
+       ('1000001', '1000000', '计科2601班', 'cs2601', '/广州软件学院/计算机学院/计科2601班', ''),
+       ('1000002', '1000000', '计科2602班', 'cs2602', '/广州软件学院/计算机学院/计科2602班', ''),
+       ('1000003', '1000000', '计科2603班', 'cs2603', '/广州软件学院/计算机学院/计科2603班', ''),
+       ('1000004', '1000000', '计科2604班', 'cs2604', '/广州软件学院/计算机学院/计科2604班', ''),
+       ('1000005', '1000000', '计科2605班', 'cs2605', '/广州软件学院/计算机学院/计科2605班', ''),
+       -- 软件学院班级
+       ('2000001', '2000000', '软工2601班', 'se2601', '/广州软件学院/软件学院/软工2601班', ''),
+       ('2000002', '2000000', '软工2602班', 'se2602', '/广州软件学院/软件学院/软工2602班', ''),
+       ('2000003', '2000000', '软工2603班', 'se2603', '/广州软件学院/软件学院/软工2603班', ''),
+       -- 电子信息学院班级
+       ('3000001', '3000000', '电信2601班', 'ei2601', '/广州软件学院/电子信息学院/电信2601班', ''),
+       ('3000002', '3000000', '电信2602班', 'ei2602', '/广州软件学院/电子信息学院/电信2602班', ''),
+       -- 数字媒体学院班级
+       ('4000001', '4000000', '数媒2601班', 'dm2601', '/广州软件学院/数字媒体学院/数媒2601班', ''),
+       ('4000002', '4000000', '数媒2602班', 'dm2602', '/广州软件学院/数字媒体学院/数媒2602班', ''),
+       ('4000003', '4000000', '数媒2603班', 'dm2603', '/广州软件学院/数字媒体学院/数媒2603班', ''),
+       -- 管理学院班级
+       ('5000001', '5000000', '管理2601班', 'mg2601', '/广州软件学院/管理学院/管理2601班', ''),
+       ('5000002', '5000000', '管理2602班', 'mg2602', '/广州软件学院/管理学院/管理2602班', ''),
+       -- 外语学院班级
+       ('6000001', '6000000', '英语2601班', 'en2601', '/广州软件学院/外语学院/英语2601班', ''),
+       ('6000002', '6000000', '英语2602班', 'en2602', '/广州软件学院/外语学院/英语2602班', ''),
+       ('6000003', '6000000', '英语2603班', 'en2603', '/广州软件学院/外语学院/英语2603班', ''),
+       -- 艺术学院班级
+       ('7000001', '7000000', '艺术2601班', 'art2601', '/广州软件学院/艺术学院/艺术2601班', ''),
+       ('7000002', '7000000', '艺术2602班', 'art2602', '/广州软件学院/艺术学院/艺术2602班', ''),
+       -- 会计学院班级
+       ('8000001', '8000000', '会计2601班', 'ac2601', '/广州软件学院/会计学院/会计2601班', ''),
+       ('8000002', '8000000', '会计2602班', 'ac2602', '/广州软件学院/会计学院/会计2602班', ''),
+       ('8000003', '8000000', '会计2603班', 'ac2603', '/广州软件学院/会计学院/会计2603班', ''),
+       ('8000004', '8000000', '会计2604班', 'ac2604', '/广州软件学院/会计学院/会计2604班', ''),
+       -- 继续教育学院班级
+       ('9000001', '9000000', '继教2601班', 'ce2601', '/广州软件学院/继续教育学院/继教2601班', ''),
+       ('9000002', '9000000', '继教2602班', 'ce2602', '/广州软件学院/继续教育学院/继教2602班', ''),
+       ('9000003', '9000000', '继教2603班', 'ce2603', '/广州软件学院/继续教育学院/继教2603班', '');
 
 -- 6. 公告表
 CREATE TABLE notice
