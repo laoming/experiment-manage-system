@@ -1,0 +1,22 @@
+/* 应用主布局样式 */
+.app-layout {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.main-content {
+    flex: 1;
+    padding-top: 102px; /* header height + tabs-bar height */
+    padding-left: 20px;
+    padding-right: 20px;
+    padding-bottom: 40px;
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        padding-top: 122px;
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+}

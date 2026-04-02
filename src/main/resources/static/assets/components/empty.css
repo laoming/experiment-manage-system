@@ -1,0 +1,63 @@
+/* 空状态组件样式 */
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    gap: 16px;
+}
+
+.empty-icon {
+    font-size: 64px;
+    opacity: 0.5;
+}
+
+.empty-text {
+    color: #999;
+    font-size: 16px;
+    margin: 0;
+}
+
+.empty-description {
+    color: #ccc;
+    font-size: 14px;
+    margin: 0;
+    max-width: 400px;
+    text-align: center;
+}
+
+/* 表格中的空状态 */
+table .empty-cell {
+    padding: 60px 20px !important;
+}
+
+table .empty-cell .empty-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 40px 20px;
+}
+
+table .empty-cell .empty-icon {
+    font-size: 48px;
+}
+
+table .empty-cell p {
+    color: #999;
+    font-size: 14px;
+    margin: 0;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .empty-icon {
+        font-size: 48px;
+    }
+
+    .empty-text {
+        font-size: 14px;
+    }
+}

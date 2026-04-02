@@ -1,0 +1,58 @@
+/* 加载组件样式 */
+.loading-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 40px;
+}
+
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 3000;
+}
+
+.loading-spinner {
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #667eea;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+}
+
+.loading-small .loading-spinner {
+    width: 24px;
+    height: 24px;
+    border-width: 2px;
+}
+
+.loading-large .loading-spinner {
+    width: 60px;
+    height: 60px;
+    border-width: 4px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+    color: #666;
+    font-size: 14px;
+    margin: 0;
+}
+
+.loading-small .loading-text {
+    font-size: 12px;
+}
+
+.loading-large .loading-text {
+    font-size: 16px;
+}

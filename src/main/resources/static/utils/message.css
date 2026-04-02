@@ -1,0 +1,40 @@
+/* 消息提示样式 */
+.toast-message {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-100%);
+    padding: 12px 24px;
+    border-radius: 4px;
+    color: white;
+    font-size: 14px;
+    font-weight: 500;
+    z-index: 4000;
+    opacity: 0;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    min-width: 300px;
+    max-width: 500px;
+    text-align: center;
+}
+
+.toast-show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+}
+
+.toast-success {
+    background: #52c41a;
+}
+
+.toast-error {
+    background: #ff4d4f;
+}
+
+.toast-warning {
+    background: #faad14;
+}
+
+.toast-info {
+    background: #1890ff;
+}
