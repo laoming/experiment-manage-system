@@ -2,9 +2,11 @@
 description: 
 alwaysApply: true
 enabled: true
-updatedAt: 2026-04-02T03:31:56.961Z
+updatedAt: 2026-04-02T07:17:09.386Z
 provider: 
 ---
+
+前端规则适用于前端代码模块 /ems-ui
 
 前端编码规范:
 1. 前端页面风格保持一致。
