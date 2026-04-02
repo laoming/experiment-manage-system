@@ -15,6 +15,10 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
@@ -51,6 +55,23 @@ public class SecurityConfig {
     }
 
     /**
+     * CORS 配置
+     */
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173", "http://127.0.0.1:5173"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
+        
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
+
+    /**
      * 验证是否登录过滤链
      *
      * @param http
@@ -60,6 +81,8 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+                // 开启CORS支持
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 // 关闭CSRF（前后端分离不需要）
                 .csrf(csrf -> csrf.disable())
                 // 关闭Session（JWT无状态）
@@ -75,8 +98,6 @@ public class SecurityConfig {
                     .antMatchers("/auth/login").permitAll()
                     // 文件访问白名单（objectName为UUID，难以猜测，安全性可控）
                     .antMatchers("/file/access", "/file/download").permitAll()
-                    // 静态资源白名单
-                    .antMatchers("/common/**", "/modules/**").permitAll()
                     // 其余请求需认证
                     .anyRequest().authenticated();
             // 添加 JWT 过滤器到 Spring Security 过滤链
