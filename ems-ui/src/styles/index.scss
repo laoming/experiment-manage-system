@@ -1,0 +1,575 @@
+/**
+ * 全局样式 - 保持与原系统风格一致
+ */
+
+/* ==================== 基础样式 ==================== */
+
+/* Vue v-cloak 防止模板闪烁 */
+[v-cloak] {
+  display: none !important;
+}
+
+/* 重置样式 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body, #app {
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 
+    'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #333;
+  background: #f5f7fa;
+}
+
+/* ==================== 主题变量 ==================== */
+:root {
+  --primary-color: #667eea;
+  --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --success-color: #52c41a;
+  --warning-color: #faad14;
+  --danger-color: #ff4d4f;
+  --info-color: #1890ff;
+  --text-color: #333;
+  --text-secondary: #666;
+  --text-muted: #999;
+  --border-color: #e8e8e8;
+  --bg-color: #f5f7fa;
+}
+
+/* ==================== 滚动条样式 ==================== */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+/* ==================== Element Plus 覆盖样式 ==================== */
+
+/* 按钮 */
+.el-button--primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  
+  &:hover,
+  &:focus {
+    background: linear-gradient(135deg, #5a6fd6 0%, #6a4196 100%);
+  }
+}
+
+.el-button--success {
+  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  border: none;
+  
+  &:hover,
+  &:focus {
+    background: linear-gradient(135deg, #0f8a7f 0%, #32d970 100%);
+  }
+}
+
+.el-button--danger {
+  background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+  border: none;
+  
+  &:hover,
+  &:focus {
+    background: linear-gradient(135deg, #d42e42 0%, #e54f3a 100%);
+  }
+}
+
+.el-button--warning {
+  background: linear-gradient(135deg, #f7971e 0%, #ffd200 100%);
+  border: none;
+  color: #333;
+  
+  &:hover,
+  &:focus {
+    background: linear-gradient(135deg, #e58a1b 0%, #e6c200 100%);
+  }
+}
+
+.el-button--info {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  border: none;
+  
+  &:hover,
+  &:focus {
+    background: linear-gradient(135deg, #459ae5 0%, #00d9e5 100%);
+  }
+}
+
+/* 输入框 */
+.el-input {
+  --el-input-focus-border-color: #667eea;
+}
+
+.el-input__wrapper {
+  border-radius: 6px;
+  
+  &:hover {
+    box-shadow: 0 0 0 1px #667eea inset;
+  }
+  
+  &.is-focus {
+    box-shadow: 0 0 0 1px #667eea inset, 0 0 0 3px rgba(102, 126, 234, 0.1);
+  }
+}
+
+/* 选择器 */
+.el-select {
+  --el-select-input-focus-border-color: #667eea;
+}
+
+/* 复选框 */
+.el-checkbox {
+  --el-checkbox-checked-input-border-color: #667eea;
+  --el-checkbox-checked-bg-color: #667eea;
+}
+
+/* 表格 */
+.el-table {
+  --el-table-border-color: #f0f0f0;
+  --el-table-header-bg-color: #fafafa;
+  
+  th.el-table__cell {
+    font-weight: 600;
+    color: #333;
+  }
+  
+  .el-table__row {
+    &:hover > td {
+      background: #fafafa !important;
+    }
+  }
+}
+
+/* 卡片 */
+.el-card {
+  border-radius: 12px;
+  border: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* 弹窗 */
+.el-dialog {
+  border-radius: 12px;
+  
+  .el-dialog__header {
+    padding: 20px 24px;
+    border-bottom: 1px solid #f0f0f0;
+    margin-right: 0;
+    
+    .el-dialog__title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #333;
+    }
+  }
+  
+  .el-dialog__body {
+    padding: 24px;
+  }
+  
+  .el-dialog__footer {
+    padding: 16px 24px;
+    border-top: 1px solid #f0f0f0;
+  }
+}
+
+/* 消息提示 */
+.el-message {
+  border-radius: 8px;
+}
+
+/* 分页 */
+.el-pagination {
+  --el-pagination-button-bg-color: white;
+  --el-pagination-hover-color: #667eea;
+  
+  .el-pager li {
+    border-radius: 4px;
+    
+    &.is-active {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+  }
+}
+
+/* 表单 */
+.el-form-item__label {
+  font-weight: 500;
+  color: #333;
+}
+
+/* ==================== 通用工具类 ==================== */
+
+.text-primary { color: var(--primary-color) !important; }
+.text-success { color: var(--success-color) !important; }
+.text-warning { color: var(--warning-color) !important; }
+.text-danger { color: var(--danger-color) !important; }
+.text-info { color: var(--info-color) !important; }
+.text-muted { color: var(--text-muted) !important; }
+
+.bg-primary { background: var(--primary-gradient) !important; }
+.bg-white { background: white !important; }
+
+.rounded { border-radius: 8px; }
+.rounded-lg { border-radius: 12px; }
+.shadow { box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); }
+.shadow-lg { box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1); }
+
+.flex { display: flex; }
+.flex-center { display: flex; justify-content: center; align-items: center; }
+.flex-between { display: flex; justify-content: space-between; align-items: center; }
+.flex-column { display: flex; flex-direction: column; }
+.flex-wrap { flex-wrap: wrap; }
+.flex-1 { flex: 1; }
+.gap-8 { gap: 8px; }
+.gap-12 { gap: 12px; }
+.gap-16 { gap: 16px; }
+.gap-20 { gap: 20px; }
+
+.mt-10 { margin-top: 10px; }
+.mt-20 { margin-top: 20px; }
+.mb-10 { margin-bottom: 10px; }
+.mb-20 { margin-bottom: 20px; }
+.ml-10 { margin-left: 10px; }
+.mr-10 { margin-right: 10px; }
+.p-10 { padding: 10px; }
+.p-20 { padding: 20px; }
+
+.cursor-pointer { cursor: pointer; }
+.select-none { user-select: none; }
+
+/* ==================== 页面通用样式 ==================== */
+
+/* 页面标题 */
+.page-header {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.page-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.page-subtitle {
+  font-size: 14px;
+  color: #999;
+  margin: 0;
+}
+
+/* 工具栏 */
+.toolbar {
+  background: white;
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+/* 表格容器 */
+.table-container {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* 空状态 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: #999;
+  
+  .empty-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+  }
+  
+  .empty-text {
+    font-size: 14px;
+  }
+}
+
+/* 操作按钮 */
+.action-btn {
+  padding: 4px 12px;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  
+  &.btn-view {
+    background: #e6f7ff;
+    color: #1890ff;
+    
+    &:hover {
+      background: #bae7ff;
+    }
+  }
+  
+  &.btn-edit {
+    background: #f0f5ff;
+    color: #1890ff;
+    
+    &:hover {
+      background: #adc6ff;
+    }
+  }
+  
+  &.btn-delete {
+    background: #fff1f0;
+    color: #ff4d4f;
+    
+    &:hover {
+      background: #ffccc7;
+    }
+  }
+  
+  &.btn-success {
+    background: #f6ffed;
+    color: #52c41a;
+    
+    &:hover {
+      background: #b7eb8f;
+    }
+  }
+  
+  &.btn-warning {
+    background: #fffbe6;
+    color: #faad14;
+    
+    &:hover {
+      background: #ffe58f;
+    }
+  }
+}
+
+/* ==================== Toast 消息提示 ==================== */
+.toast-message {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-20px);
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #fff;
+  opacity: 0;
+  transition: all 0.3s ease;
+  z-index: 9999;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.toast-show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.toast-success {
+  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+}
+
+.toast-error {
+  background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+}
+
+.toast-warning {
+  background: linear-gradient(135deg, #f7971e 0%, #ffd200 100%);
+  color: #333;
+}
+
+.toast-info {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+/* ==================== 响应式设计 ==================== */
+@media (max-width: 768px) {
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .page-header {
+    padding: 16px;
+  }
+  
+  .page-title {
+    font-size: 18px;
+  }
+}
+
+/* ==================== 页面通用样式 ==================== */
+
+// 页面容器
+.page-container {
+  padding: 20px;
+  min-height: 100%;
+  background: #f5f7fa;
+}
+
+// 页面标题区域
+.page-header {
+  margin-bottom: 20px;
+}
+
+.page-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin: 0 0 8px 0;
+}
+
+.page-subtitle {
+  font-size: 14px;
+  color: #666;
+  margin: 0;
+}
+
+// 工具栏
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 20px;
+  background: #fff;
+  padding: 16px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.search-box {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.action-box {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+// 表格容器
+.table-container {
+  background: #fff;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+// 分页容器
+.pagination-container {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+// 卡片样式
+.info-card {
+  background: #fff;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #ebeef5;
+}
+
+.card-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #303133;
+  margin: 0;
+}
+
+// 状态徽章
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+// 操作按钮组
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+// 表单项必填标记
+.required-label::before {
+  content: '*';
+  color: #f56c6c;
+  margin-right: 4px;
+}
+
+// 空状态提示
+.empty-tip {
+  text-align: center;
+  padding: 40px 0;
+  color: #909399;
+}
+
+// 加载状态
+.loading-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+}
+
+// 表格操作列
+.table-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: nowrap;
+}

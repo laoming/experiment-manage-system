@@ -7,4 +7,5 @@
 /dataSources/
 /dataSources.local.xml
 # 忽略编译文件
-/target/
+/ems-server/target/
+/ems-ui/node_modules/
