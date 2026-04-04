@@ -34,7 +34,12 @@ logging:
 jwt:
   secret: xK3j9vN2m5q8w1e4r7t0y3u6i9o2p5a8s1d4f7g0h3j6k9l2n5m8q1w4e7r0t3
   expire: 1800000 # 30分钟
+  refresh-threshold: 0.5 # 刷新阈值，当剩余时间 < 过期时间 * 阈值 时，自动刷新token
   enabled: true # 是否启用Token验证，默认开启，方便测试时可以关闭
+
+# CORS 跨域配置
+cors:
+  allowed-origins: http://localhost:5173,http://127.0.0.1:5173
 
 # MinIO 文件存储配置
 minio:

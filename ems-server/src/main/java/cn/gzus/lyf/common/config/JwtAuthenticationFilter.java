@@ -25,6 +25,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private static final Logger log = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
+    // 新Token响应头名称
+    private static final String NEW_TOKEN_HEADER = "X-New-Token";
+
     private JwtUtil jwtUtil;
     private UserService userService;
 
@@ -62,10 +65,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 );
                 authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+
+                // 3. 滑动刷新：如果Token剩余时间少于阈值，生成新Token
+                if (jwtUtil.shouldRefresh(token)) {
+                    String newToken = jwtUtil.refreshToken(token);
+                    response.setHeader(NEW_TOKEN_HEADER, JwtConstants.TOKEN_PREFIX + newToken);
+                    log.debug("Token已刷新，剩余时间不足，用户：{}", username);
+                }
             }
         }
 
-        // 3. 继续过滤链
+        // 4. 继续过滤链
         filterChain.doFilter(request, response);
     }
 }

@@ -22,6 +22,10 @@ public class JwtUtil {
     @Value("${jwt.expire}")
     private long expire;
 
+    // 刷新阈值：剩余时间少于过期时间的阈值时刷新
+    @Value("${jwt.refresh-threshold}")
+    private double refreshThreshold;
+
 
     /**
      * 生成JWT令牌（完整方法，可包含额外信息）
@@ -101,5 +105,32 @@ public class JwtUtil {
      */
     private boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());
+    }
+
+    /**
+     * 检查Token是否需要刷新（剩余时间少于阈值）
+     */
+    public boolean shouldRefresh(String token) {
+        try {
+            Date expiration = extractExpiration(token);
+            long remainingTime = expiration.getTime() - System.currentTimeMillis();
+            return remainingTime > 0 && remainingTime < expire * refreshThreshold;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /**
+     * 刷新Token（保留原有claims）
+     */
+    public String refreshToken(String token) {
+        Claims claims = extractAllClaims(token);
+        String username = claims.getSubject();
+        // 移除标准claims，保留自定义claims
+        Map<String, Object> additionalClaims = new HashMap<>(claims);
+        additionalClaims.remove("sub");
+        additionalClaims.remove("iat");
+        additionalClaims.remove("exp");
+        return createToken(additionalClaims, username);
     }
 }

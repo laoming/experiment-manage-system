@@ -20,6 +20,9 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.Arrays;
 
+/**
+ * Spring Security 安全配置类
+ */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
@@ -28,9 +31,14 @@ public class SecurityConfig {
     private UserService userService;
     private PasswordEncoder passwordEncoder;
     private JwtAuthenticationFilter jwtAuthenticationFilter;
+    private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    private JwtAccessDeniedHandler jwtAccessDeniedHandler;
 
     @Value("${jwt.enabled:true}")
     private boolean jwtEnabled;
+
+    @Value("${cors.allowed-origins}")
+    private String allowedOrigins;
 
     @Autowired
     public void setUserService(UserService userService) {
@@ -47,6 +55,23 @@ public class SecurityConfig {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
 
+    @Autowired
+    public void setJwtAuthenticationEntryPoint(JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint) {
+        this.jwtAuthenticationEntryPoint = jwtAuthenticationEntryPoint;
+    }
+
+    @Autowired
+    public void setJwtAccessDeniedHandler(JwtAccessDeniedHandler jwtAccessDeniedHandler) {
+        this.jwtAccessDeniedHandler = jwtAccessDeniedHandler;
+    }
+
+    /**
+     * 配置认证管理器
+     *
+     * @param http HttpSecurity 对象
+     * @return AuthenticationManager 认证管理器
+     * @throws Exception 配置异常
+     */
     @Bean
     public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
         AuthenticationManagerBuilder authBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
@@ -55,28 +80,31 @@ public class SecurityConfig {
     }
 
     /**
-     * CORS 配置
+     * CORS 跨域配置
+     *
+     * @return CorsConfigurationSource 跨域配置源
      */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173", "http://127.0.0.1:5173"));
+        configuration.setAllowedOrigins(Arrays.asList(allowedOrigins.split(",")));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
-        
+        configuration.setExposedHeaders(Arrays.asList("X-New-Token"));
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
 
     /**
-     * 验证是否登录过滤链
+     * 配置安全过滤链
      *
-     * @param http
-     * @return
-     * @throws Exception
+     * @param http HttpSecurity 对象
+     * @return SecurityFilterChain 安全过滤链
+     * @throws Exception 配置异常
      */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -89,8 +117,11 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 // 配置HTTP安全头，允许同源页面在iframe中显示
                 .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin))
-                // 权限配置
-                .authorizeRequests();
+                // 配置异常处理
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                        .accessDeniedHandler(jwtAccessDeniedHandler));
+
         if (jwtEnabled) {
             // Token验证开启时，配置需要认证的接口
             http.authorizeRequests()
