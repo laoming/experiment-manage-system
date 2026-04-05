@@ -149,6 +149,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { post } from '@/utils/request'
 import { getToken, getUserInfo } from '@/utils/auth'
+import { markdownToHtml, htmlToMarkdown } from '@/utils/markdown'
 
 const router = useRouter()
 const route = useRoute()
@@ -186,66 +187,6 @@ const loadTemplate = async () => {
   } catch (e) {
     ElMessage.error('加载模板失败')
   }
-}
-
-// 简单的 Markdown 转 HTML
-const markdownToHtml = (md) => {
-  if (!md) return '<p>在此输入内容...</p>'
-  let html = md
-    .replace(/^### (.*$)/gm, '<h3>$1</h3>')
-    .replace(/^## (.*$)/gm, '<h2>$1</h2>')
-    .replace(/^# (.*$)/gm, '<h1>$1</h1>')
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.*?)\*/g, '<em>$1</em>')
-    .replace(/`([^`]+)`/g, '<code>$1</code>')
-    .replace(/\n/g, '<br>')
-  return html
-}
-
-// 简单的 HTML 转 Markdown
-const htmlToMarkdown = (html) => {
-  if (!html) return ''
-  const temp = document.createElement('div')
-  temp.innerHTML = html
-  let md = ''
-  
-  const processNode = (node) => {
-    if (node.nodeType === Node.TEXT_NODE) {
-      return node.textContent
-    }
-    if (node.nodeType !== Node.ELEMENT_NODE) return ''
-    
-    const tag = node.tagName.toLowerCase()
-    const children = Array.from(node.childNodes).map(processNode).join('')
-    
-    switch (tag) {
-      case 'h1': return `# ${children}\n`
-      case 'h2': return `## ${children}\n`
-      case 'h3': return `### ${children}\n`
-      case 'strong': case 'b': return `**${children}**`
-      case 'em': case 'i': return `*${children}*`
-      case 'p': case 'div': return `${children}\n`
-      case 'br': return '\n'
-      case 'span':
-        // 检查是否是填空或公式
-        if (node.classList.contains('inline-input')) {
-          const placeholder = node.getAttribute('data-placeholder') || '请输入'
-          return `[${placeholder}]`
-        }
-        if (node.classList.contains('inline-formula')) {
-          const formula = node.getAttribute('data-formula') || ''
-          return `$${formula}$`
-        }
-        return children
-      default: return children
-    }
-  }
-  
-  Array.from(temp.childNodes).forEach(node => {
-    md += processNode(node)
-  })
-  
-  return md.trim()
 }
 
 // 插入填空

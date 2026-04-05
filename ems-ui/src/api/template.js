@@ -26,5 +26,5 @@ export const updateTemplate = (data) => {
 
 // 删除模板
 export const deleteTemplate = (id) => {
-  return post(`/experimentTemplate/delete?templateId=${id}`, {})
+  return post('/experimentTemplate/delete', { id })
 }

@@ -30,8 +30,8 @@
               <span v-if="report.comment" class="return-comment">退回意见: {{ report.comment }}</span>
             </div>
           </div>
-          <div class="report-item-status" :class="getStatusClass(report.status)">
-            {{ getStatusText(report.status) }}
+          <div class="report-item-status" :class="report.status">
+            {{ getStatusText(REPORT_STATUS_STRING, report.status) }}
           </div>
           <div class="report-item-actions">
             <el-button v-if="report.status === 'draft' || report.status === 'returned'" type="primary" size="small" @click="editReport(report)">
@@ -174,6 +174,8 @@ import { ArrowLeft, Upload, Edit } from '@element-plus/icons-vue'
 import { post } from '@/utils/request'
 import { getToken, getUserInfo } from '@/utils/auth'
 import { formatDateTime } from '@/utils/format'
+import { markdownToHtml, htmlToMarkdown } from '@/utils/markdown'
+import { REPORT_STATUS_STRING, getStatusText } from '@/utils/statusMap'
 
 // 视图状态
 const currentView = ref('list')
@@ -230,57 +232,6 @@ const loadReportOverview = async () => {
 }
 
 const switchTab = (tab) => { currentTab.value = tab }
-
-const getStatusText = (status) => ({ pending: '待填写', draft: '草稿', returned: '已退回', submitted: '已提交', graded: '已评分' }[status] || '未知')
-const getStatusClass = (status) => status || ''
-
-// Markdown 转 HTML（简化版）
-const markdownToHtml = (md) => {
-  if (!md) return '<p>在此输入内容...</p>'
-  return md
-    .replace(/^### (.*$)/gm, '<h3>$1</h3>')
-    .replace(/^## (.*$)/gm, '<h2>$1</h2>')
-    .replace(/^# (.*$)/gm, '<h1>$1</h1>')
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.*?)\*/g, '<em>$1</em>')
-    .replace(/`([^`]+)`/g, '<code>$1</code>')
-    .replace(/\[([^\]]+)\]/g, '<span class="inline-input" data-placeholder="$1">[$1]</span>')
-    .replace(/\$([^$]+)\$/g, '<span class="inline-formula">$$$1$$</span>')
-    .replace(/\n/g, '<br>')
-}
-
-// HTML 转 Markdown（简化版）
-const htmlToMarkdown = (html) => {
-  if (!html) return ''
-  const temp = document.createElement('div')
-  temp.innerHTML = html
-  let md = ''
-  const process = (node) => {
-    if (node.nodeType === Node.TEXT_NODE) return node.textContent
-    if (node.nodeType !== Node.ELEMENT_NODE) return ''
-    const tag = node.tagName.toLowerCase()
-    const children = Array.from(node.childNodes).map(process).join('')
-    switch (tag) {
-      case 'h1': return `# ${children}\n`
-      case 'h2': return `## ${children}\n`
-      case 'h3': return `### ${children}\n`
-      case 'strong': case 'b': return `**${children}**`
-      case 'em': case 'i': return `*${children}*`
-      case 'p': case 'div': return `${children}\n`
-      case 'br': return '\n'
-      case 'span':
-        if (node.classList.contains('inline-input')) {
-          const ph = node.getAttribute('data-placeholder') || node.textContent.replace(/[\[\]]/g, '')
-          return `[${ph}]`
-        }
-        if (node.classList.contains('inline-formula')) return `$$${children.replace(/\$/g, '')}$$`
-        return children
-      default: return children
-    }
-  }
-  Array.from(temp.childNodes).forEach(n => md += process(n))
-  return md.trim()
-}
 
 const getPdfAccessUrl = (objectName) => `/api/file/access?objectName=${encodeURIComponent(objectName)}`
 

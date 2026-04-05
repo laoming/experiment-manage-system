@@ -9,9 +9,9 @@ export const getOrganizationList = () => {
   return post('/organization/list', {})
 }
 
-// 获取组织树
+// 获取组织树（使用list接口，前端构建树结构）
 export const getOrganizationTree = () => {
-  return post('/organization/tree', {})
+  return post('/organization/list', {})
 }
 
 // 新增组织

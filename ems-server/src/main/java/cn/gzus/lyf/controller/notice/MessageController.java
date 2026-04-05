@@ -117,4 +117,16 @@ public class MessageController {
     public Result<Boolean> markAsRead(@RequestBody MessageEntity messageEntity) {
         return Result.success(messageService.markAsRead(messageEntity.getId()));
     }
+
+    /**
+     * 获取当前用户未读消息数量
+     */
+    @PostMapping("/unreadCount")
+    public Result<Long> getUnreadCount() {
+        String userId = getCurrentUserId();
+        if (userId == null) {
+            return Result.error("未登录");
+        }
+        return Result.success(messageService.getUnreadCount(userId));
+    }
 }

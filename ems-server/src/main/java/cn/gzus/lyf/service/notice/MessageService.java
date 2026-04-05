@@ -67,4 +67,8 @@ public class MessageService {
     public boolean markAsRead(String id) {
         return messageDAO.updateMessageStatus(id, 1);
     }
+
+    public long getUnreadCount(String receiverId) {
+        return messageDAO.getUnreadCount(receiverId);
+    }
 }

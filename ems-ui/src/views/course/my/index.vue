@@ -27,8 +27,8 @@
       <div v-for="course in courseList" :key="course.id" class="course-card">
         <div class="course-header">
           <h3 class="course-name">{{ course.courseName }}</h3>
-          <el-tag :type="course.status === 1 ? 'success' : 'info'" size="small">
-            {{ getStatusText(course.status) }}
+          <el-tag :type="getStatusType(COURSE_STATUS, course.status)" size="small">
+            {{ getStatusText(COURSE_STATUS, course.status) }}
           </el-tag>
         </div>
         <div class="course-info">
@@ -73,6 +73,8 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, Refresh } from '@element-plus/icons-vue'
 import { getMyCourseList, leaveCourse } from '@/api/course'
 import { formatDate } from '@/utils/format'
+import { getUserInfo } from '@/utils/auth'
+import { COURSE_STATUS, getStatusText, getStatusType } from '@/utils/statusMap'
 
 // 数据
 const loading = ref(false)
@@ -130,7 +132,12 @@ const handleLeave = async (course) => {
     await ElMessageBox.confirm(`确定要退出课程 "${course.courseName}" 吗？`, '提示', {
       type: 'warning'
     })
-    const res = await leaveCourse(course.id)
+    const userInfo = getUserInfo()
+    if (!userInfo?.id) {
+      ElMessage.error('获取用户信息失败')
+      return
+    }
+    const res = await leaveCourse(course.id, userInfo.id)
     if (res.code === 200) {
       ElMessage.success('退出课程成功')
       fetchMyCourses()
@@ -142,11 +149,6 @@ const handleLeave = async (course) => {
       ElMessage.error('退出课程失败: ' + error.message)
     }
   }
-}
-
-const getStatusText = (status) => {
-  const map = { 1: '进行中', 2: '已结束' }
-  return map[status] || '未知'
 }
 
 onMounted(() => {

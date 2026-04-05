@@ -4,7 +4,7 @@ import { post } from '@/utils/request'
  * 获取首页统计数据
  */
 export const getHomeStats = () => {
-  return post('/home/stats', {})
+  return post('/homeStats/getStats', {})
 }
 
 /**

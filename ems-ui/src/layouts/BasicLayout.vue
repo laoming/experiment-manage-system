@@ -107,10 +107,18 @@
 
       <!-- 主内容区域 -->
       <main class="main-content">
-        <router-view v-slot="{ Component, route }">
+        <div v-if="hasError" class="error-boundary">
+          <div class="error-content">
+            <h2>当前页面出现问题</h2>
+            <p class="error-message">{{ errorMessage }}</p>
+            <p class="error-tip">您可以返回首页继续使用其他功能</p>
+            <el-button type="primary" @click="handleErrorReset">返回首页</el-button>
+          </div>
+        </div>
+        <router-view v-else v-slot="{ Component, route }">
           <transition name="fade" mode="out-in">
             <keep-alive :max="10">
-              <component :is="Component" :key="route.path" />
+              <component :is="Component" :key="cacheKey" />
             </keep-alive>
           </transition>
         </router-view>
@@ -145,7 +153,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, onErrorCaptured } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { updateProfile, changePassword } from '@/api/user'
@@ -171,6 +179,47 @@ const profileForm = reactive({
 const profileLoading = ref(false)
 
 const activeMenu = computed(() => route.path)
+
+// 当前路由的缓存 key（带版本号）
+const cacheKey = computed(() => {
+  return TabsManager.getCacheKey(route.path)
+})
+
+// 错误边界
+const hasError = ref(false)
+const errorMessage = ref('')
+const errorPath = ref('')
+
+// 捕获子组件错误
+onErrorCaptured((error, instance, info) => {
+  console.error('页面错误:', error)
+  console.error('错误组件:', instance)
+  console.error('错误信息:', info)
+
+  // 记录出错的路径
+  errorPath.value = route.path
+
+  // 阻止错误继续向上传播，隔离到当前页面
+  hasError.value = true
+  errorMessage.value = error.message || '未知错误'
+
+  // 返回 false 阻止错误继续传播
+  return false
+})
+
+// 错误重置 - 关闭出错的标签页并跳转到首页
+const handleErrorReset = () => {
+  hasError.value = false
+  errorMessage.value = ''
+
+  // 关闭出错的标签页
+  if (errorPath.value) {
+    TabsManager.closeTab(errorPath.value, router)
+  }
+
+  // 跳转到首页
+  router.push('/home')
+}
 
 onMounted(() => {
   userInfo.value = getUserInfo()
@@ -470,7 +519,7 @@ const handleProfileSubmit = async () => {
     position: fixed;
     z-index: 200;
     transform: translateX(-100%);
-    
+
     &.collapsed {
       transform: translateX(0);
       width: 220px;
@@ -479,6 +528,50 @@ const handleProfileSubmit = async () => {
 
   .main-content {
     margin-left: 0;
+  }
+}
+
+/* 错误边界 */
+.error-boundary {
+  width: 100%;
+  min-height: calc(100vh - 122px);
+  background: rgba(255, 255, 255, 0.98);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+}
+
+.error-content {
+  text-align: center;
+  padding: 40px 60px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  max-width: 500px;
+
+  h2 {
+    color: #f56c6c;
+    margin-bottom: 20px;
+    font-size: 24px;
+    font-weight: 600;
+  }
+
+  .error-message {
+    color: #666;
+    margin-bottom: 12px;
+    font-size: 14px;
+    line-height: 1.6;
+    padding: 12px;
+    background: #f5f7fa;
+    border-radius: 8px;
+    word-break: break-all;
+  }
+
+  .error-tip {
+    color: #909399;
+    margin-bottom: 24px;
+    font-size: 13px;
   }
 }
 </style>

@@ -25,9 +25,6 @@
         <el-button type="success" @click="openSendModal">
           <el-icon><Plus /></el-icon> 发送消息
         </el-button>
-        <el-button type="warning" @click="handleMarkAllRead" :disabled="unreadCount === 0">
-          全部标记已读
-        </el-button>
       </div>
     </div>
 
@@ -103,7 +100,7 @@
 import { ref, reactive, onMounted, onActivated, onDeactivated } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Search, Refresh, Plus } from '@element-plus/icons-vue'
-import { getMessagePage, markAsRead, markAllAsRead, deleteMessage, getUnreadCount, sendMessage, getUserSimpleList } from '@/api/message'
+import { getMessagePage, markAsRead, deleteMessage, getUnreadCount, sendMessage, getUserSimpleList } from '@/api/message'
 import { formatDateTime } from '@/utils/format'
 import { getUserInfo } from '@/utils/auth'
 import { usePagination, useSearch } from '@/hooks'
@@ -166,24 +163,6 @@ const handleMarkRead = async (msg) => {
     ElMessage.success('已标记为已读')
   } else {
     ElMessage.error(res.message || '操作失败')
-  }
-}
-
-// 全部标记已读
-const handleMarkAllRead = async () => {
-  try {
-    const { ElMessageBox } = await import('element-plus')
-    await ElMessageBox.confirm('确定将所有消息标记为已读吗？', '提示', { type: 'warning' })
-    const res = await markAllAsRead()
-    if (res.code === 200) {
-      messageList.value.forEach(msg => msg.isRead = 1)
-      unreadCount.value = 0
-      ElMessage.success('已全部标记为已读')
-    } else {
-      ElMessage.error(res.message || '操作失败')
-    }
-  } catch (e) {
-    if (e !== 'cancel') ElMessage.error('操作失败')
   }
 }
 

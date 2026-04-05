@@ -1,4 +1,4 @@
-import { post } from '@/utils/request'
+import { post, get } from '@/utils/request'
 
 /**
  * 菜单管理 API
@@ -9,9 +9,9 @@ export const getMenuTree = () => {
   return post('/menu/tree', {})
 }
 
-// 获取菜单列表
+// 获取菜单列表（当前用户的菜单，使用GET方法）
 export const getMenuList = () => {
-  return post('/menu/list', {})
+  return get('/menu/list')
 }
 
 // 新增菜单

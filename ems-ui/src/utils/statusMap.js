@@ -36,10 +36,25 @@ export const REPORT_STATUS = {
   3: { text: '已退回', type: 'danger' }
 }
 
+// 实验报告状态（字符串格式）
+export const REPORT_STATUS_STRING = {
+  'pending': { text: '待填写', type: 'warning' },
+  'draft': { text: '草稿', type: 'info' },
+  'returned': { text: '已退回', type: 'danger' },
+  'submitted': { text: '已提交', type: 'primary' },
+  'graded': { text: '已评分', type: 'success' }
+}
+
 // 消息状态
 export const MESSAGE_STATUS = {
   0: { text: '未读', type: 'warning' },
   1: { text: '已读', type: 'success' }
+}
+
+// 课程状态
+export const COURSE_STATUS = {
+  1: { text: '进行中', type: 'success' },
+  2: { text: '已结束', type: 'info' }
 }
 
 // 菜单类型
@@ -86,7 +101,9 @@ export default {
   NOTICE_STATUS,
   TEMPLATE_STATUS,
   REPORT_STATUS,
+  REPORT_STATUS_STRING,
   MESSAGE_STATUS,
+  COURSE_STATUS,
   MENU_TYPE,
   getStatusText,
   getStatusType,
