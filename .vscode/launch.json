@@ -1,0 +1,21 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-EmsSpringBootApplication<ems-server>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/ems-server",
+            "mainClass": "cn.gzus.lyf.EmsSpringBootApplication",
+            "projectName": "ems-server",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "node-terminal",
+            "name": "Vue Dev Server",
+            "request": "launch",
+            "command": "npm run dev",
+            "cwd": "${workspaceFolder}/ems-ui"
+        }
+    ],
+}
