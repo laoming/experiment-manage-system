@@ -29,13 +29,13 @@ const app = createApp({
             // 公告相关
             noticeList: [],
             noticeLoading: true,
-            noticePagination: { current: 1, size: 10, total: 0, pages: 0 },
+            noticePagination: { current: 1, size: 5, total: 0, pages: 0 },
             showNoticeDetailModal: false,
             currentNotice: null,
             // 消息相关
             todoList: [],
             todoLoading: true,
-            todoPagination: { current: 1, size: 10, total: 0, pages: 0 },
+            todoPagination: { current: 1, size: 5, total: 0, pages: 0 },
             showTodoDetailModal: false,
             currentTodo: null,
             unreadCount: 0

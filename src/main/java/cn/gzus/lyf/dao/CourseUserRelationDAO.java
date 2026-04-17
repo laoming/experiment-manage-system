@@ -6,7 +6,6 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -117,7 +116,7 @@ public class CourseUserRelationDAO extends ServiceImpl<CourseUserRelationMapper,
         return this.list(Wrappers.<CourseUserRelationEntity>lambdaQuery()
                 .select(CourseUserRelationEntity::getCourseId)
                 .eq(CourseUserRelationEntity::getUserId, userId)
-                .eq(CourseUserRelationEntity::getUserType, CourseUserRelationEntity.USER_TYPE_ADMIN))
+                .eq(CourseUserRelationEntity::getUserType, CourseUserRelationEntity.USER_TYPE_TEACHER))
                 .stream()
                 .map(CourseUserRelationEntity::getCourseId)
                 .collect(java.util.stream.Collectors.toList());
@@ -136,7 +135,7 @@ public class CourseUserRelationDAO extends ServiceImpl<CourseUserRelationMapper,
         return this.count(Wrappers.<CourseUserRelationEntity>lambdaQuery()
                 .eq(CourseUserRelationEntity::getCourseId, courseId)
                 .eq(CourseUserRelationEntity::getUserId, userId)
-                .eq(CourseUserRelationEntity::getUserType, CourseUserRelationEntity.USER_TYPE_ADMIN)) > 0;
+                .eq(CourseUserRelationEntity::getUserType, CourseUserRelationEntity.USER_TYPE_TEACHER)) > 0;
     }
 
     /**
@@ -145,7 +144,7 @@ public class CourseUserRelationDAO extends ServiceImpl<CourseUserRelationMapper,
      * @return 管理者ID列表
      */
     public List<String> getAdminIdsByCourseId(String courseId) {
-        return getUserIdsByCourseIdAndType(courseId, CourseUserRelationEntity.USER_TYPE_ADMIN);
+        return getUserIdsByCourseIdAndType(courseId, CourseUserRelationEntity.USER_TYPE_TEACHER);
     }
 
     /**

@@ -9,9 +9,9 @@ import com.baomidou.mybatisplus.annotation.TableName;
 public class CourseUserRelationEntity {
 
     /**
-     * 用户类型：管理者
+     * 用户类型：管理者（教师）
      */
-    public static final int USER_TYPE_ADMIN = 1;
+    public static final int USER_TYPE_TEACHER = 1;
 
     /**
      * 用户类型：普通用户（学生）

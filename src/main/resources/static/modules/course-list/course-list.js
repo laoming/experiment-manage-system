@@ -33,7 +33,7 @@ const app = Vue.createApp({
             showBindModal: false,
             bindTab: 'admin',
             currentBindCourse: null,
-            // 管理者相关
+            // 教师相关
             selectedAdminIds: [],
             boundAdminIds: [],
             adminList: [],
@@ -95,7 +95,7 @@ const app = Vue.createApp({
 
     computed: {
         /**
-         * 获取可添加为管理者的用户列表
+         * 获取可添加为教师的用户列表
          */
         availableAdmins() {
             var self = this;
@@ -186,12 +186,12 @@ const app = Vue.createApp({
         },
 
         /**
-         * 搜索管理者（分页）
+         * 搜索教师（分页）
          */
         searchAdmins: async function() {
             try {
                 var params = 'current=' + this.adminPagination.current + '&size=' + this.adminPagination.size;
-                var body = {};
+                var body = { roleId: '2' }; // 教师角色ID
                 if (this.adminSearchKeyword) {
                     body.displayName = this.adminSearchKeyword;
                 }
@@ -206,12 +206,12 @@ const app = Vue.createApp({
                     this.adminPagination.pages = result.data.pages || 0;
                 }
             } catch (error) {
-                console.error('[COURSE-LIST] 搜索管理者失败:', error);
+                console.error('[COURSE-LIST] 搜索教师失败:', error);
             }
         },
 
         /**
-         * 管理者分页变化
+         * 教师分页变化
          */
         handleAdminPageChange: function(page) {
             this.adminPagination.current = page;
@@ -219,7 +219,7 @@ const app = Vue.createApp({
         },
 
         /**
-         * 管理者跳转指定页
+         * 教师跳转指定页
          */
         handleAdminJumpPage: function() {
             var page = parseInt(this.adminJumpPage);
@@ -231,7 +231,7 @@ const app = Vue.createApp({
         },
 
         /**
-         * 管理者搜索
+         * 教师搜索
          */
         handleAdminSearch: function() {
             this.adminPagination.current = 1;
@@ -244,7 +244,7 @@ const app = Vue.createApp({
         searchStudents: async function() {
             try {
                 var params = 'current=' + this.studentPagination.current + '&size=' + this.studentPagination.size;
-                var body = {};
+                var body = { roleId: '3' }; // 学生角色ID
                 if (this.studentSearchKeyword) {
                     body.displayName = this.studentSearchKeyword;
                 }
@@ -351,7 +351,7 @@ const app = Vue.createApp({
             this.loading = true;
             try {
                 console.log('[COURSE-LIST] 开始获取课程列表...', this.queryForm);
-                // 课程管理菜单传递 userType=1（管理者）
+                // 课程管理菜单传递 userType=1（教师）
                 var result = await fetch('/course/page?current=' + this.pagination.current + '&size=' + this.pagination.size + '&userType=1', {
                     method: 'POST',
                     headers: {
@@ -366,7 +366,7 @@ const app = Vue.createApp({
                     this.pagination.total = result.data.total || 0;
                     this.pagination.pages = result.data.pages || 0;
                     
-                    // 缓存创建者信息（不在此处查询管理者、学生和模板，延迟到查看/绑定时查询）
+                    // 缓存创建者信息（不在此处查询教师、学生和模板，延迟到查看/绑定时查询）
                     for (var i = 0; i < this.courseList.length; i++) {
                         var course = this.courseList[i];
                         this.courseCreatorCache[course.id] = course.creatorId;
@@ -383,7 +383,7 @@ const app = Vue.createApp({
         },
 
         /**
-         * 获取课程的管理者ID列表
+         * 获取课程的教师ID列表
          */
         fetchCourseAdminIds: async function(courseId) {
             try {
@@ -394,7 +394,7 @@ const app = Vue.createApp({
                     return result.data || [];
                 }
             } catch (error) {
-                console.error('获取课程管理者ID列表失败:', error);
+                console.error('获取课程教师ID列表失败:', error);
             }
             return [];
         },
@@ -596,7 +596,7 @@ const app = Vue.createApp({
 
                 if (result.code === 200) {
                     this.currentCourse = result.data;
-                    // 加载管理者、学生和模板数据
+                    // 加载教师、学生和模板数据
                     this.currentCourse.adminIds = await this.fetchCourseAdminIds(course.id);
                     this.currentCourse.studentIds = await this.fetchCourseStudentIds(course.id);
                     // 获取模板信息列表，并存入templateList以便getTemplateName方法使用
@@ -634,7 +634,7 @@ const app = Vue.createApp({
 
                 if (result.code === 200) {
                     this.currentGradeCourse = result.data;
-                    // 加载管理者、学生和模板数据
+                    // 加载教师、学生和模板数据
                     this.currentGradeCourse.adminIds = await this.fetchCourseAdminIds(course.id);
                     this.currentGradeCourse.studentIds = await this.fetchCourseStudentIds(course.id);
                     // 获取模板信息列表，并存入templateList以便getTemplateName方法使用
@@ -1058,7 +1058,7 @@ const app = Vue.createApp({
             this.currentBindCourse = course;
             this.bindTab = 'admin';
 
-            // 获取已绑定的管理者、学生和模板
+            // 获取已绑定的教师、学生和模板
             var adminIds = await this.fetchCourseAdminIds(course.id);
             var studentIds = await this.fetchCourseStudentIds(course.id);
             var templateIds = await this.fetchCourseTemplateIds(course.id);
@@ -1104,7 +1104,7 @@ const app = Vue.createApp({
         },
 
         /**
-         * 切换管理者选择
+         * 切换教师选择
          */
         toggleAdminSelection: function(userId) {
             var index = this.selectedAdminIds.indexOf(userId);
@@ -1140,11 +1140,11 @@ const app = Vue.createApp({
         },
 
         /**
-         * 添加管理者
+         * 添加教师
          */
         addAdmins: async function() {
             if (this.selectedAdminIds.length === 0) {
-                this.showError('请选择要添加的管理者');
+                this.showError('请选择要添加的教师');
                 return;
             }
             try {
@@ -1159,8 +1159,8 @@ const app = Vue.createApp({
                     })
                 });
                 if (result.code === 200) {
-                    this.showSuccess('添加管理者成功');
-                    // 刷新管理者列表
+                    this.showSuccess('添加教师成功');
+                    // 刷新教师列表
                     this.boundAdminIds = await this.fetchCourseAdminIds(this.currentBindCourse.id);
                     this.selectedAdminIds = [];
                     // 刷新课程列表（更新统计数据）
@@ -1168,20 +1168,20 @@ const app = Vue.createApp({
                     // 刷新可添加列表
                     await this.searchAdmins();
                 } else {
-                    this.showError('添加管理者失败: ' + (result.message || '未知错误'));
+                    this.showError('添加教师失败: ' + (result.message || '未知错误'));
                 }
             } catch (error) {
-                console.error('[COURSE-LIST] 添加管理者失败:', error);
-                this.showError('添加管理者失败: ' + error.message);
+                console.error('[COURSE-LIST] 添加教师失败:', error);
+                this.showError('添加教师失败: ' + error.message);
             }
         },
 
         /**
-         * 移除管理者
+         * 移除教师
          */
         removeAdmins: async function() {
             if (this.selectedAdminIds.length === 0) {
-                this.showError('请选择要移除的管理者');
+                this.showError('请选择要移除的教师');
                 return;
             }
             try {
@@ -1196,8 +1196,8 @@ const app = Vue.createApp({
                     })
                 });
                 if (result.code === 200) {
-                    this.showSuccess('移除管理者成功');
-                    // 刷新管理者列表
+                    this.showSuccess('移除教师成功');
+                    // 刷新教师列表
                     this.boundAdminIds = await this.fetchCourseAdminIds(this.currentBindCourse.id);
                     this.selectedAdminIds = [];
                     // 刷新课程列表（更新统计数据）
@@ -1205,11 +1205,11 @@ const app = Vue.createApp({
                     // 刷新可添加列表
                     await this.searchAdmins();
                 } else {
-                    this.showError('移除管理者失败: ' + (result.message || '未知错误'));
+                    this.showError('移除教师失败: ' + (result.message || '未知错误'));
                 }
             } catch (error) {
-                console.error('[COURSE-LIST] 移除管理者失败:', error);
-                this.showError('移除管理者失败: ' + error.message);
+                console.error('[COURSE-LIST] 移除教师失败:', error);
+                this.showError('移除教师失败: ' + error.message);
             }
         },
 

@@ -50,32 +50,34 @@
                                     <h3 class="card-title">公告</h3>
                                 </div>
                                 <div class="card-content">
-                                    <div v-if="noticeLoading" class="loading-text">加载中...</div>
-                                    <div v-else-if="noticeList.length === 0" class="empty-text">暂无公告</div>
-                                    <div v-else>
-                                        <div 
-                                            class="list-item" 
-                                            v-for="item in noticeList" 
-                                            :key="item.id"
-                                            @click="showNoticeDetail(item)"
-                                        >
-                                            <div class="list-item-title">{{ item.title }}</div>
-                                            <div class="list-item-time">{{ formatDateTime(item.createTime) }}</div>
+                                    <div class="list-container">
+                                        <div v-if="noticeLoading" class="loading-text">加载中...</div>
+                                        <div v-else-if="noticeList.length === 0" class="empty-text">暂无公告</div>
+                                        <div v-else>
+                                            <div 
+                                                class="list-item" 
+                                                v-for="item in noticeList" 
+                                                :key="item.id"
+                                                @click="showNoticeDetail(item)"
+                                            >
+                                                <div class="list-item-title">{{ item.title }}</div>
+                                                <div class="list-item-time">{{ formatDateTime(item.createTime) }}</div>
+                                            </div>
                                         </div>
-                                        <!-- 分页 -->
-                                        <div class="pagination" v-if="noticePagination.pages > 1">
-                                            <button 
-                                                class="page-btn" 
-                                                :disabled="noticePagination.current <= 1"
-                                                @click="changeNoticePage(noticePagination.current - 1)"
-                                            >上一页</button>
-                                            <span class="page-info">第 {{ noticePagination.current }} / {{ noticePagination.pages }} 页</span>
-                                            <button 
-                                                class="page-btn" 
-                                                :disabled="noticePagination.current >= noticePagination.pages"
-                                                @click="changeNoticePage(noticePagination.current + 1)"
-                                            >下一页</button>
-                                        </div>
+                                    </div>
+                                    <!-- 分页 - 固定在底部 -->
+                                    <div class="pagination" v-if="noticePagination.pages > 1">
+                                        <button 
+                                            class="page-btn" 
+                                            :disabled="noticePagination.current <= 1"
+                                            @click="changeNoticePage(noticePagination.current - 1)"
+                                        >上一页</button>
+                                        <span class="page-info">第 {{ noticePagination.current }} / {{ noticePagination.pages }} 页</span>
+                                        <button 
+                                            class="page-btn" 
+                                            :disabled="noticePagination.current >= noticePagination.pages"
+                                            @click="changeNoticePage(noticePagination.current + 1)"
+                                        >下一页</button>
                                     </div>
                                 </div>
                             </div>
@@ -88,36 +90,38 @@
                                     <span class="unread-badge" v-if="unreadCount > 0">{{ unreadCount }}</span>
                                 </div>
                                 <div class="card-content">
-                                    <div v-if="todoLoading" class="loading-text">加载中...</div>
-                                    <div v-else-if="todoList.length === 0" class="empty-text">暂无消息</div>
-                                    <div v-else>
-                                        <div 
-                                            class="list-item" 
-                                            :class="{ 'item-unread': item.status === 0 }"
-                                            v-for="item in todoList" 
-                                            :key="item.id"
-                                            @click="showTodoDetail(item)"
-                                        >
-                                            <div class="list-item-left">
-                                                <span class="status-dot" :class="item.status === 0 ? 'dot-unread' : 'dot-read'"></span>
-                                                <div class="list-item-title">{{ item.title }}</div>
+                                    <div class="list-container">
+                                        <div v-if="todoLoading" class="loading-text">加载中...</div>
+                                        <div v-else-if="todoList.length === 0" class="empty-text">暂无消息</div>
+                                        <div v-else>
+                                            <div 
+                                                class="list-item" 
+                                                :class="{ 'item-unread': item.status === 0 }"
+                                                v-for="item in todoList" 
+                                                :key="item.id"
+                                                @click="showTodoDetail(item)"
+                                            >
+                                                <div class="list-item-left">
+                                                    <span class="status-dot" :class="item.status === 0 ? 'dot-unread' : 'dot-read'"></span>
+                                                    <div class="list-item-title">{{ item.title }}</div>
+                                                </div>
+                                                <div class="list-item-time">{{ formatDateTime(item.createTime) }}</div>
                                             </div>
-                                            <div class="list-item-time">{{ formatDateTime(item.createTime) }}</div>
                                         </div>
-                                        <!-- 分页 -->
-                                        <div class="pagination" v-if="todoPagination.pages > 1">
-                                            <button 
-                                                class="page-btn" 
-                                                :disabled="todoPagination.current <= 1"
-                                                @click="changeTodoPage(todoPagination.current - 1)"
-                                            >上一页</button>
-                                            <span class="page-info">第 {{ todoPagination.current }} / {{ todoPagination.pages }} 页</span>
-                                            <button 
-                                                class="page-btn" 
-                                                :disabled="todoPagination.current >= todoPagination.pages"
-                                                @click="changeTodoPage(todoPagination.current + 1)"
-                                            >下一页</button>
-                                        </div>
+                                    </div>
+                                    <!-- 分页 - 固定在底部 -->
+                                    <div class="pagination" v-if="todoPagination.pages > 1">
+                                        <button 
+                                            class="page-btn" 
+                                            :disabled="todoPagination.current <= 1"
+                                            @click="changeTodoPage(todoPagination.current - 1)"
+                                        >上一页</button>
+                                        <span class="page-info">第 {{ todoPagination.current }} / {{ todoPagination.pages }} 页</span>
+                                        <button 
+                                            class="page-btn" 
+                                            :disabled="todoPagination.current >= todoPagination.pages"
+                                            @click="changeTodoPage(todoPagination.current + 1)"
+                                        >下一页</button>
                                     </div>
                                 </div>
                             </div>

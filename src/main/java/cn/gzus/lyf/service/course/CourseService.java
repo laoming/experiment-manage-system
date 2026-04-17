@@ -146,7 +146,7 @@ public class CourseService {
      * @return 是否成功
      */
     public boolean bindAdmins(String courseId, List<String> userIds) {
-        boolean result = courseUserRelationDAO.bindUsers(courseId, userIds, CourseUserRelationEntity.USER_TYPE_ADMIN);
+        boolean result = courseUserRelationDAO.bindUsers(courseId, userIds, CourseUserRelationEntity.USER_TYPE_TEACHER);
         if (result) {
             // 更新管理者数量
             int count = courseUserRelationDAO.getAdminIdsByCourseId(courseId).size();

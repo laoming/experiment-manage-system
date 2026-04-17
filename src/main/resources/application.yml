@@ -19,7 +19,7 @@ spring:
   # 数据库配置
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver  # MySQL 8.x 驱动类（5.x用com.mysql.jdbc.Driver）
-    url: jdbc:mysql://localhost:3306/ems?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://localhost:3306/ems_old?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
     username: root  # 你的MySQL用户名
     password: Sam12345678  # 你的MySQL密码
 

@@ -12,7 +12,7 @@
     <!-- 页面标题 -->
     <div class="page-header" v-else>
         <h1 class="page-title">课程管理</h1>
-        <p class="page-subtitle">管理系统课程信息，包括课程的创建、编辑、查看和删除。管理者可以管理课程，但只有创建者可以删除课程。</p>
+        <p class="page-subtitle">管理系统课程信息，包括课程的创建、编辑、查看和删除。教师可以管理课程，但只有创建者可以删除课程。</p>
     </div>
 
     <!-- 搜索和操作栏 -->
@@ -52,8 +52,8 @@
                     <th>课程名称</th>
                     <th>简介</th>
                     <th>创建者</th>
-                    <th>管理者</th>
-                    <th>学生人数</th>
+                    <th>教师数</th>
+                    <th>学生数</th>
                     <th>实验模板数</th>
                     <th>创建时间</th>
                     <th>操作</th>
@@ -202,7 +202,7 @@
                     <span class="view-value">{{ getCreatorName(currentCourse.creatorId) }}</span>
                 </div>
                 <div class="view-item">
-                    <label class="view-label">管理者 ({{ currentCourse.adminCount || 0 }} 人)：</label>
+                    <label class="view-label">教师 ({{ currentCourse.adminCount || 0 }} 人)：</label>
                     <div class="view-list" v-if="currentCourse.adminIds && currentCourse.adminIds.length > 0">
                         <span v-for="userId in currentCourse.adminIds" :key="userId" class="view-tag tag-admin">
                             {{ getCreatorName(userId) }}
@@ -437,7 +437,7 @@
                         :class="{ active: bindTab === 'admin' }"
                         @click="bindTab = 'admin'"
                     >
-                        绑定管理者
+                        绑定教师
                     </button>
                     <button
                         class="bind-tab"
@@ -455,10 +455,10 @@
                     </button>
                 </div>
 
-                <!-- 管理管理者 -->
+                <!-- 管理教师 -->
                 <div v-if="bindTab === 'admin'" class="bind-content">
                     <div class="bind-section">
-                        <h3>可添加的管理者</h3>
+                        <h3>可添加的教师</h3>
                         <div class="search-box-inline">
                             <input
                                 v-model="adminSearchKeyword"
@@ -480,7 +480,7 @@
                                 <span class="checkbox" :class="{ checked: selectedAdminIds.includes(user.id) }"></span>
                                 <span>{{ user.displayName }}</span>
                             </div>
-                            <div v-if="availableAdmins.length === 0" class="empty-text">暂无可添加的管理者</div>
+                            <div v-if="availableAdmins.length === 0" class="empty-text">暂无可添加的教师</div>
                         </div>
                         <div class="pagination-sm" v-if="adminPagination.pages > 1">
                             <button class="pagination-btn-sm" :disabled="adminPagination.current === 1" @click="handleAdminPageChange(adminPagination.current - 1)">上一页</button>
@@ -495,12 +495,12 @@
                         </div>
                         <div class="bind-actions" v-if="selectedAdminIds.length > 0">
                             <button type="button" class="btn btn-success btn-sm" @click="addAdmins">
-                                添加选中 ({{ selectedAdminIds.length }})
+                                绑定选中 ({{ selectedAdminIds.length }})
                             </button>
                         </div>
                     </div>
                     <div class="bind-section">
-                        <h3>已绑定的管理者 ({{ boundAdminIds.length }})</h3>
+                        <h3>已绑定的教师 ({{ boundAdminIds.length }})</h3>
                         <div class="selected-list" v-if="boundAdminIds.length > 0">
                             <div
                                 v-for="userId in boundAdminIds"
@@ -514,10 +514,10 @@
                                 <button class="btn-remove" @click.stop="toggleAdminSelection(userId)">✕</button>
                             </div>
                         </div>
-                        <div v-else class="empty-text">暂无绑定的管理者</div>
+                        <div v-else class="empty-text">暂无绑定的教师</div>
                         <div class="bind-actions" v-if="selectedAdminIds.length > 0">
                             <button type="button" class="btn btn-danger btn-sm" @click="removeAdmins">
-                                移除选中 ({{ selectedAdminIds.length }})
+                                解绑选中 ({{ selectedAdminIds.length }})
                             </button>
                         </div>
                     </div>
@@ -563,7 +563,7 @@
                         </div>
                         <div class="bind-actions" v-if="selectedStudentIds.length > 0">
                             <button type="button" class="btn btn-success btn-sm" @click="addStudents">
-                                添加选中 ({{ selectedStudentIds.length }})
+                                绑定选中 ({{ selectedStudentIds.length }})
                             </button>
                         </div>
                     </div>
@@ -585,7 +585,7 @@
                         <div v-else class="empty-text">暂无绑定的学生</div>
                         <div class="bind-actions" v-if="selectedStudentIds.length > 0">
                             <button type="button" class="btn btn-danger btn-sm" @click="removeStudents">
-                                移除选中 ({{ selectedStudentIds.length }})
+                                解绑选中 ({{ selectedStudentIds.length }})
                             </button>
                         </div>
                     </div>
@@ -631,7 +631,7 @@
                         </div>
                         <div class="bind-actions" v-if="selectedTemplateIds.length > 0">
                             <button type="button" class="btn btn-success btn-sm" @click="addTemplates">
-                                添加选中 ({{ selectedTemplateIds.length }})
+                                绑定选中 ({{ selectedTemplateIds.length }})
                             </button>
                         </div>
                     </div>
