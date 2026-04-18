@@ -40,9 +40,9 @@ public class MessageDAO extends ServiceImpl<MessageMapper, MessageEntity> {
 
         IPage<MessageEntity> messagePage = this.page(new Page<>(current, size), Wrappers.<MessageEntity>lambdaQuery()
                 .like(StringUtils.isNotEmpty(messageQueryDto.getTitle()), MessageEntity::getTitle, messageQueryDto.getTitle())
+                .eq(StringUtils.isNotEmpty(messageQueryDto.getCreatorId()), MessageEntity::getCreatorId, messageQueryDto.getCreatorId())
                 .eq(StringUtils.isNotEmpty(messageQueryDto.getReceiverId()), MessageEntity::getReceiverId, messageQueryDto.getReceiverId())
                 .eq(messageQueryDto.getStatus() != null, MessageEntity::getStatus, messageQueryDto.getStatus())
-                .orderByAsc(MessageEntity::getStatus)
                 .orderByDesc(MessageEntity::getCreateTime)
         );
         return BeanCopyUtils.copy(messagePage, PageDto.class);

@@ -78,6 +78,19 @@
                                             :disabled="noticePagination.current >= noticePagination.pages"
                                             @click="changeNoticePage(noticePagination.current + 1)"
                                         >下一页</button>
+                                        <span class="page-jump">
+                                            跳至
+                                            <input 
+                                                type="number" 
+                                                class="page-input" 
+                                                v-model.number="noticeJumpPage"
+                                                :min="1"
+                                                :max="noticePagination.pages"
+                                                @keyup.enter="jumpToNoticePage"
+                                            >
+                                            页
+                                            <button class="page-btn page-btn-go" @click="jumpToNoticePage">跳转</button>
+                                        </span>
                                     </div>
                                 </div>
                             </div>
@@ -122,6 +135,19 @@
                                             :disabled="todoPagination.current >= todoPagination.pages"
                                             @click="changeTodoPage(todoPagination.current + 1)"
                                         >下一页</button>
+                                        <span class="page-jump">
+                                            跳至
+                                            <input 
+                                                type="number" 
+                                                class="page-input" 
+                                                v-model.number="todoJumpPage"
+                                                :min="1"
+                                                :max="todoPagination.pages"
+                                                @keyup.enter="jumpToTodoPage"
+                                            >
+                                            页
+                                            <button class="page-btn page-btn-go" @click="jumpToTodoPage">跳转</button>
+                                        </span>
                                     </div>
                                 </div>
                             </div>

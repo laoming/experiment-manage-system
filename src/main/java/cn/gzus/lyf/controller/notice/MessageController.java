@@ -49,10 +49,16 @@ public class MessageController {
     }
 
     /**
-     * 消息分页查询
+     * 消息分页查询（只能查询自己作为发送人的消息）
      */
     @PostMapping("/page")
     public Result<PageDto<MessageEntity>> getMessagePage(int current, int size, @RequestBody MessageQueryDto messageQueryDto) {
+        String userId = getCurrentUserId();
+        if (userId == null) {
+            return Result.error("未登录");
+        }
+        // 设置当前用户为发送人过滤条件
+        messageQueryDto.setCreatorId(userId);
         return Result.success(messageService.getMessagePage(current, size, messageQueryDto));
     }
 

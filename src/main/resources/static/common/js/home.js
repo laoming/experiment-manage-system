@@ -30,12 +30,14 @@ const app = createApp({
             noticeList: [],
             noticeLoading: true,
             noticePagination: { current: 1, size: 5, total: 0, pages: 0 },
+            noticeJumpPage: 1,
             showNoticeDetailModal: false,
             currentNotice: null,
             // 消息相关
             todoList: [],
             todoLoading: true,
             todoPagination: { current: 1, size: 5, total: 0, pages: 0 },
+            todoJumpPage: 1,
             showTodoDetailModal: false,
             currentTodo: null,
             unreadCount: 0
@@ -1286,6 +1288,15 @@ const app = createApp({
             this.menuDirectories = this.menuList.filter(menu =>
                 menu.parentId === '0' && menu.menuType === 'D'
             );
+            
+            // 获取所有菜单项（menuType = 'M'）
+            const allMenuItems = this.menuList.filter(menu => menu.menuType === 'M');
+            
+            // 如果用户菜单少于10个，默认展开所有目录
+            if (allMenuItems.length < 10 && this.menuDirectories.length > 0) {
+                this.expandedDirectories = this.menuDirectories.map(d => d.id);
+                console.log('📌 [HOME] 菜单数量较少（' + allMenuItems.length + '个），已默认展开所有目录');
+            }
         },
 
         /**
@@ -1394,6 +1405,17 @@ const app = createApp({
         changeNoticePage(page) {
             if (page < 1 || page > this.noticePagination.pages) return;
             this.noticePagination.current = page;
+            this.noticeJumpPage = page;
+            this.fetchNoticeList();
+        },
+
+        /**
+         * 跳转至公告指定页
+         */
+        jumpToNoticePage() {
+            const page = this.noticeJumpPage;
+            if (page < 1 || page > this.noticePagination.pages || !page) return;
+            this.noticePagination.current = page;
             this.fetchNoticeList();
         },
 
@@ -1443,6 +1465,17 @@ const app = createApp({
          */
         changeTodoPage(page) {
             if (page < 1 || page > this.todoPagination.pages) return;
+            this.todoPagination.current = page;
+            this.todoJumpPage = page;
+            this.fetchTodoList();
+        },
+
+        /**
+         * 跳转至消息指定页
+         */
+        jumpToTodoPage() {
+            const page = this.todoJumpPage;
+            if (page < 1 || page > this.todoPagination.pages || !page) return;
             this.todoPagination.current = page;
             this.fetchTodoList();
         },

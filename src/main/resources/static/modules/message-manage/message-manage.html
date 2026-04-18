@@ -3,8 +3,8 @@
 <div class="main-content" v-cloak>
     <!-- 页面标题 -->
     <div class="page-header" v-if="!pageError">
-        <h1 class="page-title">消息管理</h1>
-        <p class="page-subtitle">发送和管理消息通知</p>
+        <h1 class="page-title">我的消息</h1>
+        <p class="page-subtitle">查看我发送的消息记录</p>
     </div>
 
     <!-- 搜索和操作栏 -->
@@ -17,7 +17,7 @@
                 placeholder="输入消息标题搜索"
             >
             <select v-model="queryForm.receiverId" class="search-select">
-                <option value="">全部用户</option>
+                <option value="">全部接收人</option>
                 <option v-for="user in userOptions" :key="user.id" :value="user.id">
                     {{ user.displayName || user.username }}
                 </option>
