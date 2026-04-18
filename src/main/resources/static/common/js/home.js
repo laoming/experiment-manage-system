@@ -1449,14 +1449,30 @@ const app = createApp({
                     this.todoList = response.data.records || [];
                     this.todoPagination.total = response.data.total || 0;
                     this.todoPagination.pages = response.data.pages || 0;
-                    // 计算未读数量
-                    this.unreadCount = this.todoList.filter(item => item.status === 0).length;
-                    console.log('✅ [HOME] 消息列表加载成功，共', this.todoList.length, '条，未读', this.unreadCount, '条');
+                    // 单独获取未读消息数量
+                    this.fetchUnreadCount();
                 }
             } catch (error) {
                 console.error('❌ [HOME] 获取消息列表失败:', error);
             } finally {
                 this.todoLoading = false;
+            }
+        },
+
+        /**
+         * 获取未读消息数量
+         */
+        async fetchUnreadCount() {
+            try {
+                const response = await fetch('/message/unreadCount', {
+                    method: 'GET'
+                });
+                if (response && response.code === 200) {
+                    this.unreadCount = response.data || 0;
+                    console.log('✅ [HOME] 未读消息数量:', this.unreadCount);
+                }
+            } catch (error) {
+                console.error('❌ [HOME] 获取未读消息数量失败:', error);
             }
         },
 
@@ -1509,8 +1525,9 @@ const app = createApp({
                     const todo = this.todoList.find(t => t.id === todoId);
                     if (todo) {
                         todo.status = 1;
-                        this.unreadCount = this.todoList.filter(item => item.status === 0).length;
                     }
+                    // 重新获取未读消息数量
+                    this.fetchUnreadCount();
                     console.log('✅ [HOME] 消息已标记为已读:', todoId);
                 }
             } catch (error) {

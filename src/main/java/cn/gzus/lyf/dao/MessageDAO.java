@@ -43,6 +43,7 @@ public class MessageDAO extends ServiceImpl<MessageMapper, MessageEntity> {
                 .eq(StringUtils.isNotEmpty(messageQueryDto.getCreatorId()), MessageEntity::getCreatorId, messageQueryDto.getCreatorId())
                 .eq(StringUtils.isNotEmpty(messageQueryDto.getReceiverId()), MessageEntity::getReceiverId, messageQueryDto.getReceiverId())
                 .eq(messageQueryDto.getStatus() != null, MessageEntity::getStatus, messageQueryDto.getStatus())
+                .orderByAsc(MessageEntity::getStatus)
                 .orderByDesc(MessageEntity::getCreateTime)
         );
         return BeanCopyUtils.copy(messagePage, PageDto.class);
@@ -73,5 +74,14 @@ public class MessageDAO extends ServiceImpl<MessageMapper, MessageEntity> {
         messageEntity.setStatus(status);
         messageEntity.setUpdateTime(new Date());
         return this.updateById(messageEntity);
+    }
+
+    public long getUnreadCountByReceiver(String receiverId) {
+        if (receiverId == null || receiverId.trim().isEmpty()) {
+            return 0;
+        }
+        return this.count(Wrappers.<MessageEntity>lambdaQuery()
+                .eq(MessageEntity::getReceiverId, receiverId)
+                .eq(MessageEntity::getStatus, 0));
     }
 }

@@ -88,18 +88,6 @@ public class MessageController {
     }
 
     /**
-     * 获取当前用户的消息列表（未读）
-     */
-    @GetMapping("/myMessages")
-    public Result<List<MessageEntity>> getMyMessages(@RequestParam(defaultValue = "5") int limit) {
-        String userId = getCurrentUserId();
-        if (userId == null) {
-            return Result.error("未登录");
-        }
-        return Result.success(messageService.getMessageListByReceiver(userId, 0, limit));
-    }
-
-    /**
      * 首页消息列表（分页，当前用户所有消息，未读优先，时间倒序）
      */
     @GetMapping("/homeList")
@@ -122,5 +110,17 @@ public class MessageController {
     @PostMapping("/markRead")
     public Result<Boolean> markAsRead(@RequestBody MessageEntity messageEntity) {
         return Result.success(messageService.markAsRead(messageEntity.getId()));
+    }
+
+    /**
+     * 获取当前用户未读消息数量
+     */
+    @GetMapping("/unreadCount")
+    public Result<Long> getUnreadCount() {
+        String userId = getCurrentUserId();
+        if (userId == null) {
+            return Result.error("未登录");
+        }
+        return Result.success(messageService.getUnreadCountByReceiver(userId));
     }
 }
