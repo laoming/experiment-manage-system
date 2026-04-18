@@ -1111,6 +1111,19 @@
     border-radius: 4px;
 }
 
+.image-alt-text {
+    text-align: center;
+    color: #666;
+    font-size: 13px;
+    margin-top: 4px;
+}
+
+/* PDF报告操作按钮组 */
+.pdf-report-actions {
+    display: flex;
+    gap: 8px;
+}
+
 /* ==================== 弹窗尺寸优化 ==================== */
 
 /* 特大弹窗 - 课程评分弹窗 - 更大尺寸 */

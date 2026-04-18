@@ -407,7 +407,10 @@
                     <div v-if="viewingReport && viewingReport.pdfUrl" class="pdf-report-section">
                         <div class="pdf-report-header">
                             <span class="pdf-report-label">PDF报告文件</span>
-                            <a :href="getPdfAccessUrl(viewingReport.pdfUrl)" target="_blank" class="btn btn-sm btn-info">新窗口打开</a>
+                            <div class="pdf-report-actions">
+                                <a :href="getPdfAccessUrl(viewingReport.pdfUrl)" target="_blank" class="btn btn-sm btn-info">新窗口打开</a>
+                                <a :href="getPdfDownloadUrl(viewingReport.pdfUrl)" target="_blank" class="btn btn-sm btn-success">下载</a>
+                            </div>
                         </div>
                         <div class="pdf-report-container">
                             <embed :src="getPdfAccessUrl(viewingReport.pdfUrl) + '#toolbar=0&navpanes=0'" type="application/pdf" width="100%" height="100%">

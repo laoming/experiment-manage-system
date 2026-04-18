@@ -735,6 +735,10 @@ const app = Vue.createApp({
                                 var html = MarkdownConverter.markdownToHtml(markdown, {
                                     editable: false  // 查看模式下不可编辑
                                 });
+                                // 后处理：将图片的 objectName 转换为可访问的 URL
+                                html = this.processImageUrls(html);
+                                // 后处理：将表格设为只读
+                                html = this.processTableReadOnly(html);
                                 this.viewingReportContent = '<div class="markdown-content">' + html + '</div>';
                             } else if (typeof marked !== 'undefined') {
                                 // 降级方案：使用 marked 将 Markdown 转换为 HTML
@@ -742,6 +746,8 @@ const app = Vue.createApp({
                                 var html = marked.parse(markdown);
                                 // 后处理：修复输入框的显示，移除 placeholder 标记
                                 html = this.postProcessMarkdownHtml(html);
+                                // 后处理：将图片的 objectName 转换为可访问的 URL
+                                html = this.processImageUrls(html);
                                 this.viewingReportContent = '<div class="markdown-content">' + html + '</div>';
                             } else {
                                 // 如果都没有加载，直接显示原始内容
@@ -766,6 +772,83 @@ const app = Vue.createApp({
             }
 
             this.showViewReportModal = true;
+        },
+
+        /**
+         * 后处理：将图片组件中的 objectName 转换为可访问的 URL
+         * MarkdownConverter 生成的图片 HTML 中，img src 直接使用了 MinIO 的 objectName，
+         * 需要替换为通过后端代理接口 /file/access?objectName=xxx 的访问 URL
+         */
+        processImageUrls: function(html) {
+            if (!html) return html;
+
+            var self = this;
+            var tempDiv = document.createElement('div');
+            tempDiv.innerHTML = html;
+
+            // 处理 block-component[data-type="image"] 中的图片
+            tempDiv.querySelectorAll('.block-component[data-type="image"]').forEach(function(blockEl) {
+                var propsStr = blockEl.getAttribute('data-props') || '{}';
+                var props;
+                try {
+                    props = JSON.parse(propsStr);
+                } catch (e) {
+                    props = {};
+                }
+
+                var body = blockEl.querySelector('.component-body');
+                if (!body) return;
+
+                if (props.url) {
+                    // 有 objectName，通过后端代理接口访问图片
+                    var accessUrl = API.BASE_URL + '/file/access?objectName=' + encodeURIComponent(props.url);
+                    var altText = props.alt || '';
+                    body.innerHTML = '<div class="preview-image"><img src="' + accessUrl + '" alt="' + self.escapeHtml(altText) + '"></div>' +
+                        (altText ? '<div class="image-alt-text">图片描述: ' + self.escapeHtml(altText) + '</div>' : '');
+                } else {
+                    // 没有上传图片，显示占位提示
+                    body.innerHTML = '<div class="preview-image-placeholder" style="color: #999; padding: 16px; text-align: center; border: 1px dashed #ddd; border-radius: 4px;">未上传图片</div>';
+                }
+            });
+
+            // 处理普通 <img> 标签中 src 为 objectName 的情况（非 block-component 包裹的图片）
+            tempDiv.querySelectorAll('img').forEach(function(img) {
+                var src = img.getAttribute('src') || '';
+                // 如果 src 看起来像 UUID（MinIO objectName），且不是完整 URL
+                if (src && !src.startsWith('http') && !src.startsWith('/') && !src.startsWith('data:')) {
+                    var accessUrl = API.BASE_URL + '/file/access?objectName=' + encodeURIComponent(src);
+                    img.setAttribute('src', accessUrl);
+                }
+            });
+
+            return tempDiv.innerHTML;
+        },
+
+        /**
+         * 后处理：将表格设为只读模式（移除 contenteditable 和 onblur 事件）
+         */
+        processTableReadOnly: function(html) {
+            if (!html) return html;
+
+            var tempDiv = document.createElement('div');
+            tempDiv.innerHTML = html;
+
+            // 移除表格单元格的可编辑属性
+            tempDiv.querySelectorAll('.block-component[data-type="table"]').forEach(function(blockEl) {
+                blockEl.removeAttribute('contenteditable');
+                var cells = blockEl.querySelectorAll('td[contenteditable]');
+                cells.forEach(function(cell) {
+                    cell.removeAttribute('contenteditable');
+                    cell.removeAttribute('onblur');
+                });
+            });
+
+            // 移除填空输入框的可编辑属性
+            tempDiv.querySelectorAll('.inline-input').forEach(function(input) {
+                input.removeAttribute('contenteditable');
+            });
+
+            return tempDiv.innerHTML;
         },
 
         /**
@@ -1387,6 +1470,16 @@ const app = Vue.createApp({
                 return '';
             }
             return API.BASE_URL + '/file/access?objectName=' + encodeURIComponent(objectName);
+        },
+
+        /**
+         * 获取PDF文件下载URL
+         */
+        getPdfDownloadUrl: function(objectName) {
+            if (!objectName) {
+                return '';
+            }
+            return API.BASE_URL + '/file/download?objectName=' + encodeURIComponent(objectName);
         },
 
         /**
