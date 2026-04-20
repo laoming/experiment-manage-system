@@ -22,17 +22,18 @@
         </div>
         <div class="tree-content" v-loading="loading">
           <el-tree
+            ref="treeRef"
             :data="orgTree"
             :props="treeProps"
             node-key="id"
-            :default-expand-all="expandedAll"
+            :default-expanded-keys="expandedKeys"
             :highlight-current="true"
             @node-click="handleNodeClick"
           >
             <template #default="{ node, data }">
               <span class="tree-node">
                 <span class="tree-label">{{ data.orgName }}</span>
-                <el-tag v-if="!data.parentId || data.parentId === '0'" type="warning" size="small">根</el-tag>
+                <el-tag v-if="data.parentId == null" type="warning" size="small">根</el-tag>
                 <span class="tree-code">({{ data.orgCode }})</span>
               </span>
             </template>
@@ -115,8 +116,25 @@ const loading = ref(false)
 const organizationList = ref([])
 const selectedOrg = ref(null)
 const expandedAll = ref(false)
+const expandedKeys = ref([])
+const treeRef = ref(null)
 
 const treeProps = { children: 'children', label: 'orgName' }
+
+// 获取所有节点ID
+const getAllNodeIds = (nodes) => {
+  const ids = []
+  const traverse = (nodeList) => {
+    nodeList.forEach(node => {
+      ids.push(node.id)
+      if (node.children && node.children.length > 0) {
+        traverse(node.children)
+      }
+    })
+  }
+  traverse(nodes)
+  return ids
+}
 
 // 组织弹窗
 const orgModal = useFormModal({
@@ -132,13 +150,21 @@ const parentOrgList = computed(() => organizationList.value)
 
 // 组织树
 const orgTree = computed(() => {
+  if (!organizationList.value || organizationList.value.length === 0) {
+    return []
+  }
+
   const orgMap = {}
   const roots = []
 
+  // 第一步：创建所有节点的映射
   organizationList.value.forEach(org => {
+    // parentId 为 null/undefined 表示根节点，否则转为字符串
+    const parentId = org.parentId != null ? String(org.parentId) : null
+
     orgMap[org.id] = {
       id: org.id,
-      parentId: org.parentId,
+      parentId: parentId,
       orgName: org.orgName,
       orgCode: org.orgCode,
       fullPath: org.fullPath || '',
@@ -149,14 +175,40 @@ const orgTree = computed(() => {
     }
   })
 
+  // 第二步：构建树形结构
   organizationList.value.forEach(org => {
     const node = orgMap[org.id]
-    if (!org.parentId || org.parentId === '' || org.parentId === '0') {
+    if (!node) return
+
+    const parentId = node.parentId
+
+    // 判断是否为根节点：parentId 为 null 或 undefined
+    if (parentId == null) {
       roots.push(node)
-    } else if (orgMap[org.parentId]) {
-      orgMap[org.parentId].children.push(node)
+    } else {
+      // 查找父节点并添加为子节点
+      const parentNode = orgMap[parentId]
+      if (parentNode) {
+        parentNode.children.push(node)
+      } else {
+        // 如果找不到父节点，将其作为根节点处理（避免数据丢失）
+        console.warn(`找不到父节点 ${parentId}，将组织 ${org.orgName} 作为根节点`)
+        roots.push(node)
+      }
     }
   })
+
+  // 第三步：按 fullPath 排序
+  const sortTree = (nodes) => {
+    if (!nodes || nodes.length === 0) return
+    nodes.sort((a, b) => (a.fullPath || '').localeCompare(b.fullPath || ''))
+    nodes.forEach(node => {
+      if (node.children && node.children.length > 0) {
+        sortTree(node.children)
+      }
+    })
+  }
+  sortTree(roots)
 
   return roots
 })
@@ -177,6 +229,13 @@ const fetchOrganizationList = async () => {
 // 展开/收起
 const expandAll = () => {
   expandedAll.value = !expandedAll.value
+  const tree = treeRef.value
+  if (!tree) return
+
+  // 通过遍历所有节点来控制展开状态
+  Object.values(tree.store.nodesMap).forEach(node => {
+    node.expanded = expandedAll.value
+  })
 }
 
 // 选择节点

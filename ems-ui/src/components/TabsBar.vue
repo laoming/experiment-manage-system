@@ -194,14 +194,15 @@ watch(
   (path) => {
     // 登录页不添加标签页
     if (path === '/login') return
-    
+
     // 查找是否已存在该路径的标签页
     const existingTab = tabs.value.find(t => t.path === path)
     if (existingTab) {
+      // 如果标签页已存在，切换到该标签页
       currentTab.value = existingTab.key
       TabsManager.saveCurrentTab(existingTab.key)
     } else {
-      // 根据路径生成标题
+      // 如果不存在，创建新的标签页
       const title = getRouteTitle(path)
       const icon = getRouteIcon(path)
       addTab({

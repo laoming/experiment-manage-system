@@ -14,9 +14,9 @@ export const getReportDetail = (id) => {
   return post(`/experimentReport/get?reportId=${id}`, {})
 }
 
-// 获取报告内容
+// 获取报告内容（使用get接口，从返回数据中取content）
 export const getReportContent = (reportId) => {
-  return post(`/experimentReport/getContent?reportId=${reportId}`, {})
+  return post(`/experimentReport/get?reportId=${reportId}`, {})
 }
 
 // 提交报告
@@ -31,5 +31,10 @@ export const gradeReport = (data) => {
 
 // 获取课程报告列表
 export const getCourseReports = (courseId) => {
-  return post(`/experimentReport/getByCourse?courseId=${courseId}`, {})
+  return post(`/experimentReport/getByCourseId?courseId=${courseId}`, {})
+}
+
+// 获取报告内容（使用get接口获取详情）
+export const getReportContent = (reportId) => {
+  return post(`/experimentReport/get?reportId=${reportId}`, {})
 }

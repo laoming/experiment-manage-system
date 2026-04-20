@@ -74,4 +74,13 @@ public class MessageDAO extends ServiceImpl<MessageMapper, MessageEntity> {
         messageEntity.setUpdateTime(new Date());
         return this.updateById(messageEntity);
     }
+
+    public long getUnreadCount(String receiverId) {
+        if (receiverId == null || receiverId.trim().isEmpty()) {
+            return 0;
+        }
+        return this.count(Wrappers.<MessageEntity>lambdaQuery()
+                .eq(MessageEntity::getReceiverId, receiverId)
+                .eq(MessageEntity::getStatus, 0));
+    }
 }

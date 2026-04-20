@@ -1,4 +1,4 @@
-import { post } from '@/utils/request'
+import { post, get } from '@/utils/request'
 
 /**
  * 公告管理 API
@@ -14,22 +14,17 @@ export const getNoticeList = () => {
   return post('/notice/list', {})
 }
 
+// 获取最新公告（GET方法）
+export const getLatestNotices = (limit = 20) => {
+  return get(`/notice/latest?limit=${limit}`)
+}
+
 // 新增公告
 export const addNotice = (data) => {
   return post('/notice/add', data)
 }
 
-// 更新公告
-export const updateNotice = (data) => {
-  return post('/notice/update', data)
-}
-
 // 删除公告
 export const deleteNotice = (id) => {
   return post('/notice/delete', { id })
-}
-
-// 发布公告
-export const publishNotice = (id) => {
-  return post('/notice/publish', { id })
 }

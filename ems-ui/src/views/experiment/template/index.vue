@@ -71,6 +71,7 @@
         @dragover.prevent
         @drop="onDrop"
         @input="onContentChange"
+        @click="onCanvasClick"
       ></div>
     </div>
 
@@ -149,6 +150,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { post } from '@/utils/request'
 import { getToken, getUserInfo } from '@/utils/auth'
+import { markdownToHtml, htmlToMarkdown } from '@/utils/markdown'
 
 const router = useRouter()
 const route = useRoute()
@@ -188,71 +190,11 @@ const loadTemplate = async () => {
   }
 }
 
-// 简单的 Markdown 转 HTML
-const markdownToHtml = (md) => {
-  if (!md) return '<p>在此输入内容...</p>'
-  let html = md
-    .replace(/^### (.*$)/gm, '<h3>$1</h3>')
-    .replace(/^## (.*$)/gm, '<h2>$1</h2>')
-    .replace(/^# (.*$)/gm, '<h1>$1</h1>')
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.*?)\*/g, '<em>$1</em>')
-    .replace(/`([^`]+)`/g, '<code>$1</code>')
-    .replace(/\n/g, '<br>')
-  return html
-}
-
-// 简单的 HTML 转 Markdown
-const htmlToMarkdown = (html) => {
-  if (!html) return ''
-  const temp = document.createElement('div')
-  temp.innerHTML = html
-  let md = ''
-  
-  const processNode = (node) => {
-    if (node.nodeType === Node.TEXT_NODE) {
-      return node.textContent
-    }
-    if (node.nodeType !== Node.ELEMENT_NODE) return ''
-    
-    const tag = node.tagName.toLowerCase()
-    const children = Array.from(node.childNodes).map(processNode).join('')
-    
-    switch (tag) {
-      case 'h1': return `# ${children}\n`
-      case 'h2': return `## ${children}\n`
-      case 'h3': return `### ${children}\n`
-      case 'strong': case 'b': return `**${children}**`
-      case 'em': case 'i': return `*${children}*`
-      case 'p': case 'div': return `${children}\n`
-      case 'br': return '\n'
-      case 'span':
-        // 检查是否是填空或公式
-        if (node.classList.contains('inline-input')) {
-          const placeholder = node.getAttribute('data-placeholder') || '请输入'
-          return `[${placeholder}]`
-        }
-        if (node.classList.contains('inline-formula')) {
-          const formula = node.getAttribute('data-formula') || ''
-          return `$${formula}$`
-        }
-        return children
-      default: return children
-    }
-  }
-  
-  Array.from(temp.childNodes).forEach(node => {
-    md += processNode(node)
-  })
-  
-  return md.trim()
-}
-
 // 插入填空
 const insertInput = () => {
   const id = 'input-' + Date.now()
   const placeholder = '请输入'
-  const html = `<span class="inline-input" data-id="${id}" contenteditable="false" data-placeholder="${placeholder">[${placeholder}]</span>`
+  const html = `<span class="inline-input" data-id="${id}" contenteditable="false" data-placeholder="${placeholder}">[${placeholder}]</span>`
   insertHtml(html)
   elementMap.set(id, { type: 'input', id, placeholder, title: '_ 填空' })
 }
@@ -355,6 +297,26 @@ const onContentChange = () => {
   // 可以在这里添加自动保存逻辑
 }
 
+// 点击画布事件处理
+const onCanvasClick = (e) => {
+  // 查找最近的带有 data-id 的元素
+  const target = e.target.closest('[data-id]')
+  if (target) {
+    // 点击到组件，选中它
+    const id = target.getAttribute('data-id')
+    if (id && elementMap.has(id)) {
+      selectedElement.value = elementMap.get(id)
+      // 高亮选中效果
+      document.querySelectorAll('.canvas .selected').forEach(el => el.classList.remove('selected'))
+      target.classList.add('selected')
+    }
+  } else if (e.target === canvasRef.value) {
+    // 点击到画布空白区域，取消选中
+    selectedElement.value = null
+    document.querySelectorAll('.canvas .selected').forEach(el => el.classList.remove('selected'))
+  }
+}
+
 // 选择元素（点击时调用）
 const selectElement = (el) => {
   const id = el.getAttribute('data-id')
@@ -449,7 +411,7 @@ const saveTemplate = async () => {
     if (res.code === 200) {
       ElMessage.success('保存成功')
       if (!templateId && res.data) {
-        router.replace(`/experiment/template/${res.data}`)
+        router.replace(`/template/edit/${res.data}`)
       }
     } else {
       ElMessage.error(res.message || '保存失败')
@@ -680,6 +642,22 @@ const saveTemplate = async () => {
   border-radius: 8px;
   margin: 16px 0;
   padding: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.canvas :deep(.block-component:hover),
+.canvas :deep(.block-component.selected) {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+}
+
+.canvas :deep(.inline-input:hover),
+.canvas :deep(.inline-input.selected),
+.canvas :deep(.inline-formula:hover),
+.canvas :deep(.inline-formula.selected) {
+  border-style: solid;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
 }
 
 .canvas :deep(.preview-table td) {

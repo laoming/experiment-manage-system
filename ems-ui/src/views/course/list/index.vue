@@ -303,7 +303,7 @@
         </el-table-column>
         <el-table-column label="状态" width="80">
           <template #default="{ row }">
-            <el-tag :type="getStatusType(row.status)" size="small">{{ getStatusText(row.status) }}</el-tag>
+            <el-tag :type="getStatusType(REPORT_STATUS, row.status)" size="small">{{ getStatusText(REPORT_STATUS, row.status) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column label="提交时间" width="160">
@@ -398,6 +398,8 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, Refresh, Plus, View, Edit, Delete, Link, EditPen, Loading } from '@element-plus/icons-vue'
 import { post, get } from '@/utils/request'
 import { formatDateTime } from '@/utils/format'
+import { REPORT_STATUS, getStatusText, getStatusType } from '@/utils/statusMap'
+import { markdownToHtml } from '@/utils/markdown'
 
 // 数据
 const loading = ref(false)
@@ -530,7 +532,7 @@ const handleSubmit = async () => {
 const handleDelete = async (course) => {
   try {
     await ElMessageBox.confirm(`确定删除课程 "${course.courseName}" 吗？`, '提示', { type: 'warning' })
-    const res = await post(`/course/delete?courseId=${course.id}`, {})
+    const res = await post('/course/delete', { id: course.id })
     if (res.code === 200) {
       ElMessage.success('删除成功')
       fetchCourseList()
@@ -612,7 +614,7 @@ const searchTemplates = async () => {
 }
 
 const addAdmins = async () => {
-  const res = await post(`/course/addAdmins?courseId=${currentBindCourse.value.id}`, selectedAdminIds.value)
+  const res = await post('/course/bindAdmins', { courseId: currentBindCourse.value.id, userIds: selectedAdminIds.value })
   if (res.code === 200) {
     ElMessage.success('添加成功')
     boundAdminIds.value.push(...selectedAdminIds.value.filter(id => !boundAdminIds.value.includes(id)))
@@ -624,7 +626,7 @@ const addAdmins = async () => {
 }
 
 const removeAdmin = async (userId) => {
-  const res = await post(`/course/removeAdmin?courseId=${currentBindCourse.value.id}&userId=${userId}`, {})
+  const res = await post('/course/unbindUsers', { courseId: currentBindCourse.value.id, userIds: [userId] })
   if (res.code === 200) {
     ElMessage.success('移除成功')
     boundAdminIds.value = boundAdminIds.value.filter(id => id !== userId)
@@ -635,7 +637,7 @@ const removeAdmin = async (userId) => {
 }
 
 const addStudents = async () => {
-  const res = await post(`/course/addStudents?courseId=${currentBindCourse.value.id}`, selectedStudentIds.value)
+  const res = await post('/course/bindUsers', { courseId: currentBindCourse.value.id, userIds: selectedStudentIds.value })
   if (res.code === 200) {
     ElMessage.success('添加成功')
     boundStudentIds.value.push(...selectedStudentIds.value.filter(id => !boundStudentIds.value.includes(id)))
@@ -647,7 +649,7 @@ const addStudents = async () => {
 }
 
 const removeStudent = async (userId) => {
-  const res = await post(`/course/removeStudent?courseId=${currentBindCourse.value.id}&userId=${userId}`, {})
+  const res = await post('/course/unbindUsers', { courseId: currentBindCourse.value.id, userIds: [userId] })
   if (res.code === 200) {
     ElMessage.success('移除成功')
     boundStudentIds.value = boundStudentIds.value.filter(id => id !== userId)
@@ -658,7 +660,7 @@ const removeStudent = async (userId) => {
 }
 
 const addTemplates = async () => {
-  const res = await post(`/course/addTemplates?courseId=${currentBindCourse.value.id}`, selectedTemplateIds.value)
+  const res = await post('/course/bindTemplates', { courseId: currentBindCourse.value.id, templateIds: selectedTemplateIds.value })
   if (res.code === 200) {
     ElMessage.success('绑定成功')
     boundTemplateIds.value.push(...selectedTemplateIds.value.filter(id => !boundTemplateIds.value.includes(id)))
@@ -670,7 +672,7 @@ const addTemplates = async () => {
 }
 
 const removeTemplate = async (templateId) => {
-  const res = await post(`/course/removeTemplate?courseId=${currentBindCourse.value.id}&templateId=${templateId}`, {})
+  const res = await post('/course/unbindTemplates', { courseId: currentBindCourse.value.id, templateIds: [templateId] })
   if (res.code === 200) {
     ElMessage.success('解除成功')
     boundTemplateIds.value = boundTemplateIds.value.filter(id => id !== templateId)
@@ -692,7 +694,7 @@ const openGradeModal = async (course) => {
     currentGradeCourse.value.studentIds = studentIds
     
     if (studentIds.length > 0) {
-      const res = await post(`/experimentReport/getByCourse?courseId=${course.id}`, {})
+      const res = await post(`/experimentReport/getByCourseId?courseId=${course.id}`, {})
       if (res.code === 200) {
         courseReports.value = res.data || []
       }
@@ -718,16 +720,15 @@ const submitScore = async () => {
   }
   try {
     const res = await post(`/experimentReport/grade`, {
-      id: currentReport.value.id,
+      reportId: currentReport.value.id,
       score: scoreForm.score,
-      comment: scoreForm.comment,
-      status: 2
+      comment: scoreForm.comment
     })
     if (res.code === 200) {
       ElMessage.success('评分成功')
       showScoreModal.value = false
       // 刷新报告列表
-      const reportRes = await post(`/experimentReport/getByCourse?courseId=${currentGradeCourse.value.id}`, {})
+      const reportRes = await post(`/experimentReport/getByCourseId?courseId=${currentGradeCourse.value.id}`, {})
       if (reportRes.code === 200) courseReports.value = reportRes.data || []
     } else {
       ElMessage.error(res.message || '评分失败')
@@ -739,16 +740,14 @@ const submitScore = async () => {
 
 const returnReport = async () => {
   try {
-    const res = await post(`/experimentReport/grade`, {
-      id: currentReport.value.id,
-      status: 1,
-      score: null,
-      comment: ''
+    const res = await post(`/experimentReport/return`, {
+      reportId: currentReport.value.id,
+      comment: scoreForm.comment || ''
     })
     if (res.code === 200) {
       ElMessage.success('已退回')
       showScoreModal.value = false
-      const reportRes = await post(`/experimentReport/getByCourse?courseId=${currentGradeCourse.value.id}`, {})
+      const reportRes = await post(`/experimentReport/getByCourseId?courseId=${currentGradeCourse.value.id}`, {})
       if (reportRes.code === 200) courseReports.value = reportRes.data || []
     }
   } catch (e) {
@@ -761,9 +760,9 @@ const openReportView = async (report) => {
   loadingReportContent.value = true
   showReportViewModal.value = true
   try {
-    const res = await post(`/experimentReport/getContent?reportId=${report.id}`, {})
+    const res = await post(`/experimentReport/get?reportId=${report.id}`, {})
     if (res.code === 200) {
-      viewingReportContent.value = res.data || ''
+      viewingReportContent.value = markdownToHtml(res.data.reportContent || '')
     }
   } catch (e) {
     viewingReportContent.value = ''
@@ -775,8 +774,6 @@ const openReportView = async (report) => {
 // 工具方法
 const getUserName = (userId) => userMap.value[userId] || `用户${userId}`
 const getTemplateName = (templateId) => templateMap.value[templateId] || `模板${templateId}`
-const getStatusText = (status) => ({ 0: '待提交', 1: '已提交', 2: '已批改' }[status] || '未知')
-const getStatusType = (status) => ({ 0: 'info', 1: 'warning', 2: 'success' }[status] || 'info')
 
 onMounted(() => {
   fetchCourseList()

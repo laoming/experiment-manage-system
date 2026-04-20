@@ -116,10 +116,6 @@ const parentMenus = computed(() => menuList.value.filter(m => m.menuType === 'D'
 // 分页（用于序号计算）
 const { loading, indexMethod } = usePagination()
 
-// 搜索
-const defaultQuery = { menuName: '', menuType: null }
-const { queryForm, handleSearch, handleReset } = useSearch(defaultQuery, fetchMenuList)
-
 // 菜单弹窗
 const menuModal = useFormModal({
   id: '',
@@ -151,6 +147,10 @@ const fetchMenuList = async () => {
     loading.value = false
   }
 }
+
+// 搜索
+const defaultQuery = { menuName: '', menuType: null }
+const { queryForm, handleSearch, handleReset } = useSearch(defaultQuery, fetchMenuList)
 
 // 提交菜单表单
 const handleMenuSubmit = async () => {

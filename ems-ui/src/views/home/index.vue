@@ -339,7 +339,8 @@ const viewMessage = async (message) => {
 .card-header {
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: flex-start;
+  gap: 8px;
   padding: 16px 20px;
   border-bottom: 1px solid #f0f0f0;
 }
